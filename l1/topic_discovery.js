@@ -1,6 +1,6 @@
 /**
- * Signal Intelligence Engine v2
- * Advanced trend detection with real metrics
+ * Signal Intelligence Engine v2.1
+ * Normalized scoring, lifecycle logic, topic clustering
  */
 
 const https = require('https');
@@ -18,255 +18,285 @@ const SOURCE_WEIGHTS = {
   twitter: 0.3
 };
 
-// Extract topics from raw data
-function extractTopics(rawData) {
-  const topics = new Map();
+// Topic clusters
+const TOPIC_CLUSTERS = {
+  'ai-coding': ['code', 'coding', 'devin', 'cursor', 'roocode', 'v0', 'bolt', 'replit', 'lovable', 'powermode', 'cline', 'continue'],
+  'ai-agent': ['agent', 'agentic', 'autonomous', 'crewai', 'langchain', 'autogen', 'swarms'],
+  'video-generation': ['video', 'sora', 'runway', 'pika', 'kling', 'luma', 'pika', 'runway'],
+  'image-generation': ['image', 'stable-diffusion', 'midjourney', 'flux', 'dalle', 'imagen', ' Playground'],
+  'speech-tts': ['tts', 'speech', 'voice', 'audio', 'elevenlabs', 'coqui', 'bark'],
+  'llm-models': ['llm', 'gpt', 'claude', 'gemini', 'mistral', 'llama', 'qwen', 'gemma', 'phi'],
+  'robotics': ['robot', 'humanoid', 'figure', 'tesla-bot', 'unitree', 'boston'],
+  'quantum': ['quantum', 'qubit', 'qpu', 'ibmq', 'ionq'],
+  'biotech': ['crispr', 'protein', 'drug', 'biology', 'alphafold']
+};
+
+// Extract and cluster topics
+function extractAndCluster(rawData) {
+  // Group by cluster
+  const clusters = {};
+  const unclustered = [];
   
   rawData.forEach(item => {
-    const topic = item.topic || item.title;
-    if (!topic) return;
+    const topic = (item.topic || item.title || '').toLowerCase();
+    let clustered = false;
     
-    const normalized = normalizeTopic(topic);
-    
-    if (!topics.has(normalized)) {
-      topics.set(normalized, {
-        topic: normalized,
-        original: topic,
-        sources: new Set(),
-        metrics: { stars: 0, forks: 0, score: 0, citations: 0, funding: 0 },
-        evidence: [],
-        timestamps: [],
-        first_seen: item.timestamp,
-        last_updated: item.timestamp
-      });
+    // Try to find cluster
+    for (const [clusterName, keywords] of Object.entries(TOPIC_CLUSTERS)) {
+      if (keywords.some(k => topic.includes(k))) {
+        if (!clusters[clusterName]) {
+          clusters[clusterName] = {
+            name: clusterName,
+            topics: [],
+            sources: new Set(),
+            metrics: { stars: 0, forks: 0, score: 0 },
+            evidence: [],
+            timestamps: [],
+            first_seen: item.timestamp,
+            last_updated: item.timestamp
+          };
+        }
+        
+        clusters[clusterName].topics.push(topic);
+        clusters[clusterName].sources.add(item.source);
+        clusters[clusterName].evidence.push(item);
+        clusters[clusterName].timestamps.push(new Date(item.timestamp).getTime());
+        
+        if (item.stars) clusters[clusterName].metrics.stars += item.stars;
+        if (item.forks) clusters[clusterName].metrics.forks += item.forks;
+        if (item.score) clusters[clusterName].metrics.score += item.score;
+        
+        clusters[clusterName].last_updated = item.timestamp;
+        
+        clustered = true;
+        break;
+      }
     }
     
-    const t = topics.get(normalized);
-    t.sources.add(item.source);
-    t.evidence.push(item);
-    t.timestamps.push(new Date(item.timestamp).getTime());
-    t.last_updated = item.timestamp;
-    
-    if (item.stars) t.metrics.stars += item.stars;
-    if (item.forks) t.metrics.forks += item.forks;
-    if (item.score) t.metrics.score += item.score;
+    if (!clustered) {
+      unclustered.push(item);
+    }
   });
   
-  return Array.from(topics.values());
+  return { clusters, unclustered };
 }
 
-function normalizeTopic(topic) {
-  if (!topic) return '';
-  return topic.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim().substring(0, 50);
-}
+// ========== METRICS ==========
 
-// ========== V2 METRICS ==========
-
-// SECTION 1: TREND BREAK DETECTION
-function calculateTrendBreak(topic) {
+function calculateMetrics(topic) {
   const now = Date.now();
   const day = 24 * 60 * 60 * 1000;
   
-  // Get timestamps in sorted order
-  const timestamps = topic.timestamps.sort((a, b) => a - b);
+  const timestamps = topic.timestamps || [];
+  const timestampsSorted = timestamps.sort((a, b) => a - b);
   
-  // Calculate velocity for different periods
+  // Velocity (recent activity rate)
   const last7d = timestamps.filter(t => now - t < 7 * day).length;
   const last30d = timestamps.filter(t => now - t < 30 * day).length;
   const prev30d = timestamps.filter(t => now - t < 60 * day && now - t >= 30 * day).length;
   
-  // Trend break = recent velocity vs previous velocity
-  const velocity7d = last7d / 7;
-  const velocity30d = last30d / 30;
-  const velocityPrev30d = prev30d / 30 || 0.01;
+  const velocity = last30d > 0 ? (last7d / 7) / (last30d / 30) : 0;
   
-  // Trend break score
-  const trendBreak = velocity7d / velocityPrev30d;
+  // Momentum
+  const momentum = last30d > 0 ? (last7d / 7) / (last30d / 30) : 0;
   
-  return Math.min(trendBreak, 5); // Cap at 5x
+  // Trend break
+  const prevRate = prev30d > 0 ? prev30d / 30 : 0.01;
+  const trendBreak = last7d / 7 / prevRate;
+  
+  // Cross source
+  const uniqueSources = topic.sources?.size || 0;
+  const totalEvidence = topic.evidence?.length || 1;
+  const crossSource = uniqueSources / Math.sqrt(totalEvidence);
+  
+  // Impact (log engagement)
+  const m = topic.metrics || {};
+  const engagement = (m.stars || 0) + (m.forks || 0) * 2 + (m.score || 0) * 3;
+  const impact = Math.log10(engagement + 1) / 5;
+  
+  // Recency
+  const lastUpdated = topic.last_updated ? new Date(topic.last_updated).getTime() : now;
+  const hoursSince = (now - lastUpdated) / 36e5;
+  const recency = hoursSince < 1 ? 1 : hoursSince < 6 ? 0.9 : hoursSince < 24 ? 0.7 : hoursSince < 72 ? 0.5 : hoursSince < 168 ? 0.3 : 0.1;
+  
+  // Stability
+  const firstSeen = topic.first_seen ? new Date(topic.first_seen).getTime() : now;
+  const daysActive = (now - firstSeen) / (day);
+  const stability = Math.min(daysActive / 30, 1);
+  
+  // Confidence
+  let confidence = 0;
+  topic.sources?.forEach(s => confidence += SOURCE_WEIGHTS[s.toLowerCase()] || 0.5);
+  confidence = topic.sources?.size ? confidence / topic.sources.size : 0;
+  confidence += Math.min((topic.evidence?.length || 0) / 30, 0.4);
+  
+  return {
+    velocity: Math.min(velocity, 3),
+    momentum: Math.min(momentum, 3),
+    trendBreak: Math.min(trendBreak, 5),
+    crossSource: Math.min(crossSource, 1),
+    impact: Math.min(impact, 1),
+    recency,
+    stability,
+    confidence: Math.min(confidence, 1)
+  };
 }
 
-// SECTION 2: SIGNAL MOMENTUM
-function calculateMomentum(topic) {
-  const now = Date.now();
-  const day = 24 * 60 * 60 * 1000;
-  
-  const mentions7d = topic.timestamps.filter(t => now - t < 7 * day).length;
-  const mentions30d = topic.timestamps.filter(t => now - t < 30 * day).length;
-  
-  if (mentions30d === 0) return 0;
-  
-  // Momentum = recent activity vs historical
-  return (mentions7d / 7) / (mentions30d / 30);
-}
+// ========== LIFECYCLE LOGIC ==========
 
-// SECTION 3: CROSS SOURCE VALIDATION
-function calculateCrossSourceScore(topic) {
-  const uniqueSources = topic.sources.size;
-  const totalEvidence = topic.evidence.length;
+function determineLifecycle(metrics, ageDays) {
+  const { velocity, momentum, trendBreak, confidence } = metrics;
   
-  if (totalEvidence === 0) return 0;
-  
-  // Cross source score = unique sources / total evidence
-  // Higher score = more validation across sources
-  return Math.min((uniqueSources / Math.sqrt(totalEvidence)), 1);
-}
-
-// SECTION 4: IMPACT
-function calculateImpact(topic) {
-  const m = topic.metrics;
-  const totalEngagement = m.stars + (m.forks * 2) + (m.score * 3);
-  
-  // Log scale impact
-  const impact = Math.log10(totalEngagement + 1) / 4;
-  const sourceBonus = Math.min(topic.sources.size * 0.1, 0.2);
-  
-  return Math.min(impact + sourceBonus, 1);
-}
-
-// RECENCY
-function calculateRecency(topic) {
-  const hours = (Date.now() - new Date(topic.last_updated).getTime()) / 36e5;
-  if (hours < 1) return 1;
-  if (hours < 6) return 0.9;
-  if (hours < 24) return 0.7;
-  if (hours < 72) return 0.5;
-  if (hours < 168) return 0.3;
-  return 0.1;
-}
-
-// STABILITY
-function calculateStability(topic) {
-  const days = (Date.now() - new Date(topic.first_seen).getTime()) / (24 * 60 * 60 * 1000);
-  return Math.min(days / 30, 1);
-}
-
-// SECTION 4: SIGNAL STRENGTH (NEW FORMULA)
-function calculateSignalStrength(impact, velocity, recency, stability, crossSource, trendBreak) {
-  return (
-    0.25 * impact +
-    0.20 * velocity +
-    0.15 * recency +
-    0.15 * stability +
-    0.15 * crossSource +
-    0.10 * Math.min(trendBreak / 3, 1) // Normalize trend break
-  );
-}
-
-// SECTION 5: SIGNAL LIFECYCLE
-function determineLifecycle(velocity, confidence, momentum, trendBreak, ageDays) {
-  // Dead: no recent activity
+  // Dead: no activity
   if (velocity < 0.1 && ageDays > 14) return 'dead';
   
-  // Peak: maximum velocity, high momentum
-  if (trendBreak > 3 && momentum > 2) return 'peak';
+  // Peak: very rare, must have strong signals
+  // Only ~5% of signals should be peak
+  if (trendBreak > 3 && momentum > 2.5 && confidence > 0.7 && ageDays > 7) return 'peak';
   
-  // Accelerating: strong growth
-  if (velocity > 1.5 && momentum > 1.3) return 'accelerating';
+  // Accelerating: strong growth but not peak
+  // ~15% of signals
+  if (trendBreak > 2 && momentum > 1.8 && confidence > 0.6) return 'accelerating';
   
-  // Forming: consistent activity
-  if (velocity > 1.2 && confidence > 0.5) return 'forming';
+  // Forming: consistent growth
+  // ~20% of signals  
+  if (trendBreak > 1.5 && momentum > 1.3 && confidence > 0.5) return 'forming';
   
   // Emerging: some validation
-  if (confidence > 0.4 && velocity > 0.8) return 'emerging';
+  // ~25% of signals
+  if (confidence > 0.4 && velocity > 0.6) return 'emerging';
   
+  // Most signals should be weak (35%)
   return 'weak';
 }
 
-// TOPIC MERGE
-function mergeSimilarTopics(topics) {
-  const merged = [];
-  const processed = new Set();
+// ========== NORMALIZATION ==========
+
+function normalizeScores(signals) {
+  if (signals.length === 0) return signals;
   
-  const keywordGroups = {
-    'ai': ['ai', 'llm', 'gpt', 'chatgpt', 'claude', 'gemini', 'model', 'gemma'],
-    'agent': ['agent', 'autonomous', 'agentic', 'agentic workflow'],
-    'video': ['video', 'video generation', 'sora', 'runway', 'pika'],
-    'image': ['image', 'image generation', 'stable diffusion', 'midjourney', 'flux'],
-    'speech': ['speech', 'tts', 'voice', 'audio', 'wav'],
-    'code': ['code', 'coding', 'devin', 'programming', 'cursor'],
-    'robot': ['robot', 'robotics', 'humanoid'],
-    'quantum': ['quantum', 'qubit', 'qpu']
+  // Find min/max for each metric
+  const getValues = (key) => signals.map(s => s.rawMetrics?.[key] || 0);
+  
+  const minMax = {
+    signal_strength: { min: Math.min(...signals.map(s => s.signal_strength)), max: Math.max(...signals.map(s => s.signal_strength)) },
+    velocity: { min: 0, max: 3 },
+    momentum: { min: 0, max: 3 },
+    trendBreak: { min: 0, max: 5 },
+    confidence: { min: 0, max: 1 },
+    impact: { min: 0, max: 1 },
+    crossSource: { min: 0, max: 1 }
   };
   
-  topics.forEach(topic => {
-    if (processed.has(topic.topic)) return;
+  // Normalize
+  return signals.map(s => {
+    const raw = s.rawMetrics;
+    const nm = minMax;
     
-    const similar = topics.filter(t => {
-      if (t.topic === topic.topic || processed.has(t.topic)) return false;
-      
-      for (const [group, keywords] of Object.entries(keywordGroups)) {
-        const t1 = keywords.some(k => topic.topic.includes(k));
-        const t2 = keywords.some(k => t.topic.includes(k));
-        if (t1 && t2) return true;
+    return {
+      ...s,
+      normalized: {
+        signal_strength: (s.signal_strength - nm.signal_strength.min) / (nm.signal_strength.max - nm.signal_strength.min + 0.001),
+        velocity: raw.velocity / 3,
+        momentum: raw.momentum / 3,
+        trendBreak: raw.trendBreak / 5,
+        confidence: raw.confidence,
+        impact: raw.impact,
+        crossSource: raw.crossSource
       }
-      
-      const words1 = new Set(topic.topic.split(' '));
-      const words2 = new Set(t.topic.split(' '));
-      const overlap = [...words1].filter(w => words2.has(w)).length;
-      return overlap > 0;
-    });
-    
-    similar.forEach(s => {
-      topic.evidence.push(...s.evidence);
-      topic.timestamps.push(...s.timestamps);
-      s.sources.forEach(src => topic.sources.add(src));
-      topic.metrics.stars += s.metrics.stars;
-      topic.metrics.forks += s.metrics.forks;
-      topic.metrics.score += s.metrics.score;
-      processed.add(s.topic);
-    });
-    
-    merged.push(topic);
-    processed.add(topic.topic);
+    };
   });
-  
-  return merged;
 }
 
-// MAIN PROCESSING
+// ========== MAIN PROCESSING ==========
+
 function processSignals(rawData) {
-  let topics = extractTopics(rawData);
-  topics = mergeSimilarTopics(topics);
+  const { clusters, unclustered } = extractAndCluster(rawData);
   
-  return topics.map(topic => {
-    const impact = calculateImpact(topic);
-    const velocity = calculateMomentum(topic);
-    const recency = calculateRecency(topic);
-    const stability = calculateStability(topic);
-    const crossSource = calculateCrossSourceScore(topic);
-    const trendBreak = calculateTrendBreak(topic);
+  // Process each cluster as a topic signal
+  let signals = Object.values(clusters).map(cluster => {
+    const metrics = calculateMetrics(cluster);
+    const ageDays = (Date.now() - new Date(cluster.first_seen).getTime()) / (24 * 60 * 60 * 1000);
     
-    // Confidence based on sources
-    let confidence = 0;
-    topic.sources.forEach(s => confidence += SOURCE_WEIGHTS[s.toLowerCase()] || 0.5);
-    confidence = (confidence / topic.sources.size) + Math.min(topic.evidence.length / 20, 0.3);
-    confidence = Math.min(confidence, 1);
-    
-    const ageDays = (Date.now() - new Date(topic.first_seen).getTime()) / (24 * 60 * 60 * 1000);
-    const lifecycle = determineLifecycle(velocity, confidence, calculateMomentum(topic), trendBreak, ageDays);
-    
-    const signalStrength = calculateSignalStrength(
-      impact, velocity, recency, stability, crossSource, trendBreak
+    // Calculate signal strength (raw, before normalization)
+    const signalStrength = (
+      0.25 * metrics.impact +
+      0.20 * metrics.velocity +
+      0.15 * metrics.recency +
+      0.15 * metrics.stability +
+      0.15 * metrics.crossSource +
+      0.10 * Math.min(metrics.trendBreak / 3, 1)
     );
     
     return {
-      topic: topic.topic,
-      stage: lifecycle,
+      topic: cluster.name.replace('-', ' '),
+      topic_cluster: cluster.name,
+      stage: determineLifecycle(metrics, ageDays),
       signal_strength: Math.round(signalStrength * 100) / 100,
-      confidence: Math.round(confidence * 100) / 100,
-      velocity: Math.round(velocity * 100) / 100,
-      momentum: Math.round(calculateMomentum(topic) * 100) / 100,
-      trend_break: Math.round(trendBreak * 100) / 100,
-      impact_score: Math.round(impact * 100) / 100,
-      cross_source: Math.round(crossSource * 100) / 100,
-      evidence_count: topic.evidence.length,
-      sources: Array.from(topic.sources),
-      metrics: topic.metrics,
-      first_seen: topic.first_seen,
-      last_updated: topic.last_updated
+      confidence: Math.round(metrics.confidence * 100) / 100,
+      velocity: Math.round(metrics.velocity * 100) / 100,
+      momentum: Math.round(metrics.momentum * 100) / 100,
+      trend_break: Math.round(metrics.trendBreak * 100) / 100,
+      impact_score: Math.round(metrics.impact * 100) / 100,
+      cross_source: Math.round(metrics.crossSource * 100) / 100,
+      evidence_count: cluster.evidence?.length || 0,
+      sources: Array.from(cluster.sources || []),
+      rawMetrics: metrics,
+      first_seen: cluster.first_seen,
+      last_updated: cluster.last_updated
     };
-  }).sort((a, b) => b.signal_strength - a.signal_strength);
+  });
+  
+  // Add unclustered as individual signals
+  const unclusteredSignals = unclustered.slice(0, 20).map(item => {
+    const singleTopic = {
+      name: item.topic || item.title,
+      sources: new Set([item.source]),
+      metrics: { stars: item.stars || 0, forks: item.forks || 0, score: item.score || 0 },
+      evidence: [item],
+      timestamps: [new Date(item.timestamp).getTime()],
+      first_seen: item.timestamp,
+      last_updated: item.timestamp
+    };
+    
+    const metrics = calculateMetrics(singleTopic);
+    const ageDays = (Date.now() - new Date(singleTopic.first_seen).getTime()) / (24 * 60 * 60 * 1000);
+    
+    const signalStrength = (
+      0.25 * metrics.impact +
+      0.20 * metrics.velocity +
+      0.15 * metrics.recency +
+      0.15 * metrics.stability +
+      0.15 * metrics.crossSource +
+      0.10 * Math.min(metrics.trendBreak / 3, 1)
+    );
+    
+    return {
+      topic: item.topic || item.title,
+      topic_cluster: 'uncategorized',
+      stage: determineLifecycle(metrics, ageDays),
+      signal_strength: Math.round(signalStrength * 100) / 100,
+      confidence: Math.round(metrics.confidence * 100) / 100,
+      velocity: Math.round(metrics.velocity * 100) / 100,
+      momentum: Math.round(metrics.momentum * 100) / 100,
+      trend_break: Math.round(metrics.trendBreak * 100) / 100,
+      impact_score: Math.round(metrics.impact * 100) / 100,
+      cross_source: Math.round(metrics.crossSource * 100) / 100,
+      evidence_count: 1,
+      sources: [item.source],
+      rawMetrics: metrics,
+      first_seen: item.timestamp,
+      last_updated: item.timestamp
+    };
+  });
+  
+  signals = [...signals, ...unclusteredSignals];
+  
+  // Normalize scores
+  signals = normalizeScores(signals);
+  
+  // Sort by signal strength
+  return signals.sort((a, b) => b.signal_strength - a.signal_strength);
 }
 
 module.exports = { processSignals };
