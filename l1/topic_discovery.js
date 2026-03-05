@@ -1,21 +1,21 @@
 /**
- * L1: Topic Discovery & Signal Engine
- * Real signal processing with authentic metrics
+ * Signal Intelligence Engine v2
+ * Advanced trend detection with real metrics
  */
 
 const https = require('https');
 
-// Signal stages
-const STAGES = ['weak', 'emerging', 'forming', 'accelerating', 'peak', 'fading'];
+// Signal lifecycle stages
+const STAGES = ['weak', 'emerging', 'forming', 'accelerating', 'peak', 'fading', 'dead'];
 
 // Source trust weights
 const SOURCE_WEIGHTS = {
-  github: 0.9,      // High trust - verified data
-  hackernews: 0.7,  // Medium-high trust - community
-  arxiv: 0.95,      // Very high trust - academic
-  techcrunch: 0.8,  // High trust - verified news
-  reddit: 0.4,      // Lower trust - variable
-  twitter: 0.3     // Low trust - unverified
+  github: 0.9,
+  hackernews: 0.7,
+  arxiv: 0.95,
+  techcrunch: 0.8,
+  reddit: 0.4,
+  twitter: 0.3
 };
 
 // Extract topics from raw data
@@ -26,7 +26,6 @@ function extractTopics(rawData) {
     const topic = item.topic || item.title;
     if (!topic) return;
     
-    // Normalize topic
     const normalized = normalizeTopic(topic);
     
     if (!topics.has(normalized)) {
@@ -34,14 +33,9 @@ function extractTopics(rawData) {
         topic: normalized,
         original: topic,
         sources: new Set(),
-        metrics: {
-          stars: 0,
-          forks: 0,
-          score: 0,
-          citations: 0,
-          funding: 0
-        },
+        metrics: { stars: 0, forks: 0, score: 0, citations: 0, funding: 0 },
         evidence: [],
+        timestamps: [],
         first_seen: item.timestamp,
         last_updated: item.timestamp
       });
@@ -50,9 +44,9 @@ function extractTopics(rawData) {
     const t = topics.get(normalized);
     t.sources.add(item.source);
     t.evidence.push(item);
+    t.timestamps.push(new Date(item.timestamp).getTime());
     t.last_updated = item.timestamp;
     
-    // Accumulate real metrics
     if (item.stars) t.metrics.stars += item.stars;
     if (item.forks) t.metrics.forks += item.forks;
     if (item.score) t.metrics.score += item.score;
@@ -61,154 +55,161 @@ function extractTopics(rawData) {
   return Array.from(topics.values());
 }
 
-// Normalize topic names
 function normalizeTopic(topic) {
   if (!topic) return '';
-  return topic
-    .toLowerCase()
-    .replace(/[^a-z0-9\s]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .substring(0, 50);
+  return topic.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim().substring(0, 50);
 }
 
-// Calculate REAL impact score
+// ========== V2 METRICS ==========
+
+// SECTION 1: TREND BREAK DETECTION
+function calculateTrendBreak(topic) {
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  
+  // Get timestamps in sorted order
+  const timestamps = topic.timestamps.sort((a, b) => a - b);
+  
+  // Calculate velocity for different periods
+  const last7d = timestamps.filter(t => now - t < 7 * day).length;
+  const last30d = timestamps.filter(t => now - t < 30 * day).length;
+  const prev30d = timestamps.filter(t => now - t < 60 * day && now - t >= 30 * day).length;
+  
+  // Trend break = recent velocity vs previous velocity
+  const velocity7d = last7d / 7;
+  const velocity30d = last30d / 30;
+  const velocityPrev30d = prev30d / 30 || 0.01;
+  
+  // Trend break score
+  const trendBreak = velocity7d / velocityPrev30d;
+  
+  return Math.min(trendBreak, 5); // Cap at 5x
+}
+
+// SECTION 2: SIGNAL MOMENTUM
+function calculateMomentum(topic) {
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  
+  const mentions7d = topic.timestamps.filter(t => now - t < 7 * day).length;
+  const mentions30d = topic.timestamps.filter(t => now - t < 30 * day).length;
+  
+  if (mentions30d === 0) return 0;
+  
+  // Momentum = recent activity vs historical
+  return (mentions7d / 7) / (mentions30d / 30);
+}
+
+// SECTION 3: CROSS SOURCE VALIDATION
+function calculateCrossSourceScore(topic) {
+  const uniqueSources = topic.sources.size;
+  const totalEvidence = topic.evidence.length;
+  
+  if (totalEvidence === 0) return 0;
+  
+  // Cross source score = unique sources / total evidence
+  // Higher score = more validation across sources
+  return Math.min((uniqueSources / Math.sqrt(totalEvidence)), 1);
+}
+
+// SECTION 4: IMPACT
 function calculateImpact(topic) {
   const m = topic.metrics;
-  
-  // Impact = log of total engagement
   const totalEngagement = m.stars + (m.forks * 2) + (m.score * 3);
   
-  // Log scale to prevent outliers from dominating
-  const impact = Math.log10(totalEngagement + 1) / 4; // Normalize to 0-1
-  
-  // Source diversity bonus
+  // Log scale impact
+  const impact = Math.log10(totalEngagement + 1) / 4;
   const sourceBonus = Math.min(topic.sources.size * 0.1, 0.2);
   
   return Math.min(impact + sourceBonus, 1);
 }
 
-// Calculate REAL velocity (growth rate)
-function calculateVelocity(topic) {
-  const evidence = topic.evidence;
-  const now = Date.now();
-  const day = 24 * 60 * 60 * 1000;
-  
-  // Count evidence in last 7 days vs 30 days
-  const last7days = evidence.filter(e => now - new Date(e.timestamp).getTime() < 7 * day).length;
-  const last30days = evidence.filter(e => now - new Date(e.timestamp).getTime() < 30 * day).length;
-  
-  if (last30days === 0) return 1;
-  
-  // Velocity = ratio of recent to historical activity
-  const velocity = (last7days / 7) / (last30days / 30);
-  
-  return Math.min(velocity, 3); // Cap at 3x
-}
-
-// Calculate REAL confidence score
-function calculateConfidence(topic) {
-  let confidence = 0;
-  
-  // Source trust weighted by presence
-  topic.sources.forEach(source => {
-    confidence += SOURCE_WEIGHTS[source.toLowerCase()] || 0.5;
-  });
-  
-  // Normalize by number of sources
-  confidence = confidence / topic.sources.size;
-  
-  // Evidence count bonus
-  confidence += Math.min(topic.evidence.length / 20, 0.3);
-  
-  return Math.min(confidence, 1);
-}
-
-// Calculate recency score
+// RECENCY
 function calculateRecency(topic) {
-  const hoursSinceUpdate = (Date.now() - new Date(topic.last_updated).getTime()) / 36e5;
-  
-  if (hoursSinceUpdate < 1) return 1;
-  if (hoursSinceUpdate < 6) return 0.9;
-  if (hoursSinceUpdate < 24) return 0.7;
-  if (hoursSinceUpdate < 72) return 0.5;
-  if (hoursSinceUpdate < 168) return 0.3; // 1 week
+  const hours = (Date.now() - new Date(topic.last_updated).getTime()) / 36e5;
+  if (hours < 1) return 1;
+  if (hours < 6) return 0.9;
+  if (hours < 24) return 0.7;
+  if (hours < 72) return 0.5;
+  if (hours < 168) return 0.3;
   return 0.1;
 }
 
-// Calculate stability
+// STABILITY
 function calculateStability(topic) {
-  const daysActive = (Date.now() - new Date(topic.first_seen).getTime()) / (24 * 60 * 60 * 1000);
-  return Math.min(daysActive / 30, 1); // Cap at 30 days
+  const days = (Date.now() - new Date(topic.first_seen).getTime()) / (24 * 60 * 60 * 1000);
+  return Math.min(days / 30, 1);
 }
 
-// Determine stage based on REAL metrics
-function determineStage(velocity, confidence, impact, ageDays) {
-  // Very new topics
-  if (ageDays < 3) return 'weak';
+// SECTION 4: SIGNAL STRENGTH (NEW FORMULA)
+function calculateSignalStrength(impact, velocity, recency, stability, crossSource, trendBreak) {
+  return (
+    0.25 * impact +
+    0.20 * velocity +
+    0.15 * recency +
+    0.15 * stability +
+    0.15 * crossSource +
+    0.10 * Math.min(trendBreak / 3, 1) // Normalize trend break
+  );
+}
+
+// SECTION 5: SIGNAL LIFECYCLE
+function determineLifecycle(velocity, confidence, momentum, trendBreak, ageDays) {
+  // Dead: no recent activity
+  if (velocity < 0.1 && ageDays > 14) return 'dead';
   
-  // High velocity + high confidence = accelerating
-  if (velocity > 1.5 && confidence > 0.6) return 'accelerating';
+  // Peak: maximum velocity, high momentum
+  if (trendBreak > 3 && momentum > 2) return 'peak';
   
-  // Strong signals forming
+  // Accelerating: strong growth
+  if (velocity > 1.5 && momentum > 1.3) return 'accelerating';
+  
+  // Forming: consistent activity
   if (velocity > 1.2 && confidence > 0.5) return 'forming';
   
-  // Emerging patterns
-  if (confidence > 0.4) return 'emerging';
+  // Emerging: some validation
+  if (confidence > 0.4 && velocity > 0.8) return 'emerging';
   
   return 'weak';
 }
 
-// Calculate FINAL signal priority
-function calculatePriority(impact, confidence, velocity, recency, stability) {
-  return (
-    0.30 * impact +
-    0.25 * confidence +
-    0.20 * velocity +
-    0.15 * recency +
-    0.10 * stability
-  );
-}
-
-// Topic merge using keyword similarity
+// TOPIC MERGE
 function mergeSimilarTopics(topics) {
   const merged = [];
   const processed = new Set();
   
-  // Keywords that indicate same topic
   const keywordGroups = {
-    'ai': ['ai', 'llm', 'gpt', 'chatgpt', 'claude', 'gemini', 'model'],
-    'agent': ['agent', 'autonomous', 'agentic'],
-    'video': ['video', 'video generation', 'sora', 'runway'],
-    'image': ['image', 'image generation', 'stable diffusion', 'midjourney'],
-    'speech': ['speech', 'tts', 'voice', 'audio'],
-    'code': ['code', 'coding', 'devin', 'programming']
+    'ai': ['ai', 'llm', 'gpt', 'chatgpt', 'claude', 'gemini', 'model', 'gemma'],
+    'agent': ['agent', 'autonomous', 'agentic', 'agentic workflow'],
+    'video': ['video', 'video generation', 'sora', 'runway', 'pika'],
+    'image': ['image', 'image generation', 'stable diffusion', 'midjourney', 'flux'],
+    'speech': ['speech', 'tts', 'voice', 'audio', 'wav'],
+    'code': ['code', 'coding', 'devin', 'programming', 'cursor'],
+    'robot': ['robot', 'robotics', 'humanoid'],
+    'quantum': ['quantum', 'qubit', 'qpu']
   };
   
   topics.forEach(topic => {
     if (processed.has(topic.topic)) return;
     
-    // Find similar topics
     const similar = topics.filter(t => {
       if (t.topic === topic.topic || processed.has(t.topic)) return false;
       
-      // Check keyword groups
       for (const [group, keywords] of Object.entries(keywordGroups)) {
-        const t1Matches = keywords.some(k => topic.topic.includes(k));
-        const t2Matches = keywords.some(k => t.topic.includes(k));
-        if (t1Matches && t2Matches) return true;
+        const t1 = keywords.some(k => topic.topic.includes(k));
+        const t2 = keywords.some(k => t.topic.includes(k));
+        if (t1 && t2) return true;
       }
       
-      // Also check word overlap
       const words1 = new Set(topic.topic.split(' '));
       const words2 = new Set(t.topic.split(' '));
       const overlap = [...words1].filter(w => words2.has(w)).length;
       return overlap > 0;
     });
     
-    // Merge into main topic
     similar.forEach(s => {
       topic.evidence.push(...s.evidence);
+      topic.timestamps.push(...s.timestamps);
       s.sources.forEach(src => topic.sources.add(src));
       topic.metrics.stars += s.metrics.stars;
       topic.metrics.forks += s.metrics.forks;
@@ -223,45 +224,49 @@ function mergeSimilarTopics(topics) {
   return merged;
 }
 
-// Main signal processing
+// MAIN PROCESSING
 function processSignals(rawData) {
-  // Extract topics
   let topics = extractTopics(rawData);
-  
-  // Merge similar topics
   topics = mergeSimilarTopics(topics);
   
-  // Calculate metrics for each topic
   return topics.map(topic => {
     const impact = calculateImpact(topic);
-    const confidence = calculateConfidence(topic);
-    const velocity = calculateVelocity(topic);
+    const velocity = calculateMomentum(topic);
     const recency = calculateRecency(topic);
     const stability = calculateStability(topic);
+    const crossSource = calculateCrossSourceScore(topic);
+    const trendBreak = calculateTrendBreak(topic);
+    
+    // Confidence based on sources
+    let confidence = 0;
+    topic.sources.forEach(s => confidence += SOURCE_WEIGHTS[s.toLowerCase()] || 0.5);
+    confidence = (confidence / topic.sources.size) + Math.min(topic.evidence.length / 20, 0.3);
+    confidence = Math.min(confidence, 1);
     
     const ageDays = (Date.now() - new Date(topic.first_seen).getTime()) / (24 * 60 * 60 * 1000);
-    const stage = determineStage(velocity, confidence, impact, ageDays);
-    const priority = calculatePriority(impact, confidence, velocity, recency, stability);
+    const lifecycle = determineLifecycle(velocity, confidence, calculateMomentum(topic), trendBreak, ageDays);
+    
+    const signalStrength = calculateSignalStrength(
+      impact, velocity, recency, stability, crossSource, trendBreak
+    );
     
     return {
       topic: topic.topic,
-      original_topics: [topic.original],
-      stage,
+      stage: lifecycle,
+      signal_strength: Math.round(signalStrength * 100) / 100,
       confidence: Math.round(confidence * 100) / 100,
       velocity: Math.round(velocity * 100) / 100,
+      momentum: Math.round(calculateMomentum(topic) * 100) / 100,
+      trend_break: Math.round(trendBreak * 100) / 100,
       impact_score: Math.round(impact * 100) / 100,
-      priority: Math.round(priority * 100) / 100,
+      cross_source: Math.round(crossSource * 100) / 100,
       evidence_count: topic.evidence.length,
       sources: Array.from(topic.sources),
       metrics: topic.metrics,
       first_seen: topic.first_seen,
       last_updated: topic.last_updated
     };
-  }).sort((a, b) => b.priority - a.priority);
+  }).sort((a, b) => b.signal_strength - a.signal_strength);
 }
 
-module.exports = {
-  processSignals,
-  calculatePriority,
-  determineStage
-};
+module.exports = { processSignals };
