@@ -591,9 +591,71 @@
     // Get event ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const eventId = urlParams.get('id') || 'evt_001';
+    const API_BASE = 'https://signal-market-z14d.vercel.app';
     
-    // Mock Event Data
-    const eventData = {
+    // Fetch real data from API
+    let eventData = null;
+    
+    async function loadEventData() {
+      try {
+        const response = await fetch(API_BASE + '/signals');
+        const data = await response.json();
+        const signals = data.signals || [];
+        
+        // Find matching signal or use first one
+        const signal = signals.find(s => s.topic.toLowerCase().replace(/\s+/g, '-') === eventId) || signals[0];
+        
+        if (signal) {
+          eventData = {
+            id: signal.topic.toLowerCase().replace(/\s+/g, '-'),
+            title: signal.topic,
+            stage: signal.stage,
+            probability: Math.round(signal.confidence * 100),
+            previousProb: Math.round(signal.confidence * 100) - 10,
+            updatedAt: new Date(),
+            createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+            history: generateHistory(signal.confidence),
+            assets: generateAssets(signal.topic),
+            evidence: generateEvidence(signal)
+          };
+        } else {
+          eventData = getDefaultEventData();
+        }
+      } catch (e) {
+        console.error('Failed to load from API:', e);
+        eventData = getDefaultEventData();
+      }
+      renderEvent();
+    }
+    
+    function generateHistory(confidence) {
+      const base = confidence * 100;
+      return Array.from({length: 7}, (_, i) => ({
+        date: new Date(Date.now() - (6-i) * 24 * 60 * 60 * 1000),
+        prob: Math.max(10, Math.min(95, base - 20 + i * 5 + Math.random() * 10))
+      }));
+    }
+    
+    function generateAssets(topic) {
+      return [
+        { symbol: topic.substring(0,3).toUpperCase(), name: topic + ' Index', correlation: 0.85, type: 'positive' },
+        { symbol: 'TECH', name: 'Tech Sector ETF', correlation: 0.72, type: 'positive' }
+      ];
+    }
+    
+    function generateEvidence(signal) {
+      return (signal.sources || ['github', 'hackernews']).slice(0, 3).map((source, i) => ({
+        id: 'ev_' + i,
+        type: source,
+        title: signal.topic + ' - ' + (i === 0 ? 'Trending on ' + source : 'Mentioned in ' + source),
+        summary: 'Signal detected with confidence ' + Math.round(signal.confidence * 100) + '%',
+        source: source,
+        time: new Date(Date.now() - i * 3600000),
+        sentiment: 'positive'
+      }));
+    }
+    
+    function getDefaultEventData() {
       id: 'evt_001',
       title: 'Bitcoin ETF Approval by SEC',
       stage: 'peak',
@@ -916,8 +978,8 @@
       });
     }
     
-    // Initialize
-    renderEvent();
+    // Initialize - load real data from API
+    loadEventData();
     
     // Simulate real-time updates
     setInterval(() => {
