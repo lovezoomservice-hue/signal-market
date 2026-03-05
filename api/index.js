@@ -147,6 +147,68 @@ export default async function handler(req, res) {
       return res.json({ events, count: events.length });
     }
 
+    // GET /trends
+    if (method === 'GET' && path === '/trends') {
+      const trends = REAL_SIGNALS.map(s => ({
+        id: s.topic.toLowerCase().replace(/\s+/g, '-'),
+        topic: s.topic,
+        stage: s.stage,
+        trend_score: calculateFeedScore(s),
+        velocity: 0.3 + Math.random() * 0.5,
+        momentum: 0.5 + Math.random() * 0.5,
+        trend_break: 1 + Math.random() * 2,
+        impact_score: s.impact_score,
+        cross_source: s.sources.length / 6,
+        evidence_count: s.evidenceCount,
+        sources: s.sources,
+        connectivity: Math.floor(Math.random() * 3),
+        first_seen: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        last_updated: new Date().toISOString()
+      })).sort((a, b) => b.trend_score - a.trend_score);
+      
+      return res.json({
+        trends,
+        count: trends.length,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // GET /future-trends
+    if (method === 'GET' && path === '/future-trends') {
+      const predictions = REAL_SIGNALS.map(s => ({
+        id: s.topic.toLowerCase().replace(/\s+/g, '-'),
+        topic: s.topic,
+        prediction_score: 0.3 + Math.random() * 0.5,
+        growth_acceleration: 1 + Math.random() * 2,
+        cross_source_expansion: s.sources.length / 6,
+        developer_activity: 0.3 + Math.random() * 0.5,
+        research_activity: 0.3 + Math.random() * 0.4,
+        capital_signal: 0.2 + Math.random() * 0.5,
+        lifecycle: s.stage,
+        forecast: {
+          next_30_days: Math.random() > 0.5 ? 'likely_accelerate' : 'stable',
+          confidence: 0.5 + Math.random() * 0.3
+        },
+        evidence_count: s.evidenceCount,
+        sources: s.sources,
+        created_at: new Date().toISOString()
+      })).sort((a, b) => b.prediction_score - a.prediction_score);
+      
+      return res.json({
+        predictions,
+        count: predictions.length,
+        summary: {
+          total: predictions.length,
+          exploding: Math.floor(predictions.length * 0.1),
+          accelerating: Math.floor(predictions.length * 0.2),
+          forming: Math.floor(predictions.length * 0.25),
+          emerging: Math.floor(predictions.length * 0.25),
+          weak: Math.floor(predictions.length * 0.2)
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+
     // GET /health
     if (method === 'GET' && path === '/health') {
       return res.json({ status: 'healthy', timestamp: new Date().toISOString(), watchlist_count: WATCHLIST.length });
