@@ -1,0 +1,18 @@
+# Signal Market SPA - 最小化路由
+
+# 首页
+/ /index.html 200
+
+# 产品页面
+/dashboard /dashboard_live.html 200
+/events /events.html 200
+/topics /topics.html 200
+/lens /lens.html 200
+/watchlist /watchlist.html 200
+/portal /portal.html 200
+/profile /profile.html 200
+/developer /developer.html 200
+/admin /admin.html 200
+
+# 回退
+/* /index.html 200

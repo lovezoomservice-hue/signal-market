@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>开发者中心 - Signal Market</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav a:hover, .nav a.active {
+            color: var(--primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .hero p {
+            opacity: 0.9;
+        }
+        
+        .section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+        }
+        
+        .section h3 {
+            font-size: 1.125rem;
+            margin: 1.5rem 0 0.75rem;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .code-block .comment {
+            color: #64748b;
+        }
+        
+        .tab-container {
+            margin: 1rem 0;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 0;
+        }
+        
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn.active {
+            background: #1e293b;
+            color: white;
+            border-color: #1e293b;
+        }
+        
+        .tab-content {
+            display: none;
+            background: #1e293b;
+            border-radius: 0 8px 8px 8px;
+            padding: 1rem;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .feature-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+        
+        .feature-card h4 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+        
+        .faq-item {
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+        }
+        
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        
+        .faq-question {
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+        
+        .faq-answer {
+            color: var(--text-light);
+        }
+        
+        .install-steps {
+            counter-reset: step;
+        }
+        
+        .install-step {
+            position: relative;
+            padding-left: 3rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .install-step::before {
+            counter-increment: step;
+            content: counter(step);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 2rem;
+            height: 2rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .install-step h4 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .install-step p {
+            color: var(--text-light);
+        }
+        
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-light);
+            margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">Signal Market</a>
+            <nav class="nav">
+                <a href="index.html">API 文档</a>
+                <a href="developer.html" class="active">开发者中心</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>开发者中心</h1>
+            <p>SDK安装、代码示例、常见问题 - 快速上手 Signal Market API</p>
+        </div>
+
+        <section class="section">
+            <h2>快速开始</h2>
+            
+            <div class="install-steps">
+                <div class="install-step">
+                    <h4>获取 API Key</h4>
+                    <p>访问 dashboard.signal.market 注册账号并获取您的 API Key</p>
+                </div>
+                
+                <div class="install-step">
+                    <h4>安装 SDK</h4>
+                    <div class="code-block"># Node.js
+npm install @signal-market/sdk
+
+# Python
+pip install signal-market</div>
+                </div>
+                
+                <div class="install-step">
+                    <h4>初始化客户端</h4>
+                    <div class="code-block">import { SignalMarket } from '@signal-market/sdk';
+
+const client = new SignalMarket({
+  apiKey: 'your_api_key_here'
+});</div>
+                </div>
+                
+                <div class="install-step">
+                    <h4>开始使用</h4>
+                    <div class="code-block">// 获取事件列表
+const events = await client.events.list({
+  limit: 10,
+  stage: 'accelerating'
+});
+
+console.log(events);</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>SDK 安装</h2>
+            
+            <h3>Node.js / JavaScript</h3>
+            <div class="code-block"># 使用 npm
+npm install @signal-market/sdk
+
+# 使用 yarn
+yarn add @signal-market/sdk
+
+# 使用 pnpm
+pnpm add @signal-market/sdk</div>
+            
+            <h3>Python</h3>
+            <div class="code-block"># 使用 pip
+pip install signal-market
+
+# 或使用 poetry
+poetry add signal-market</div>
+            
+            <h3>Go</h3>
+            <div class="code-block">go get github.com/signal-market/go-sdk</div>
+        </section>
+
+        <section class="section">
+            <h2>代码示例</h2>
+            
+            <h3>JavaScript / TypeScript</h3>
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="showTab(this, 'js-basic')">基础操作</button>
+                    <button class="tab-btn" onclick="showTab(this, 'js-advanced')">高级用法</button>
+                </div>
+                <div id="js-basic" class="tab-content active">
+                    <div class="code-block">import { SignalMarket } from '@signal-market/sdk';
+
+const client = new SignalMarket({
+  apiKey: process.env.SIGNAL_API_KEY,
+  baseUrl: 'https://api.signal.market'
+});
+
+// 获取事件列表
+const events = await client.events.list({
+  limit: 10,
+  stage: 'accelerating,peak',
+  sortBy: 'probability',
+  sortOrder: 'desc'
+});
+
+console.log('发现事件:', events.events.length);
+
+// 获取特定事件概率
+const probability = await client.events.getProbability('evt_001');
+console.log('当前概率:', probability.current);
+console.log('7天预测:', probability.P_7d);
+
+// 获取用户透镜简报
+const brief = await client.lenses.getBrief('lens_a_stock');
+console.log('关注主题:', brief.topics_watched);
+console.log('机会:', brief.top_opportunities);</div>
+                </div>
+                <div id="js-advanced" class="tab-content">
+                    <div class="code-block">import { SignalMarket, EventStage } from '@signal-market/sdk';
+
+const client = new SignalMarket({ apiKey: 'your_key' });
+
+// 使用流式订阅实时更新
+const stream = client.events.subscribe({
+  stage: [EventStage.ACCELERATING, EventStage.PEAK]
+});
+
+stream.on('event', (event) => {
+  console.log('新事件:', event.title);
+  // 自动处理
+});
+
+// 创建自定义监控
+const watch = await client.watch.create({
+  event_ids: ['evt_001', 'evt_002', 'evt_003'],
+  notify_email: 'alert@example.com',
+  webhook_url: 'https://yourapp.com/webhook'
+});
+
+console.log('监控ID:', watch.watch_id);
+
+// 批量查询
+const results = await Promise.all([
+  client.events.getProbability('evt_001'),
+  client.events.getProbability('evt_002'),
+  client.events.getProbability('evt_003')
+]);
+
+// 处理结果
+results.forEach(r => {
+  console.log(`${r.topic}: ${r.current * 100}%`);
+});</div>
+                </div>
+            </div>
+            
+            <h3>Python</h3>
+            <div class="code-block">from signal_market import SignalMarket
+
+client = SignalMarket(api_key="your_api_key")
+
+# 获取事件列表
+events = client.events.list(
+    limit=10,
+    stage="accelerating,peak",
+    sort_by="probability",
+    sort_order="desc"
+)
+
+print(f"发现事件: {len(events['events'])}")
+
+# 获取特定事件概率
+probability = client.events.get_probability("evt_001")
+print(f"当前概率: {probability['current']}")
+print(f"7天预测: {probability['P_7d']}")
+
+# 获取用户透镜简报
+brief = client.lenses.get_brief("lens_a_stock")
+print(f"关注主题: {brief['topics_watched']}")</div>
+            
+            <h3>使用 WebSocket 实时订阅</h3>
+            <div class="code-block">// Node.js WebSocket 订阅
+const { SignalMarket } = require('@signal-market/sdk');
+
+const ws = SignalMarket.websocket({
+  apiKey: 'your_api_key'
+});
+
+// 订阅加速中事件
+ws.subscribe('events', {
+  stage: ['accelerating', 'peak']
+});
+
+ws.on('message', (data) => {
+  if (data.type === 'event_update') {
+    console.log('新事件:', data.event.title);
+    console.log('概率变化:', data.event.probability);
+  }
+});
+
+ws.on('error', (err) => {
+  console.error('WebSocket错误:', err);
+});</div>
+        </section>
+
+        <section class="section">
+            <h2>功能特性</h2>
+            
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>实时事件检测</h4>
+                    <p>自动识别新兴热点事件，按阶段分类（emerging, accelerating, peak, fading）</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>概率预测</h4>
+                    <p>提供7天、30天概率预测，追踪事件发展趋势</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>用户透镜</h4>
+                    <p>自定义关注领域，获取个性化简报和机会提醒</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>证据追踪</h4>
+                    <p>关联事件相关新闻、社交媒体、研究报告等证据</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>预测市场</h4>
+                    <p>整合预测市场数据，获取市场共识概率</p>
+                </div>
+                
+                <div class="feature-card">
+                    <h4>实时监控</h4>
+                    <p>创建事件监控，通过邮件或 Webhook 接收通知</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>常见问题</h2>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: 如何获取 API Key？</div>
+                <div class="faq-answer">A: 注册账号后，在个人设置或开发者页面可以创建和管理 API Key。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: API 调用频率有限制吗？</div>
+                <div class="faq-answer">A: 免费版每分钟 60 次，专业版更高。如需更高限制请联系销售。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: 事件概率是如何计算的？</div>
+                <div class="faq-answer">A: 综合考虑事件相关证据的数量、来源权重、时间衰减等因素，结合预测市场数据。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: 支持哪些编程语言？</div>
+                <div class="faq-answer">A: 我们提供 JavaScript/TypeScript、Python、Go SDK，其他语言可直接调用 REST API。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: 如何获取实时更新？</div>
+                <div class="faq-answer">A: 可以使用 WebSocket 订阅或轮询 /signals/health 端点获取增量更新。</div>
+            </div>
+            
+            <div class="faq-item">
+                <div class="faq-question">Q: 数据源包括哪些？</div>
+                <div class="faq-answer">A: 包括主流新闻媒体、社交平台、研究报告、预测市场等多个数据源。</div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2>错误处理</h2>
+            
+            <div class="code-block">import { SignalMarket, APIError, RateLimitError } from '@signal-market/sdk';
+
+const client = new SignalMarket({ apiKey: 'your_key' });
+
+try {
+  const events = await client.events.list({ limit: 100 });
+} catch (error) {
+  if (error instanceof RateLimitError) {
+    // 处理频率限制
+    console.log('请求过于频繁，等待', error.retryAfter, '秒');
+    await sleep(error.retryAfter * 1000);
+  } else if (error instanceof APIError) {
+    // 处理 API 错误
+    console.error('API错误:', error.code, error.message);
+  } else {
+    // 处理网络错误
+    console.error('网络错误:', error.message);
+  }
+}</div>
+        </section>
+
+        <section class="section">
+            <h2>更多资源</h2>
+            <ul>
+                <li><a href="index.html" style="color: var(--primary);">完整 API 文档</a></li>
+                <li><a href="../blog/index.html" style="color: var(--primary);">产品博客</a></li>
+                <li><a href="https://github.com/signal-market" style="color: var(--primary);">GitHub</a></li>
+                <li><a href="mailto:support@signal.market" style="color: var(--primary);">技术支持</a></li>
+            </ul>
+        </section>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Signal Market. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function showTab(btn, tabId) {
+            const parent = btn.closest('.tab-container');
+            parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
+</body>
+</html>

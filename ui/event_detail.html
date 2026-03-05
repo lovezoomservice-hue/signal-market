@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Detail - Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080c;
+      --surface: rgba(15, 15, 22, 0.95);
+      --surface-hover: rgba(25, 25, 35, 0.95);
+      --border: rgba(46, 46, 62, 0.6);
+      --primary: #00e676;
+      --primary-dim: rgba(0, 230, 118, 0.15);
+      --accent: #00bcd4;
+      --accent-purple: #7c4dff;
+      --text: #fff;
+      --text-dim: #6b7280;
+      --text-sub: #4b5563;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --rise: #22c55e;
+      --fall: #f43f5e;
+      --flat: #6b7280;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    
+    .glow-main {
+      position: absolute;
+      top: 10%;
+      left: 30%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(0, 230, 118, 0.08) 0%, transparent 60%);
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(8, 8, 12, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.15s;
+    }
+    
+    .back-link:hover { color: var(--primary); }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--success);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    /* Main Content */
+    .main {
+      margin-top: 56px;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Event Header */
+    .event-header {
+      margin-bottom: 24px;
+    }
+    
+    .event-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      letter-spacing: -0.3px;
+    }
+    
+    .event-meta {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    .meta-label {
+      color: var(--text-sub);
+    }
+    
+    /* Stage Badge */
+    .stage-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stage-badge.emerging { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .stage-badge.forming { background: rgba(124, 77, 255, 0.15); color: var(--accent-purple); }
+    .stage-badge.accelerating { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .stage-badge.peak { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .stage-badge.fading { background: rgba(107, 114, 128, 0.15); color: var(--text-dim); }
+    
+    /* Grid Layout */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 20px;
+    }
+    
+    @media (max-width: 1200px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+    
+    .card-body {
+      padding: 16px;
+    }
+    
+    /* Probability Chart */
+    .prob-chart-container {
+      padding: 20px;
+    }
+    
+    .prob-current {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    .prob-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+    
+    .prob-label {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+    
+    .prob-change {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      margin-left: auto;
+    }
+    
+    .prob-change.rise { color: var(--rise); }
+    .prob-change.fall { color: var(--fall); }
+    
+    /* Chart */
+    .chart-area {
+      position: relative;
+      height: 200px;
+      margin-bottom: 20px;
+    }
+    
+    .chart-svg {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .chart-line {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    
+    .chart-area-fill {
+      fill: url(#probGradient);
+    }
+    
+    .chart-grid line {
+      stroke: rgba(255,255,255,0.05);
+      stroke-width: 1;
+    }
+    
+    .chart-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      fill: var(--text-sub);
+    }
+    
+    .chart-dot {
+      fill: var(--primary);
+      stroke: var(--bg);
+      stroke-width: 2;
+    }
+    
+    /* Timeline */
+    .timeline {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+    
+    .timeline-point {
+      text-align: center;
+    }
+    
+    .timeline-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 6px;
+    }
+    
+    /* Impact Assets */
+    .assets-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .asset-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    
+    .asset-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .asset-symbol {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--accent);
+    }
+    
+    .asset-name {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    
+    .asset-correlation {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      padding: 4px 10px;
+      border-radius: 4px;
+    }
+    
+    .asset-correlation.positive {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--rise);
+    }
+    
+    .asset-correlation.negative {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--fall);
+    }
+    
+    /* Evidence Flow */
+    .evidence-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .evidence-item {
+      padding: 14px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+      border-left: 3px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .evidence-item:hover {
+      background: var(--surface-hover);
+      border-left-color: var(--primary);
+    }
+    
+    .evidence-item.news { border-left-color: var(--accent); }
+    .evidence-item.market { border-left-color: var(--warning); }
+    .evidence-item.social { border-left-color: var(--accent-purple); }
+    
+    .evidence-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .evidence-type {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-weight: 600;
+    }
+    
+    .evidence-type.news { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .evidence-type.market { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .evidence-type.social { background: rgba(124, 77, 255, 0.15); color: var(--accent-purple); }
+    
+    .evidence-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-sub);
+    }
+    
+    .evidence-title {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    
+    .evidence-summary {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+    
+    .evidence-source {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    /* Triggers */
+    .triggers-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .trigger-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 6px;
+    }
+    
+    .trigger-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-dim);
+      color: var(--primary);
+      border-radius: 4px;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    
+    .trigger-content {
+      flex: 1;
+    }
+    
+    .trigger-title {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .trigger-desc {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    
+    .trigger-prob {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--warning);
+    }
+    
+    /* Watchlist Button */
+    .watchlist-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      background: var(--primary-dim);
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .watchlist-btn:hover {
+      background: rgba(0, 230, 118, 0.25);
+    }
+    
+    .watchlist-btn.active {
+      background: var(--primary);
+      color: var(--bg);
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--text-sub);
+    }
+    
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 12px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-main"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">SIGNAL<span>.MARKET</span></div>
+      <a href="/events" class="back-link">
+        <span>←</span> Back to Events
+      </a>
+    </div>
+    <div class="header-right">
+      <div class="live-indicator">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main class="main">
+    <div id="eventContent">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Loading event...
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Get event ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventId = urlParams.get('id') || 'evt_001';
+    
+    // Mock Event Data
+    const eventData = {
+      id: 'evt_001',
+      title: 'Bitcoin ETF Approval by SEC',
+      stage: 'peak',
+      probability: 87,
+      previousProb: 75,
+      updatedAt: new Date(),
+      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      
+      // Probability history (last 7 days)
+      history: [
+        { date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), prob: 45 },
+        { date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), prob: 52 },
+        { date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), prob: 58 },
+        { date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), prob: 65 },
+        { date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), prob: 70 },
+        { date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), prob: 75 },
+        { date: new Date(), prob: 87 }
+      ],
+      
+      // Impact assets
+      assets: [
+        { symbol: 'BTC', name: 'Bitcoin', correlation: 0.95, type: 'positive' },
+        { symbol: 'GBTC', name: 'Grayscale Bitcoin Trust', correlation: 0.92, type: 'positive' },
+        { symbol: 'BITO', name: 'ProShares Bitcoin ETF', correlation: 0.89, type: 'positive' },
+        { symbol: 'IBIT', name: 'iShares Bitcoin Trust', correlation: 0.88, type: 'positive' },
+        { symbol: 'ARKB', name: 'Ark 21Shares Bitcoin ETF', correlation: 0.85, type: 'positive' }
+      ],
+      
+      // Evidence feed
+      evidence: [
+        {
+          id: 'ev_001',
+          type: 'news',
+          title: 'SEC Chair Signals Openness to Bitcoin ETFs in Private Meeting',
+          summary: 'According to sources familiar with the matter, SEC Chair Gensler indicated during a closed-door meeting that the commission is reconsidering its stance on spot Bitcoin ETFs.',
+          source: 'Bloomberg',
+          time: new Date(Date.now() - 1000 * 60 * 30),
+          sentiment: 'positive'
+        },
+        {
+          id: 'ev_002',
+          type: 'market',
+          title: 'Bitcoin Trading Volume Surges 40% on ETF Speculation',
+          summary: 'Exchange volumes across major platforms have increased significantly as institutional investors position ahead of potential ETF approval.',
+          source: 'CoinDesk',
+          time: new Date(Date.now() - 1000 * 60 * 60 * 2),
+          sentiment: 'positive'
+        },
+        {
+          id: 'ev_003',
+          type: 'social',
+          title: 'Crypto Twitter Sentiment Hits 6-Month High',
+          summary: 'Social sentiment indicators show unprecedented optimism regarding ETF approval, with mentions up 300% week-over-week.',
+          source: 'LunarCrush',
+          time: new Date(Date.now() - 1000 * 60 * 60 * 4),
+          sentiment: 'positive'
+        },
+        {
+          id: 'ev_004',
+          type: 'news',
+          title: 'BlackRock Files Amended S-1 for Bitcoin ETF',
+          summary: 'The world\'s largest asset manager has submitted revised paperwork addressing previous SEC concerns about custody and liquidity.',
+          source: 'Reuters',
+          time: new Date(Date.now() - 1000 * 60 * 60 * 6),
+          sentiment: 'positive'
+        },
+        {
+          id: 'ev_005',
+          type: 'market',
+          title: 'Grayscale Premium Narrows on Approval Odds',
+          summary: 'GBTC\'s discount to NAV has narrowed to 8%, down from 20% a month ago, indicating market pricing of higher approval probability.',
+          source: 'Bloomberg',
+          time: new Date(Date.now() - 1000 * 60 * 60 * 12),
+          sentiment: 'positive'
+        }
+      ],
+      
+      // Trigger factors
+      triggers: [
+        {
+          title: 'SEC Decision Deadline',
+          desc: 'Final ruling expected on or before January 10, 2024',
+          prob: '+25%',
+          icon: '📅'
+        },
+        {
+          title: 'Multiple ETF Applications',
+          desc: 'BlackRock, Fidelity, and 8 others pending decision',
+          prob: '+15%',
+          icon: '📋'
+        },
+        {
+          title: 'Court Ruling Favor',
+          desc: 'Grayscale lawsuit ruling supports ETF approval',
+          prob: '+20%',
+          icon: '⚖️'
+        }
+      ]
+    };
+    
+    // Utility functions
+    function formatTime(date) {
+      const now = new Date();
+      const diff = now - date;
+      const mins = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return date.toLocaleDateString();
+    }
+    
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
+    // Generate chart SVG
+    function generateChart(history) {
+      const width = 600;
+      const height = 200;
+      const padding = { top: 20, right: 20, bottom: 30, left: 40 };
+      
+      const xScale = (i) => padding.left + (i / (history.length - 1)) * (width - padding.left - padding.right);
+      const yScale = (v) => height - padding.bottom - (v / 100) * (height - padding.top - padding.bottom);
+      
+      // Line path
+      let linePath = `M ${xScale(0)} ${yScale(history[0].prob)}`;
+      for (let i = 1; i < history.length; i++) {
+        linePath += ` L ${xScale(i)} ${yScale(history[i].prob)}`;
+      }
+      
+      // Area path
+      const areaPath = linePath + ` L ${xScale(history.length - 1)} ${height - padding.bottom} L ${xScale(0)} ${height - padding.bottom} Z`;
+      
+      // Points
+      const points = history.map((h, i) => 
+        `<circle class="chart-dot" cx="${xScale(i)}" cy="${yScale(h.prob)}" r="4" data-prob="${h.prob}" data-date="${formatDate(h.date)}"/>`
+      ).join('');
+      
+      // Grid lines
+      const gridLines = [0, 25, 50, 75, 100].map(v => 
+        `<line class="chart-grid" x1="${padding.left}" y1="${yScale(v)}" x2="${width - padding.right}" y2="${yScale(v)}"/>
+         <text class="chart-label" x="${padding.left - 8}" y="${yScale(v) + 3}">${v}%</text>`
+      ).join('');
+      
+      return `
+        <svg class="chart-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet">
+          <defs>
+            <linearGradient id="probGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" style="stop-color: var(--primary); stop-opacity: 0.3" />
+              <stop offset="100%" style="stop-color: var(--primary); stop-opacity: 0" />
+            </linearGradient>
+          </defs>
+          ${gridLines}
+          <path class="chart-area-fill" d="${areaPath}"/>
+          <path class="chart-line" d="${linePath}"/>
+          ${points}
+        </svg>
+      `;
+    }
+    
+    // Render Event
+    function renderEvent() {
+      const change = eventData.probability - eventData.previousProb;
+      const content = document.getElementById('eventContent');
+      
+      content.innerHTML = `
+        <!-- Event Header -->
+        <div class="event-header">
+          <h1 class="event-title">${eventData.title}</h1>
+          <div class="event-meta">
+            <span class="stage-badge ${eventData.stage}">${eventData.stage}</span>
+            <div class="meta-item">
+              <span class="meta-label">Updated:</span>
+              <span>${formatTime(eventData.updatedAt)}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Created:</span>
+              <span>${eventData.createdAt.toLocaleDateString()}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Evidence:</span>
+              <span>${eventData.evidence.length} sources</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Content Grid -->
+        <div class="content-grid">
+          <!-- Left Column -->
+          <div>
+            <!-- Probability Chart -->
+            <div class="card" style="margin-bottom: 20px;">
+              <div class="card-header">
+                <span class="card-title">Probability Timeline</span>
+                <span style="font-size: 11px; color: var(--text-sub);">7-Day Forecast</span>
+              </div>
+              <div class="prob-chart-container">
+                <div class="prob-current">
+                  <span class="prob-value">${eventData.probability}%</span>
+                  <span class="prob-label">7-Day Probability</span>
+                  <span class="prob-change ${change >= 0 ? 'rise' : 'fall'}">
+                    ${change >= 0 ? '↑' : '↓'} ${Math.abs(change)}% from yesterday
+                  </span>
+                </div>
+                <div class="chart-area">
+                  ${generateChart(eventData.history)}
+                </div>
+                <div class="timeline">
+                  ${eventData.history.map(h => `
+                    <div class="timeline-point">
+                      <div class="timeline-date">${formatDate(h.date)}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Evidence Flow -->
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Evidence Feed</span>
+                <span style="font-size: 11px; color: var(--text-sub);">Real-time updates</span>
+              </div>
+              <div class="card-body">
+                <div class="evidence-list">
+                  ${eventData.evidence.map(e => `
+                    <div class="evidence-item ${e.type}">
+                      <div class="evidence-header">
+                        <span class="evidence-type ${e.type}">${e.type}</span>
+                        <span class="evidence-time">${formatTime(e.time)}</span>
+                      </div>
+                      <div class="evidence-title">${e.title}</div>
+                      <div class="evidence-summary">${e.summary}</div>
+                      <div class="evidence-source">
+                        <span>📰</span> ${e.source}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Right Column -->
+          <div>
+            <!-- Impact Assets -->
+            <div class="card" style="margin-bottom: 20px;">
+              <div class="card-header">
+                <span class="card-title">Impact Assets</span>
+              </div>
+              <div class="card-body">
+                <div class="assets-list">
+                  ${eventData.assets.map(a => `
+                    <div class="asset-item">
+                      <div class="asset-info">
+                        <span class="asset-symbol">${a.symbol}</span>
+                        <span class="asset-name">${a.name}</span>
+                      </div>
+                      <span class="asset-correlation ${a.type}">
+                        ${a.type === 'positive' ? '+' : '-'}${Math.round(a.correlation * 100)}%
+                      </span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Trigger Factors -->
+            <div class="card" style="margin-bottom: 20px;">
+              <div class="card-header">
+                <span class="card-title">Trigger Factors</span>
+              </div>
+              <div class="card-body">
+                <div class="triggers-list">
+                  ${eventData.triggers.map(t => `
+                    <div class="trigger-item">
+                      <div class="trigger-icon">${t.icon}</div>
+                      <div class="trigger-content">
+                        <div class="trigger-title">${t.title}</div>
+                        <div class="trigger-desc">${t.desc}</div>
+                      </div>
+                      <span class="trigger-prob">${t.prob}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Watchlist Button -->
+            <button class="watchlist-btn" id="watchlistBtn">
+              <span>⭐</span> Add to Watchlist
+            </button>
+          </div>
+        </div>
+      `;
+      
+      // Add watchlist functionality
+      document.getElementById('watchlistBtn').addEventListener('click', function() {
+        this.classList.toggle('active');
+        if (this.classList.contains('active')) {
+          this.innerHTML = '<span>✓</span> Added to Watchlist';
+        } else {
+          this.innerHTML = '<span>⭐</span> Add to Watchlist';
+        }
+      });
+      
+      // Add chart hover tooltips
+      document.querySelectorAll('.chart-dot').forEach(dot => {
+        dot.addEventListener('mouseenter', function(e) {
+          const prob = this.dataset.prob;
+          const date = this.dataset.date;
+          // Simple tooltip
+          this.setAttribute('r', '6');
+        });
+        dot.addEventListener('mouseleave', function() {
+          this.setAttribute('r', '4');
+        });
+      });
+    }
+    
+    // Initialize
+    renderEvent();
+    
+    // Simulate real-time updates
+    setInterval(() => {
+      // Randomly update probability
+      const change = Math.floor(Math.random() * 3) - 1;
+      eventData.probability = Math.max(10, Math.min(99, eventData.probability + change));
+      eventData.history[eventData.history.length - 1].prob = eventData.probability;
+      
+      renderEvent();
+    }, 15000);
+  </script>
+</body>
+</html>

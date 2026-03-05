@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Market - 运维监控中心</title>
+  <style>
+    :root {
+      --bg-primary: #0f1419;
+      --bg-secondary: #192734;
+      --bg-tertiary: #22303c;
+      --text-primary: #ffffff;
+      --text-secondary: #8899a6;
+      --accent: #1d9bf0;
+      --success: #00ba7c;
+      --warning: #ffad1f;
+      --danger: #f4212e;
+      --border: #38444d;
+    }
+    
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .status-healthy { background: var(--success); color: white; }
+    .status-warning { background: var(--warning); color: black; }
+    .status-degraded { background: #e0245e; color: white; }
+    .status-critical { background: var(--danger); color: white; }
+    .status-unknown { background: var(--text-secondary); color: white; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .card {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid var(--border);
+    }
+    
+    .card h2 {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .metric:last-child { border-bottom: none; }
+    
+    .metric-label { color: var(--text-secondary); font-size: 14px; }
+    .metric-value { font-weight: 600; font-size: 18px; }
+    .metric-value.success { color: var(--success); }
+    .metric-value.warning { color: var(--warning); }
+    .metric-value.danger { color: var(--danger); }
+    
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    
+    .progress-fill.success { background: var(--success); }
+    .progress-fill.warning { background: var(--warning); }
+    .progress-fill.danger { background: var(--danger); }
+    
+    .table-container {
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    th {
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    
+    tr:hover { background: var(--bg-tertiary); }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .btn-primary:hover { background: #1a8cd8; }
+    
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    
+    .btn-secondary:hover { background: var(--border); }
+    
+    .timestamp {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .error-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .error-item {
+      padding: 12px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    
+    .error-item.critical { border-left: 3px solid var(--danger); }
+    .error-item.high { border-left: 3px solid #e0245e; }
+    .error-item.medium { border-left: 3px solid var(--warning); }
+    .error-item.low { border-left: 3px solid var(--text-secondary); }
+    
+    .error-time {
+      color: var(--text-secondary);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    
+    .error-message {
+      color: var(--text-primary);
+      word-break: break-word;
+    }
+    
+    .refresh-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .auto-refresh {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+    
+    .spinner.active { display: block; }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .section-title {
+      font-size: 20px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>
+      📊 Signal Market 运维监控中心
+      <span id="overallStatus" class="status-badge status-unknown">加载中...</span>
+    </h1>
+    <div class="refresh-controls">
+      <span class="timestamp" id="lastUpdate">最后更新: --</span>
+      <div class="spinner" id="spinner"></div>
+      <button class="btn btn-primary" onclick="refreshData()">🔄 刷新</button>
+      <label class="auto-refresh">
+        <input type="checkbox" id="autoRefresh" checked onchange="toggleAutoRefresh()">
+        自动刷新 (30s)
+      </label>
+    </div>
+  </div>
+
+  <!-- 系统状态 -->
+  <h2 class="section-title">系统状态</h2>
+  <div class="grid">
+    <div class="card">
+      <h2>💻 系统资源</h2>
+      <div id="systemMetrics"></div>
+    </div>
+    
+    <div class="card">
+      <h2>💾 磁盘空间</h2>
+      <div id="diskMetrics"></div>
+    </div>
+    
+    <div class="card">
+      <h2>🧠 内存使用</h2>
+      <div id="memoryMetrics"></div>
+    </div>
+    
+    <div class="card">
+      <h2>⚙️ 进程信息</h2>
+      <div id="processMetrics"></div>
+    </div>
+  </div>
+
+  <!-- API 统计 -->
+  <h2 class="section-title">API 调用统计</h2>
+  <div class="grid">
+    <div class="card">
+      <h2>📈 请求统计 (24小时)</h2>
+      <div id="requestStats"></div>
+    </div>
+    
+    <div class="card">
+      <h2>🔗 端点调用</h2>
+      <div id="endpointStats"></div>
+    </div>
+  </div>
+
+  <!-- 错误日志 -->
+  <h2 class="section-title">错误日志</h2>
+  <div class="card">
+    <h2>❌ 最近错误</h2>
+    <div class="error-list" id="errorList">
+      <p style="color: var(--text-secondary);">加载中...</p>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = '/l4/health.js';
+    let autoRefreshInterval = null;
+    let isLoading = false;
+
+    // 加载数据
+    async function refreshData() {
+      if (isLoading) return;
+      isLoading = true;
+      
+      document.getElementById('spinner').classList.add('active');
+      
+      try {
+        const response = await fetch(API_BASE + '?type=full');
+        const data = await response.json();
+        
+        updateUI(data);
+      } catch (error) {
+        console.error('Failed to fetch health data:', error);
+        document.getElementById('overallStatus').textContent = '加载失败';
+        document.getElementById('overallStatus').className = 'status-badge status-critical';
+      } finally {
+        isLoading = false;
+        document.getElementById('spinner').classList.remove('active');
+        document.getElementById('lastUpdate').textContent = '最后更新: ' + new Date().toLocaleTimeString('zh-CN');
+      }
+    }
+
+    // 更新UI
+    function updateUI(data) {
+      const status = data.status || 'unknown';
+      const statusEl = document.getElementById('overallStatus');
+      statusEl.textContent = getStatusText(status);
+      statusEl.className = 'status-badge status-' + status;
+
+      // 系统资源
+      const cpu = data.checks?.cpu;
+      if (cpu) {
+        const loadClass = cpu.status === 'healthy' ? 'success' : cpu.status === 'warning' ? 'warning' : 'danger';
+        document.getElementById('systemMetrics').innerHTML = `
+          <div class="metric">
+            <span class="metric-label">CPU 负载 (1m)</span>
+            <span class="metric-value ${loadClass}">${cpu.load['1m']}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">CPU 核心数</span>
+            <span class="metric-value">${cpu.cpus}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">负载/核心</span>
+            <span class="metric-value ${loadClass}">${cpu.load_per_cpu}</span>
+          </div>
+        `;
+      }
+
+      // 磁盘
+      const disk = data.checks?.disk;
+      if (disk) {
+        const diskClass = disk.status === 'healthy' ? 'success' : disk.status === 'warning' ? 'warning' : 'danger';
+        document.getElementById('diskMetrics').innerHTML = `
+          <div class="metric">
+            <span class="metric-label">已使用</span>
+            <span class="metric-value ${diskClass}">${disk.used} / ${disk.total}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">使用率</span>
+            <span class="metric-value ${diskClass}">${disk.percent}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${diskClass}" style="width: ${disk.percent}%"></div>
+          </div>
+        `;
+      }
+
+      // 内存
+      const mem = data.checks?.memory;
+      if (mem) {
+        const memClass = mem.status === 'healthy' ? 'success' : mem.status === 'warning' ? 'warning' : 'danger';
+        document.getElementById('memoryMetrics').innerHTML = `
+          <div class="metric">
+            <span class="metric-label">已使用</span>
+            <span class="metric-value ${memClass}">${mem.used} / ${mem.total}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">使用率</span>
+            <span class="metric-value ${memClass}">${mem.percent}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${memClass}" style="width: ${mem.percent}%"></div>
+          </div>
+        `;
+      }
+
+      // 进程
+      const proc = data.checks?.process;
+      if (proc) {
+        document.getElementById('processMetrics').innerHTML = `
+          <div class="metric">
+            <span class="metric-label">PID</span>
+            <span class="metric-value">${proc.pid}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">运行时间</span>
+            <span class="metric-value">${proc.uptime_formatted}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Node 版本</span>
+            <span class="metric-value">${proc.node_version}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">内存 (RSS)</span>
+            <span class="metric-value">${proc.memory.rss}</span>
+          </div>
+        `;
+      }
+
+      // 请求统计
+      const requests = data.requests || {};
+      const totalRequests = requests.total || 0;
+      const byStatus = requests.by_status || {};
+      const byEndpoint = requests.by_endpoint || {};
+      
+      document.getElementById('requestStats').innerHTML = `
+        <div class="metric">
+          <span class="metric-label">总请求数</span>
+          <span class="metric-value success">${totalRequests}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">2xx 成功</span>
+          <span class="metric-value success">${byStatus['200'] || 0}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">4xx 客户端错误</span>
+          <span class="metric-value warning">${Object.entries(byStatus).filter(([k]) => k.startsWith('4')).reduce((sum, [,v]) => sum + v, 0)}</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">5xx 服务端错误</span>
+          <span class="metric-value danger">${Object.entries(byStatus).filter(([k]) => k.startsWith('5')).reduce((sum, [,v]) => sum + v, 0)}</span>
+        </div>
+      `;
+
+      // 端点统计
+      let endpointHtml = '';
+      for (const [endpoint, count] of Object.entries(byEndpoint)) {
+        endpointHtml += `
+          <div class="metric">
+            <span class="metric-label">${endpoint}</span>
+            <span class="metric-value">${count}</span>
+          </div>
+        `;
+      }
+      if (!endpointHtml) endpointHtml = '<p style="color: var(--text-secondary);">暂无数据</p>';
+      document.getElementById('endpointStats').innerHTML = endpointHtml;
+
+      // 错误列表
+      const errors = data.errors?.recent || [];
+      let errorHtml = '';
+      if (errors.length === 0) {
+        errorHtml = '<p style="color: var(--success);">✓ 暂无错误</p>';
+      } else {
+        for (const err of errors.slice(0, 10)) {
+          errorHtml += `
+            <div class="error-item ${err.severity}">
+              <div class="error-time">${new Date(err.timestamp).toLocaleString('zh-CN')} · ${err.severity.toUpperCase()}</div>
+              <div class="error-message">${err.message}</div>
+            </div>
+          `;
+        }
+      }
+      document.getElementById('errorList').innerHTML = errorHtml;
+    }
+
+    function getStatusText(status) {
+      const map = {
+        healthy: '健康',
+        warning: '警告',
+        degraded: '降级',
+        critical: '严重',
+        unknown: '未知'
+      };
+      return map[status] || status;
+    }
+
+    function toggleAutoRefresh() {
+      const checked = document.getElementById('autoRefresh').checked;
+      if (checked) {
+        autoRefreshInterval = setInterval(refreshData, 30000);
+      } else {
+        clearInterval(autoRefreshInterval);
+      }
+    }
+
+    // 初始化
+    refreshData();
+    autoRefreshInterval = setInterval(refreshData, 30000);
+  </script>
+</body>
+</html>

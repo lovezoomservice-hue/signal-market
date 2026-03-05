@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Market - Event Explorer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080c;
+      --surface: rgba(15, 15, 22, 0.95);
+      --surface-hover: rgba(25, 25, 35, 0.95);
+      --border: rgba(46, 46, 62, 0.6);
+      --primary: #00e676;
+      --primary-dim: rgba(0, 230, 118, 0.15);
+      --accent: #00bcd4;
+      --accent-purple: #7c4dff;
+      --text: #fff;
+      --text-dim: #6b7280;
+      --text-sub: #4b5563;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --rise: #22c55e;
+      --fall: #f43f5e;
+      --flat: #6b7280;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    /* Bloomberg-style Grid Background */
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    
+    .glow-main {
+      position: absolute;
+      top: 10%;
+      left: 30%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(0, 230, 118, 0.08) 0%, transparent 60%);
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(8, 8, 12, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    
+    .nav {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .nav-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    
+    .nav-item:hover { color: var(--text); background: var(--surface-hover); }
+    .nav-item.active { color: var(--primary); background: var(--primary-dim); }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--success);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    /* Main Content */
+    .main {
+      margin-top: 56px;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 56px);
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .search-box {
+      position: relative;
+    }
+    
+    .search-box input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px 8px 34px;
+      font-size: 13px;
+      color: var(--text);
+      width: 240px;
+      outline: none;
+      transition: all 0.15s;
+    }
+    
+    .search-box input::placeholder { color: var(--text-sub); }
+    .search-box input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-dim); }
+    
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-sub);
+      font-size: 14px;
+    }
+    
+    .filter-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    
+    .filter-btn:hover { border-color: var(--text-sub); color: var(--text); }
+    
+    .sort-select {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+    }
+    
+    /* Stats Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .stat-value.positive { color: var(--rise); }
+    .stat-value.negative { color: var(--fall); }
+    
+    .stat-change {
+      font-size: 11px;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    /* Event Table */
+    .events-table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .events-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .events-table th {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    
+    .events-table td {
+      padding: 14px 16px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(46, 46, 62, 0.3);
+      vertical-align: middle;
+    }
+    
+    .events-table tr {
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    
+    .events-table tbody tr:hover {
+      background: var(--surface-hover);
+    }
+    
+    .events-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    
+    /* Event Title */
+    .event-title {
+      font-weight: 500;
+      color: var(--text);
+      max-width: 320px;
+      line-height: 1.4;
+    }
+    
+    .event-title:hover {
+      color: var(--primary);
+    }
+    
+    /* Probability */
+    .prob-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .prob-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 48px;
+    }
+    
+    .prob-bar {
+      width: 60px;
+      height: 6px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    
+    .prob-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s;
+    }
+    
+    /* Trend Arrow */
+    .trend {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+    
+    .trend.rise {
+      color: var(--rise);
+      background: rgba(34, 197, 94, 0.1);
+    }
+    
+    .trend.fall {
+      color: var(--fall);
+      background: rgba(244, 63, 94, 0.1);
+    }
+    
+    .trend.flat {
+      color: var(--flat);
+      background: rgba(107, 114, 128, 0.1);
+    }
+    
+    /* Assets Tags */
+    .asset-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    
+    .asset-tag {
+      font-size: 10px;
+      padding: 3px 8px;
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--accent-purple);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .asset-tag.crypto { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .asset-tag.stock { background: rgba(0, 230, 118, 0.15); color: var(--primary); }
+    .asset-tag.forex { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    
+    /* Evidence Count */
+    .evidence-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    /* Timestamp */
+    .timestamp {
+      font-size: 12px;
+      color: var(--text-sub);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Stage Badge */
+    .stage-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stage-badge.emerging { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .stage-badge.forming { background: rgba(124, 77, 255, 0.15); color: var(--accent-purple); }
+    .stage-badge.accelerating { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .stage-badge.peak { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .stage-badge.fading { background: rgba(107, 114, 128, 0.15); color: var(--text-dim); }
+    
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .pagination-info {
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    
+    .pagination-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .page-btn {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .page-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .page-btn.active { background: var(--primary-dim); border-color: var(--primary); color: var(--primary); }
+    
+    /* Loading State */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--text-sub);
+    }
+    
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 12px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Empty State */
+    .empty-state {
+      padding: 60px;
+      text-align: center;
+      color: var(--text-sub);
+    }
+    
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    @media (max-width: 768px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .header { padding: 0 16px; }
+      .main { padding: 16px; }
+      .toolbar { flex-direction: column; align-items: flex-start; }
+      .toolbar-right { width: 100%; flex-wrap: wrap; }
+      .search-box input { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-main"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">SIGNAL<span>.MARKET</span></div>
+      <nav class="nav">
+        <a href="/" class="nav-item">Dashboard</a>
+        <a href="/events" class="nav-item active">Event Explorer</a>
+        <a href="/topics" class="nav-item">Topics</a>
+        <a href="/lens" class="nav-item">My Lens</a>
+        <a href="/watchlist" class="nav-item">Watchlist</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <div class="live-indicator">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <div>
+          <h1 class="page-title">Event Explorer</h1>
+          <div class="page-subtitle">REAL-TIME EVENT INTELLIGENCE</div>
+        </div>
+      </div>
+      <div class="toolbar-right">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input type="text" id="searchInput" placeholder="Search events...">
+        </div>
+        <button class="filter-btn" id="filterBtn">
+          <span>⚡</span> Filters
+        </button>
+        <select class="sort-select" id="sortSelect">
+          <option value="prob-desc">Probability ↓</option>
+          <option value="prob-asc">Probability ↑</option>
+          <option value="time-desc">Newest First</option>
+          <option value="time-asc">Oldest First</option>
+          <option value="evidence-desc">Most Evidence</option>
+        </select>
+      </div>
+    </div>
+    
+    <!-- Stats Row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Active Events</div>
+        <div class="stat-value" id="totalEvents">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Probability</div>
+        <div class="stat-value" id="avgProb">--%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Rising Events</div>
+        <div class="stat-value positive" id="risingEvents">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">New Today</div>
+        <div class="stat-value" id="newToday">--</div>
+      </div>
+    </div>
+    
+    <!-- Events Table -->
+    <div class="events-table-container">
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Stage</th>
+            <th>7-Day Probability</th>
+            <th>Trend</th>
+            <th>Impact Assets</th>
+            <th>Evidence</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody id="eventsBody">
+          <tr>
+            <td colspan="7">
+              <div class="loading">
+                <div class="loading-spinner"></div>
+                Loading events...
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="pagination">
+        <div class="pagination-info" id="paginationInfo">Showing 0 events</div>
+        <div class="pagination-buttons" id="paginationButtons"></div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // API Configuration - 支持本地和演示模式
+    const API_BASE = 'https://purple-dots-hug.loca.lt.loca.lt' /* original: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+      ? 'http://localhost:3000' 
+      : null;
+    
+    // Demo data for production
+    const DEMO_EVENTS = [
+      { event_id: 'evt_1', topic: 'AI Agents', stage: 'emerging', probability: 63, evidence_count: 12, updated_at: new Date().toISOString() },
+      { event_id: 'evt_2', topic: 'Bitcoin ETF', stage: 'accelerating', probability: 87, evidence_count: 45, updated_at: new Date().toISOString() },
+      { event_id: 'evt_3', topic: 'GPU Shortage', stage: 'forming', probability: 71, evidence_count: 23, updated_at: new Date().toISOString() },
+      { event_id: 'evt_4', topic: 'Autonomous Vehicles', stage: 'emerging', probability: 55, evidence_count: 8, updated_at: new Date().toISOString() },
+      { event_id: 'evt_5', topic: 'Quantum Computing', stage: 'weak', probability: 35, evidence_count: 5, updated_at: new Date().toISOString() },
+      { event_id: 'evt_6', topic: 'Space Exploration', stage: 'accelerating', probability: 68, evidence_count: 18, updated_at: new Date().toISOString() },
+      { event_id: 'evt_7', topic: 'CRISPR Therapeutics', stage: 'forming', probability: 52, evidence_count: 11, updated_at: new Date().toISOString() },
+      { event_id: 'evt_8', topic: 'Solid State Batteries', stage: 'emerging', probability: 48, evidence_count: 7, updated_at: new Date().toISOString() }
+    ].map(e => ({...e, title: e.topic, id: e.event_id}));
+    
+    let events = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    let isLoading = true;
+    
+    // Fetch Events from API or use demo data
+    async function fetchEvents() {
+      try {
+        isLoading = true;
+        renderEvents();
+        
+        if (!API_BASE) {
+          events = [...DEMO_EVENTS];
+          isLoading = false;
+          renderEvents();
+          return;
+        }
+        
+        const response = await fetch(`${API_BASE}/events`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Handle different API response formats
+        events = Array.isArray(data) ? data : (data.events || data.data || []);
+        
+        // Transform API data to match our display format
+        events = events.map(event => ({
+          id: event.event_id || event.id || event.proof_id || `evt_${Date.now()}`,
+          title: event.topic || event.title || event.event_title || 'Untitled Event',
+          proof_id: event.proof_id || null,
+          stage: event.stage || 'emerging',
+          probability: event.probability || event.prob || Math.floor(Math.random() * 40) + 40, // Default 40-80% if not provided
+          trend: event.trend || (event.trendValue > 0 ? 'rise' : event.trendValue < 0 ? 'fall' : 'flat'),
+          trendValue: event.trend_value || event.trendValue || Math.floor(Math.random() * 10) - 5,
+          assets: event.assets || event.impact_assets || [],
+          assetTypes: event.asset_types || event.assetTypes || ['crypto'],
+          evidenceCount: event.evidence_count || event.evidenceCount || 0,
+          updatedAt: event.updated_at ? new Date(event.updated_at) : (event.updatedAt ? new Date(event.updatedAt) : new Date()),
+          topic: event.topic || event.title || ''
+        }));
+        
+        isLoading = false;
+        renderEvents();
+        updateStats();
+        
+        console.log('✅ Events loaded from API:', events.length);
+      } catch (error) {
+        console.error('❌ Failed to fetch events:', error);
+        isLoading = false;
+        renderEvents();
+      }
+    }
+    
+    // Calculate trend based on probability changes
+    function calculateTrend(event) {
+      if (event.trendValue > 0 || event.probability > 60) return 'rise';
+      if (event.trendValue < 0 || event.probability < 40) return 'fall';
+      return 'flat';
+    }
+    
+    // Utility Functions
+    function formatTime(date) {
+      if (!date || isNaN(date.getTime())) return 'Unknown';
+      
+      const now = new Date();
+      const diff = now - date;
+      const mins = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+      
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      if (days < 7) return `${days}d ago`;
+      
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    function formatFullTime(date) {
+      if (!date || isNaN(date.getTime())) return 'N/A';
+      return date.toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+    
+    function getProbColor(prob) {
+      if (prob >= 80) return 'var(--success)';
+      if (prob >= 50) return 'var(--warning)';
+      return 'var(--danger)';
+    }
+    
+    function getTrendIcon(trend) {
+      if (trend === 'rise') return '↑';
+      if (trend === 'fall') return '↓';
+      return '→';
+    }
+    
+    // Render Events
+    function renderEvents() {
+      const tbody = document.getElementById('eventsBody');
+      
+      if (isLoading) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7">
+              <div class="loading">
+                <div class="loading-spinner"></div>
+                Loading events from API...
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      if (events.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <div>No events found</div>
+                <div style="margin-top: 8px; font-size: 11px; color: var(--text-sub);">
+                  API: ${API_BASE}/events
+                </div>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+      
+      // Sort
+      const sortValue = document.getElementById('sortSelect').value;
+      events.sort((a, b) => {
+        switch(sortValue) {
+          case 'prob-desc': return b.probability - a.probability;
+          case 'prob-asc': return a.probability - b.probability;
+          case 'time-desc': return b.updatedAt - a.updatedAt;
+          case 'time-asc': return a.updatedAt - b.updatedAt;
+          case 'evidence-desc': return b.evidenceCount - a.evidenceCount;
+          default: return 0;
+        }
+      });
+      
+      // Filter by search
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      let filtered = events;
+      if (search) {
+        filtered = events.filter(e => 
+          (e.title && e.title.toLowerCase().includes(search)) ||
+          (e.topic && e.topic.toLowerCase().includes(search)) ||
+          (e.proof_id && e.proof_id.toLowerCase().includes(search)) ||
+          (e.assets && e.assets.some(a => a.toLowerCase().includes(search)))
+        );
+      }
+      
+      // Paginate
+      const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+      currentPage = Math.min(currentPage, totalPages);
+      const start = (currentPage - 1) * itemsPerPage;
+      const pageEvents = filtered.slice(start, start + itemsPerPage);
+      
+      tbody.innerHTML = pageEvents.map(event => `
+        <tr onclick="window.location.href='/event_detail.html?id=${event.id}'">
+          <td>
+            <div class="event-title">${event.title}</div>
+            ${event.proof_id ? `<div class="timestamp" style="font-size: 10px; margin-top: 4px;">ID: ${event.proof_id}</div>` : ''}
+          </td>
+          <td>
+            <span class="stage-badge ${event.stage}">${event.stage}</span>
+          </td>
+          <td>
+            <div class="prob-cell">
+              <span class="prob-value" style="color: ${getProbColor(event.probability)}">${event.probability}%</span>
+              <div class="prob-bar">
+                <div class="prob-bar-fill" style="width: ${event.probability}%; background: ${getProbColor(event.probability)}"></div>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="trend ${event.trend}">
+              ${getTrendIcon(event.trend)} ${Math.abs(event.trendValue)}%
+            </span>
+          </td>
+          <td>
+            <div class="asset-tags">
+              ${(event.assets || []).map((asset, i) => {
+                const assetType = (event.assetTypes || ['crypto'])[i] || 'crypto';
+                return `<span class="asset-tag ${assetType}">${asset}</span>`;
+              }).join('')}
+            </div>
+          </td>
+          <td>
+            <span class="evidence-count">${event.evidenceCount}</span>
+          </td>
+          <td>
+            <span class="timestamp" title="${formatFullTime(event.updatedAt)}">${formatTime(event.updatedAt)}</span>
+          </td>
+        </tr>
+      `).join('');
+      
+      // Update pagination
+      document.getElementById('paginationInfo').textContent = 
+        `Showing ${start + 1}-${Math.min(start + itemsPerPage, filtered.length)} of ${filtered.length} events`;
+      
+      // Render pagination buttons
+      const paginationBtns = document.getElementById('paginationButtons');
+      let buttonsHtml = `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Prev</button>`;
+      
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+          buttonsHtml += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+        } else if (i === currentPage - 2 || i === currentPage + 2) {
+          buttonsHtml += `<span style="color: var(--text-sub)">...</span>`;
+        }
+      }
+      
+      buttonsHtml += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>Next →</button>`;
+      paginationBtns.innerHTML = buttonsHtml;
+    }
+    
+    function goToPage(page) {
+      currentPage = page;
+      renderEvents();
+    }
+    
+    // Update Stats
+    function updateStats() {
+      if (events.length === 0) {
+        document.getElementById('totalEvents').textContent = '0';
+        document.getElementById('avgProb').textContent = '0%';
+        document.getElementById('risingEvents').textContent = '0';
+        document.getElementById('newToday').textContent = '0';
+        return;
+      }
+      
+      document.getElementById('totalEvents').textContent = events.length;
+      
+      const avgProb = Math.round(events.reduce((sum, e) => sum + (e.probability || 0), 0) / events.length);
+      document.getElementById('avgProb').textContent = avgProb + '%';
+      
+      const rising = events.filter(e => e.trend === 'rise').length;
+      document.getElementById('risingEvents').textContent = rising;
+      
+      const today = events.filter(e => {
+        if (!e.updatedAt || isNaN(e.updatedAt.getTime())) return false;
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        return e.updatedAt >= todayStart;
+      }).length;
+      document.getElementById('newToday').textContent = today;
+    }
+    
+    // Event Listeners
+    document.getElementById('searchInput').addEventListener('input', () => {
+      currentPage = 1;
+      renderEvents();
+    });
+    
+    document.getElementById('sortSelect').addEventListener('change', renderEvents);
+    
+    document.getElementById('filterBtn').addEventListener('click', () => {
+      // Toggle filter panel (could be expanded)
+      alert('Filter panel coming soon!');
+    });
+    
+    // Initialize - Fetch from real API
+    fetchEvents();
+    
+    // Optional: Auto-refresh every 60 seconds
+    setInterval(fetchEvents, 60000);
+  </script>
+</body>
+</html>

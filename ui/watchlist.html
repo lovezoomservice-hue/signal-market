@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watchlist - Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080c;
+      --surface: rgba(15, 15, 22, 0.95);
+      --surface-hover: rgba(25, 25, 35, 0.95);
+      --border: rgba(46, 46, 62, 0.6);
+      --primary: #00e676;
+      --primary-dim: rgba(0, 230, 118, 0.15);
+      --accent: #00bcd4;
+      --accent-purple: #7c4dff;
+      --text: #fff;
+      --text-dim: #6b7280;
+      --text-sub: #4b5563;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --rise: #22c55e;
+      --fall: #f43f5e;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    
+    .glow-main {
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(245, 158, 11, 0.08) 0%, transparent 60%);
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(8, 8, 12, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    
+    .nav {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .nav-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    
+    .nav-item:hover { color: var(--text); background: var(--surface-hover); }
+    .nav-item.active { color: var(--primary); background: var(--primary-dim); }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .add-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--primary-dim);
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      color: var(--primary);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .add-btn:hover {
+      background: rgba(0, 230, 118, 0.25);
+    }
+    
+    /* Main Content */
+    .main {
+      margin-top: 56px;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    
+    .toolbar-left h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Stats Row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 28px;
+      font-weight: 600;
+    }
+    
+    .stat-value.positive { color: var(--rise); }
+    .stat-value.negative { color: var(--fall); }
+    
+    /* Watchlist */
+    .watchlist-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .watchlist-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .watchlist-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    .watchlist-count {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    /* Watchlist Item */
+    .watchlist-item {
+      display: grid;
+      grid-template-columns: 1fr 120px 100px 100px 80px 50px;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(46, 46, 62, 0.3);
+      transition: background 0.15s;
+    }
+    
+    .watchlist-item:hover {
+      background: var(--surface-hover);
+    }
+    
+    .watchlist-item:last-child {
+      border-bottom: none;
+    }
+    
+    .event-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .event-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(99, 102, 241, 0.1);
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    
+    .event-details h4 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+    
+    .event-details h4:hover {
+      color: var(--primary);
+    }
+    
+    .event-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    
+    .stage-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .stage-badge.emerging { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .stage-badge.forming { background: rgba(124, 77, 255, 0.15); color: var(--accent-purple); }
+    .stage-badge.accelerating { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .stage-badge.peak { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .stage-badge.fading { background: rgba(107, 114, 128, 0.15); color: var(--text-dim); }
+    
+    /* Probability */
+    .prob-cell {
+      text-align: right;
+    }
+    
+    .prob-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .prob-bar {
+      width: 60px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin-top: 4px;
+      margin-left: auto;
+      overflow: hidden;
+    }
+    
+    .prob-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+    }
+    
+    /* Trend */
+    .trend-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+    }
+    
+    .trend-cell.rise { color: var(--rise); }
+    .trend-cell.fall { color: var(--fall); }
+    .trend-cell.flat { color: var(--flat); }
+    
+    /* Alert Status */
+    .alert-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+    }
+    
+    .alert-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    
+    .alert-dot.active { background: var(--success); }
+    .alert-dot.inactive { background: var(--text-sub); }
+    .alert-dot.triggered { background: var(--warning); }
+    
+    /* Actions */
+    .actions-cell {
+      text-align: right;
+    }
+    
+    .remove-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-sub);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+    
+    .remove-btn:hover {
+      color: var(--danger);
+      background: rgba(239, 68, 68, 0.1);
+    }
+    
+    /* Empty State */
+    .empty-state {
+      padding: 60px;
+      text-align: center;
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .empty-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .empty-desc {
+      font-size: 13px;
+      color: var(--text-sub);
+      margin-bottom: 20px;
+    }
+    
+    .browse-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: var(--primary-dim);
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    
+    .browse-btn:hover {
+      background: rgba(0, 230, 118, 0.25);
+    }
+    
+    /* Alert Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    
+    .modal-overlay.show {
+      display: flex;
+    }
+    
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 420px;
+      max-width: 90%;
+    }
+    
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+    
+    .form-select {
+      width: 100%;
+      padding: 10px 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+    }
+    
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+    }
+    
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    
+    .checkbox.checked {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .checkbox-label {
+      font-size: 13px;
+    }
+    
+    .modal-footer {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+    
+    .btn-secondary:hover {
+      border-color: var(--text-dim);
+      color: var(--text);
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      border: 1px solid var(--primary);
+      color: var(--bg);
+    }
+    
+    .btn-primary:hover {
+      background: rgba(0, 230, 118, 0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-main"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">SIGNAL<span>.MARKET</span></div>
+      <nav class="nav">
+        <a href="/" class="nav-item">Dashboard</a>
+        <a href="/events" class="nav-item">Event Explorer</a>
+        <a href="/topics" class="nav-item">Topics</a>
+        <a href="/lens" class="nav-item">My Lens</a>
+        <a href="/watchlist" class="nav-item active">Watchlist</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <button class="add-btn" onclick="showAddModal()">
+        <span>+</span> Add Event
+      </button>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h1>My Watchlist</h1>
+        <div class="page-subtitle">TRACKED EVENTS & ALERTS</div>
+      </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Watched Events</div>
+        <div class="stat-value" id="totalWatched">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Alerts</div>
+        <div class="stat-value" id="activeAlerts">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Triggered Today</div>
+        <div class="stat-value" id="triggeredToday">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Probability</div>
+        <div class="stat-value" id="avgProb">--%</div>
+      </div>
+    </div>
+    
+    <!-- Watchlist -->
+    <div class="watchlist-container">
+      <div class="watchlist-header">
+        <span class="watchlist-title">Watched Events</span>
+        <span class="watchlist-count" id="watchlistCount">0 events</span>
+      </div>
+      <div id="watchlistItems">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </main>
+  
+  <!-- Add Alert Modal -->
+  <div class="modal-overlay" id="alertModal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Set Alert</span>
+        <button class="modal-close" onclick="hideAddModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Event</label>
+          <input type="text" class="form-input" id="alertEvent" placeholder="Select event...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Alert Type</label>
+          <select class="form-select" id="alertType">
+            <option value="prob_change">Probability Change</option>
+            <option value="prob_threshold">Probability Threshold</option>
+            <option value="stage_change">Stage Change</option>
+            <option value="new_evidence">New Evidence</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Threshold Value</label>
+          <input type="number" class="form-input" id="alertThreshold" placeholder="e.g., 10 (percentage)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notification Channel</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+              <div class="checkbox checked">✓</div>
+              <span class="checkbox-label">In-app Notification</span>
+            </div>
+            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+              <div class="checkbox">✓</div>
+              <span class="checkbox-label">Email</span>
+            </div>
+            <div class="checkbox-item" onclick="toggleCheckbox(this)">
+              <div class="checkbox">✓</div>
+              <span class="checkbox-label">Telegram</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="hideAddModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveAlert()">Save Alert</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // API Configuration - 支持本地和演示模式
+    const API_BASE = 'https://purple-dots-hug.loca.lt.loca.lt' /* original: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+      ? 'http://localhost:3000' 
+      : null; // 演示模式
+    
+    // Demo data for production/Cloudflare
+    const DEMO_WATCHLIST = [
+      { id: 'demo_1', topic: 'AI Agents', stage: 'emerging', confidence: 0.63, probability: 63, previousProb: 58, trend: 'rise', trendValue: 5, icon: '🤖' },
+      { id: 'demo_2', topic: 'Bitcoin ETF', stage: 'accelerating', confidence: 0.87, probability: 87, previousProb: 82, trend: 'rise', trendValue: 5, icon: '₿' },
+      { id: 'demo_3', topic: 'GPU Shortage', stage: 'forming', confidence: 0.71, probability: 71, previousProb: 65, trend: 'rise', trendValue: 6, icon: '💻' },
+      { id: 'demo_4', topic: 'Quantum Computing', stage: 'weak', confidence: 0.35, probability: 35, previousProb: 30, trend: 'rise', trendValue: 5, icon: '⚛️' },
+      { id: 'demo_5', topic: 'Space Exploration', stage: 'accelerating', confidence: 0.68, probability: 68, previousProb: 62, trend: 'rise', trendValue: 6, icon: '🚀' }
+    ];
+    
+    // Watchlist state
+    let watchlist = [];
+    let isLoading = true;
+
+    // Fetch watchlist from API or use demo data
+    async function fetchWatchlist() {
+      try {
+        isLoading = true;
+        renderWatchlist();
+        
+        // 如果没有 API，使用演示数据
+        if (!API_BASE) {
+          console.log('📋 Using demo data (API not available)');
+          watchlist = [...DEMO_WATCHLIST];
+          isLoading = false;
+          renderWatchlist();
+          return;
+        }
+        
+        const response = await fetch(`${API_BASE}/watchlist`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        
+        const data = await response.json();
+        
+        // Transform API data to match display format
+        watchlist = (data.watchlist || []).map(item => ({
+          id: item.id,
+          title: item.topic || 'Unknown Topic',
+          stage: item.stage || 'emerging',
+          probability: Math.round((item.confidence || 0.5) * 100),
+          previousProb: Math.round((item.confidence || 0.5) * 100) - 5,
+          trend: 'rise',
+          trendValue: 5,
+          alertEnabled: true,
+          alertTriggered: false,
+          icon: getIconForTopic(item.topic)
+        }));
+        
+        isLoading = false;
+        renderWatchlist();
+        console.log('✅ Watchlist loaded:', watchlist.length);
+      } catch (error) {
+        console.error('❌ Watchlist fetch error:', error);
+        // Fallback to demo data on error
+        watchlist = [...DEMO_WATCHLIST];
+        isLoading = false;
+        renderWatchlist();
+      }
+    }
+
+    // Get icon based on topic
+    function getIconForTopic(topic) {
+      if (!topic) return '📌';
+      const t = topic.toLowerCase();
+      if (t.includes('ai') || t.includes('agent')) return '🤖';
+      if (t.includes('bitcoin') || t.includes('btc')) return '₿';
+      if (t.includes('ethereum') || t.includes('eth')) return '⟐';
+      if (t.includes('nvidia') || t.includes('gpu')) return '📊';
+      if (t.includes('fed') || t.includes('rate')) return '🏦';
+      if (t.includes('apple')) return '🍎';
+      if (t.includes('space') || t.includes('rocket')) return '🚀';
+      return '📌';
+    }
+    
+    function getProbColor(prob) {
+      if (prob >= 80) return 'var(--success)';
+      if (prob >= 50) return 'var(--warning)';
+      return 'var(--danger)';
+    }
+    
+    function renderWatchlist() {
+      const container = document.getElementById('watchlistItems');
+      
+      if (watchlist.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⭐</div>
+            <div class="empty-title">No events watched</div>
+            <div class="empty-desc">Add events to your watchlist to track them here</div>
+            <a href="/events" class="browse-btn">Browse Events →</a>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = watchlist.map(item => `
+        <div class="watchlist-item">
+          <div class="event-info">
+            <div class="event-icon">${item.icon}</div>
+            <div class="event-details">
+              <h4 onclick="window.location.href='/event_detail.html?id=${item.id}'">${item.title}</h4>
+              <div class="event-meta">
+                <span class="stage-badge ${item.stage}">${item.stage}</span>
+                <span>${item.id}</span>
+              </div>
+            </div>
+          </div>
+          <div class="prob-cell">
+            <div class="prob-value" style="color: ${getProbColor(item.probability)}">${item.probability}%</div>
+            <div class="prob-bar">
+              <div class="prob-bar-fill" style="width: ${item.probability}%; background: ${getProbColor(item.probability)}"></div>
+            </div>
+          </div>
+          <div class="trend-cell ${item.trend}">
+            ${item.trend === 'rise' ? '↑' : item.trend === 'fall' ? '↓' : '→'} ${Math.abs(item.trendValue)}%
+          </div>
+          <div class="alert-status">
+            <div class="alert-dot ${item.alertTriggered ? 'triggered' : item.alertEnabled ? 'active' : 'inactive'}"></div>
+            <span>${item.alertTriggered ? 'Triggered' : item.alertEnabled ? 'Active' : 'Off'}</span>
+          </div>
+          <div class="actions-cell">
+            <button class="remove-btn" onclick="removeFromWatchlist('${item.id}')" title="Remove">×</button>
+          </div>
+        </div>
+      `).join('');
+      
+      // Update stats
+      document.getElementById('totalWatched').textContent = watchlist.length;
+      document.getElementById('activeAlerts').textContent = watchlist.filter(w => w.alertEnabled).length;
+      document.getElementById('triggeredToday').textContent = watchlist.filter(w => w.alertTriggered).length;
+      
+      const avgProb = Math.round(watchlist.reduce((sum, w) => sum + w.probability, 0) / watchlist.length);
+      document.getElementById('avgProb').textContent = avgProb + '%';
+      
+      document.getElementById('watchlistCount').textContent = `${watchlist.length} events`;
+    }
+    
+    // Remove from watchlist via API
+    async function removeFromWatchlist(id) {
+      try {
+        const response = await fetch(`${API_BASE}/watchlist/${id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          watchlist = watchlist.filter(w => w.id !== id);
+          renderWatchlist();
+          console.log('✅ Removed from watchlist');
+        }
+      } catch (error) {
+        console.error('❌ Remove error:', error);
+      }
+    }
+    
+    // Add to watchlist via API
+    async function addToWatchlist(topic, stage = 'emerging', confidence = 0.5) {
+      try {
+        const response = await fetch(`${API_BASE}/watchlist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, stage, confidence })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ Added to watchlist:', data.watch_id);
+          fetchWatchlist(); // Refresh
+        }
+      } catch (error) {
+        console.error('❌ Add error:', error);
+      }
+    }
+    
+    function showAddModal() {
+      document.getElementById('alertModal').classList.add('show');
+    }
+    
+    function hideAddModal() {
+      document.getElementById('alertModal').classList.remove('show');
+    }
+    
+    function toggleCheckbox(el) {
+      const checkbox = el.querySelector('.checkbox');
+      checkbox.classList.toggle('checked');
+    }
+    
+    async function saveAlert() {
+      const event = document.getElementById('alertEvent').value;
+      const type = document.getElementById('alertType').value;
+      const threshold = document.getElementById('alertThreshold').value;
+      
+      if (!event) {
+        alert('Please enter a topic');
+        return;
+      }
+      
+      // Add to watchlist via API
+      await addToWatchlist(event, 'emerging', 0.5);
+      hideAddModal();
+    }
+    
+    // Close modal on overlay click
+    document.getElementById('alertModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        hideAddModal();
+      }
+    });
+    
+    // Initialize - Fetch from API
+    fetchWatchlist();
+    
+    // Simulate real-time updates
+    setInterval(() => {
+      // Randomly update probabilities
+      watchlist.forEach(item => {
+        const change = Math.floor(Math.random() * 5) - 2;
+        item.previousProb = item.probability;
+        item.probability = Math.max(10, Math.min(99, item.probability + change));
+        
+        if (change > 0) {
+          item.trend = 'rise';
+          item.trendValue += change;
+        } else if (change < 0) {
+          item.trend = 'fall';
+          item.trendValue += change;
+        }
+        
+        // Trigger alert if significant change
+        if (Math.abs(change) >= 10 && item.alertEnabled) {
+          item.alertTriggered = true;
+        }
+      });
+      
+      renderWatchlist();
+    }, 15000);
+  </script>
+</body>
+</html>

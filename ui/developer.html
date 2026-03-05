@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Market - 开发者中心</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: rgba(18, 18, 26, 0.8);
+      --surface-elevated: rgba(26, 26, 36, 0.9);
+      --glass: rgba(26, 26, 36, 0.7);
+      --border: rgba(46, 46, 58, 0.6);
+      --primary: #00ff88;
+      --primary-glow: rgba(0, 255, 136, 0.3);
+      --accent: #6366f1;
+      --accent-cyan: #22d3ee;
+      --text: #fff;
+      --text-dim: #888;
+      --text-sub: #666;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .header {
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-cyan) 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    
+    .logo-text {
+      background: linear-gradient(135deg, var(--primary) 0%, #00ccff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .nav-link {
+      padding: 8px 16px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .nav-link:hover, .nav-link.active {
+      color: var(--text);
+      background: var(--glass);
+    }
+    
+    .main {
+      padding: 80px 24px 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .page-desc {
+      color: var(--text-dim);
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+    
+    /* Tabs */
+    .dev-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--glass);
+      padding: 4px;
+      border-radius: 12px;
+      width: fit-content;
+    }
+    
+    .dev-tab {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .dev-tab:hover {
+      color: var(--text);
+    }
+    
+    .dev-tab.active {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* API Playground */
+    .playground {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .playground-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--surface-elevated);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .endpoint-select {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      min-width: 300px;
+    }
+    
+    .method-badge {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Fira Code', monospace;
+    }
+    
+    .method-get { background: rgba(0, 255, 136, 0.15); color: var(--primary); }
+    .method-post { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+    
+    .playground-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 400px;
+    }
+    
+    .code-panel {
+      padding: 20px;
+      border-right: 1px solid var(--border);
+    }
+    
+    .code-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .code-editor {
+      background: #0d0d12;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: #e4e4e7;
+      min-height: 280px;
+      resize: none;
+      width: 100%;
+      line-height: 1.6;
+    }
+    
+    .code-editor:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .run-btn {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-cyan) 100%);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+      width: 100%;
+      transition: all 0.2s;
+    }
+    
+    .run-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    }
+    
+    .response-panel {
+      padding: 20px;
+      background: #0d0d12;
+    }
+    
+    .response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .status-200 { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+    .status-error { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+    
+    .response-body {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: #a1a1aa;
+      min-height: 280px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    
+    /* SDK Section */
+    .sdk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+    
+    .sdk-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      transition: all 0.3s;
+    }
+    
+    .sdk-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+    }
+    
+    .sdk-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 16px;
+    }
+    
+    .sdk-node { background: linear-gradient(135deg, #339933, #68a063); }
+    .sdk-python { background: linear-gradient(135deg, #3776ab, #ffd43b); }
+    .sdk-go { background: linear-gradient(135deg, #00add8, #007d9c); }
+    .sdk-js { background: linear-gradient(135deg, #f7df1e, #e5b219); }
+    
+    .sdk-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .sdk-desc {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    
+    .sdk-install {
+      background: #0d0d12;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--primary);
+      margin-bottom: 16px;
+    }
+    
+    .sdk-download {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-block;
+      text-decoration: none;
+    }
+    
+    .sdk-download:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    /* Code Examples */
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+    }
+    
+    .example-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    
+    .example-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--surface-elevated);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .example-title {
+      font-weight: 600;
+      font-size: 15px;
+    }
+    
+    .example-lang {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .example-code {
+      padding: 20px;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #d4d4d8;
+      overflow-x: auto;
+    }
+    
+    .example-code .comment { color: #6b7280; }
+    .example-code .keyword { color: #c792ea; }
+    .example-code .string { color: #c3e88d; }
+    .example-code .function { color: #82aaff; }
+    .example-code .number { color: #f78c6c; }
+    
+    /* Docs Section */
+    .docs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 20px;
+    }
+    
+    .doc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .doc-method {
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    
+    .doc-endpoint {
+      font-family: 'Fira Code', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    
+    .doc-desc {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+    
+    .doc-params {
+      background: #0d0d12;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .doc-param {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    
+    .doc-param:last-child {
+      border-bottom: none;
+    }
+    
+    .doc-param-name {
+      color: var(--accent-cyan);
+      font-family: 'Fira Code', monospace;
+    }
+    
+    .doc-param-type {
+      color: var(--text-dim);
+    }
+    
+    @media (max-width: 768px) {
+      .playground-body { grid-template-columns: 1fr; }
+      .code-panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .examples-grid { grid-template-columns: 1fr; }
+      .endpoint-select { min-width: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">◈</div>
+      <span class="logo-text">Signal Market</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">首页</a>
+      <a href="dashboard_live.html" class="nav-link">Dashboard</a>
+      <a href="portal.html" class="nav-link">Portal</a>
+      <a href="developer.html" class="nav-link active">开发者</a>
+    </nav>
+  </header>
+  
+  <main class="main">
+    <h1 class="page-title">开发者中心</h1>
+    <p class="page-desc">API Playground、SDK 下载、代码示例 - 快速集成 Signal Market 到你的应用</p>
+    
+    <div class="dev-tabs">
+      <button class="dev-tab active" onclick="switchTab('playground')">API Playground</button>
+      <button class="dev-tab" onclick="switchTab('sdks')">SDK 下载</button>
+      <button class="dev-tab" onclick="switchTab('examples')">代码示例</button>
+      <button class="dev-tab" onclick="switchTab('docs')">API 文档</button>
+    </div>
+    
+    <!-- API Playground -->
+    <div class="tab-content active" id="tab-playground">
+      <div class="playground">
+        <div class="playground-header">
+          <select class="endpoint-select" id="endpointSelect" onchange="updatePlayground()">
+            <option value="events">GET /events - 获取事件列表</option>
+            <option value="predictions">GET /predictions - 获取预测列表</option>
+            <option value="health">GET /signals/health - 系统健康状态</option>
+            <option value="lens-brief">GET /lenses/:lens/daily-brief - Lens 概要</option>
+          </select>
+          <span class="method-badge method-get">GET</span>
+        </div>
+        <div class="playground-body">
+          <div class="code-panel">
+            <div class="code-label">Request</div>
+            <textarea class="code-editor" id="requestCode">// cURL
+curl -X GET "http://localhost:3000/events" \
+  -H "Authorization: Bearer YOUR_API_KEY"</textarea>
+            <button class="run-btn" onclick="runRequest()">▶ 运行请求</button>
+          </div>
+          <div class="response-panel">
+            <div class="response-header">
+              <div class="code-label">Response</div>
+              <span class="status-badge status-200" id="responseStatus">200 OK</span>
+            </div>
+            <div class="response-body" id="responseBody">// 响应将显示在这里...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- SDK Downloads -->
+    <div class="tab-content" id="tab-sdks">
+      <div class="sdk-grid">
+        <div class="sdk-card">
+          <div class="sdk-icon sdk-node">🟢</div>
+          <div class="sdk-title">Node.js SDK</div>
+          <div class="sdk-desc">官方 Node.js 客户端，支持事件订阅和实时数据</div>
+          <div class="sdk-install">npm install @signalmarket/sdk</div>
+          <a href="#" class="sdk-download" onclick="downloadSDK('node')">下载 v1.0.0</a>
+        </div>
+        <div class="sdk-card">
+          <div class="sdk-icon sdk-python">🐍</div>
+          <div class="sdk-title">Python SDK</div>
+          <div class="sdk-desc">官方 Python 客户端，支持异步请求和数据处理</div>
+          <div class="sdk-install">pip install signalmarket</div>
+          <a href="#" class="sdk-download" onclick="downloadSDK('python')">下载 v1.0.0</a>
+        </div>
+        <div class="sdk-card">
+          <div class="sdk-icon sdk-go">🔵</div>
+          <div class="sdk-title">Go SDK</div>
+          <div class="sdk-desc">官方 Go 客户端，高性能同步请求</div>
+          <div class="sdk-install">go get github.com/signalmarket/sdk-go</div>
+          <a href="#" class="sdk-download" onclick="downloadSDK('go')">下载 v1.0.0</a>
+        </div>
+        <div class="sdk-card">
+          <div class="sdk-icon sdk-js">🟨</div>
+          <div class="sdk-title">JavaScript SDK</div>
+          <div class="sdk-desc">浏览器端 JavaScript SDK，无需后端</div>
+          <div class="sdk-install">&lt;script src="https://sdk.signalmarket.io/v1.js"&gt;&lt;/script&gt;</div>
+          <a href="#" class="sdk-download" onclick="downloadSDK('js')">查看 CDN</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Code Examples -->
+    <div class="tab-content" id="tab-examples">
+      <div class="examples-grid">
+        <div class="example-card">
+          <div class="example-header">
+            <span class="example-title">获取实时事件</span>
+            <span class="example-lang">JavaScript</span>
+          </div>
+          <div class="example-code"><span class="comment">// 初始化客户端</span>
+<span class="keyword">const</span> client = <span class="keyword">new</span> SignalMarket(<span class="string">'YOUR_API_KEY'</span>);
+
+<span class="comment">// 获取事件列表</span>
+<span class="keyword">const</span> events = <span class="keyword">await</span> client.events.<span class="function">list</span>({
+  stage: <span class="string">'forming'</span>,
+  limit: <span class="number">10</span>
+});
+
+events.forEach(event => {
+  console.<span class="function">log</span>(<span class="string">`${event.topic}: ${event.stage}`</span>);
+});</div>
+        </div>
+        
+        <div class="example-card">
+          <div class="example-header">
+            <span class="example-title">订阅实时推送</span>
+            <span class="example-lang">JavaScript</span>
+          </div>
+          <div class="example-code"><span class="comment">// 订阅 WebSocket 事件流</span>
+<span class="keyword">const</span> ws = client.<span class="function">subscribe</span>(<span class="string">'events'</span>);
+
+ws.on(<span class="string">'message'</span>, (event) => {
+  console.<span class="function">log</span>(<span class="string">`新事件: ${event.topic}`</span>);
+  
+  <span class="comment">// 自动处理</span>
+  <span class="keyword">if</span> (event.probability_pct > <span class="number">0.8</span>) {
+    <span class="function">sendAlert</span>(event);
+  }
+});</div>
+        </div>
+        
+        <div class="example-card">
+          <div class="example-header">
+            <span class="example-title">Python 异步示例</span>
+            <span class="example-lang">Python</span>
+          </div>
+          <div class="example-code"><span class="comment"># 异步获取预测数据</span>
+<span class="keyword">import</span> asyncio
+<span class="keyword">import</span> signalmarket
+
+<span class="keyword">async def</span> <span class="function">main</span>():
+    client = signalmarket.<span class="function">Client</span>(<span class="string">'YOUR_API_KEY'</span>)
+    
+    <span class="comment"># 并发请求多个 Lens</span>
+    results = <span class="keyword">await</span> asyncio.<span class="function">gather</span>(
+        client.lenses.<span class="function">get_brief</span>(<span class="string">'lens_a_stock'</span>),
+        client.lenses.<span class="function">get_brief</span>(<span class="string">'lens_crypto_event'</span>),
+    )
+    
+    <span class="keyword">for</span> brief <span class="keyword">in</span> results:
+        <span class="function">print</span>(f<span class="string">"Events: {len(brief.events)}"</span>)
+
+asyncio.<span class="function">run</span>(<span class="function">main</span>())</div>
+        </div>
+        
+        <div class="example-card">
+          <div class="example-header">
+            <span class="example-title">cURL 快速测试</span>
+            <span class="example-lang">cURL</span>
+          </div>
+          <div class="example-code"><span class="comment"># 获取所有活跃事件</span>
+curl -X GET <span class="string">"https://api.signalmarket.io/v1/events"</span> \
+  -H <span class="string">"Authorization: Bearer YOUR_API_KEY"</span> \
+  -H <span class="string">"Content-Type: application/json"</span>
+
+<span class="comment"># 筛选特定阶段的事件</span>
+curl -X GET <span class="string">"https://api.signalmarket.io/v1/events?stage=forming&limit=5"</span> \
+  -H <span class="string">"Authorization: Bearer YOUR_API_KEY"</span></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- API Docs -->
+    <div class="tab-content" id="tab-docs">
+      <div class="docs-grid">
+        <div class="doc-card">
+          <div class="doc-method">GET</div>
+          <div class="doc-endpoint">/events</div>
+          <div class="doc-desc">获取当前活跃的事件列表，支持分页和筛选</div>
+          <div class="doc-params">
+            <div class="doc-param">
+              <span class="doc-param-name">stage</span>
+              <span class="doc-param-type">string</span>
+            </div>
+            <div class="doc-param">
+              <span class="doc-param-name">lens</span>
+              <span class="doc-param-type">string</span>
+            </div>
+            <div class="doc-param">
+              <span class="doc-param-name">limit</span>
+              <span class="doc-param-type">number</span>
+            </div>
+            <div class="doc-param">
+              <span class="doc-param-name">offset</span>
+              <span class="doc-param-type">number</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="doc-card">
+          <div class="doc-method">GET</div>
+          <div class="doc-endpoint">/predictions</div>
+          <div class="doc-desc">获取当前有效的预测信号列表</div>
+          <div class="doc-params">
+            <div class="doc-param">
+              <span class="doc-param-name">min_prob</span>
+              <span class="doc-param-type">number (0-1)</span>
+            </div>
+            <div class="doc-param">
+              <span class="doc-param-name">lens</span>
+              <span class="doc-param-type">string</span>
+            </div>
+            <div class="doc-param">
+              <span class="doc-param-name">limit</span>
+              <span class="doc-param-type">number</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="doc-card">
+          <div class="doc-method">GET</div>
+          <div class="doc-endpoint">/lenses/{lens}/daily-brief</div>
+          <div class="doc-desc">获取指定 Lens 的每日概要信息</div>
+          <div class="doc-params">
+            <div class="doc-param">
+              <span class="doc-param-name">lens</span>
+              <span class="doc-param-type">string (path)</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="doc-card">
+          <div class="doc-method">GET</div>
+          <div class="doc-endpoint">/signals/health</div>
+          <div class="doc-desc">获取系统健康状态和实时指标</div>
+          <div class="doc-params">
+            <div class="doc-param">
+              <span class="doc-param-name">-</span>
+              <span class="doc-param-type">无需参数</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    const API_BASE = 'http://localhost:3000';
+    const API_KEY = 'YOUR_API_KEY'; // 从 portal 获取
+    
+    const endpoints = {
+      events: {
+        url: '/events',
+        method: 'GET',
+        code: `// cURL
+curl -X GET "http://localhost:3000/events" \\
+  -H "Authorization: Bearer ${API_KEY}"
+
+// JavaScript
+const response = await fetch('http://localhost:3000/events', {
+  headers: {
+    'Authorization': 'Bearer ${API_KEY}'
+  }
+});
+const data = await response.json();`
+      },
+      predictions: {
+        url: '/predictions',
+        method: 'GET',
+        code: `// cURL
+curl -X GET "http://localhost:3000/predictions" \\
+  -H "Authorization: Bearer ${API_KEY}"
+
+// JavaScript
+const response = await fetch('http://localhost:3000/predictions', {
+  headers: {
+    'Authorization': 'Bearer ${API_KEY}'
+  }
+});
+const data = await response.json();`
+      },
+      health: {
+        url: '/signals/health',
+        method: 'GET',
+        code: `// cURL
+curl -X GET "http://localhost:3000/signals/health" \\
+  -H "Authorization: Bearer ${API_KEY}"
+
+// JavaScript
+const response = await fetch('http://localhost:3000/signals/health', {
+  headers: {
+    'Authorization': 'Bearer ${API_KEY}'
+  }
+});
+const data = await response.json();`
+      },
+      'lens-brief': {
+        url: '/lenses/lens_a_stock/daily-brief',
+        method: 'GET',
+        code: `// cURL
+curl -X GET "http://localhost:3000/lenses/lens_a_stock/daily-brief" \\
+  -H "Authorization: Bearer ${API_KEY}"
+
+// JavaScript
+const lens = 'lens_a_stock';
+const response = await fetch(\`http://localhost:3000/lenses/\${lens}/daily-brief\`, {
+  headers: {
+    'Authorization': 'Bearer ${API_KEY}'
+  }
+});
+const data = await response.json();`
+      }
+    };
+    
+    function switchTab(tabId) {
+      document.querySelectorAll('.dev-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      
+      document.querySelector(`.dev-tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+    
+    function updatePlayground() {
+      const endpoint = document.getElementById('endpointSelect').value;
+      document.getElementById('requestCode').value = endpoints[endpoint].code;
+    }
+    
+    async function runRequest() {
+      const endpoint = document.getElementById('endpointSelect').value;
+      const url = endpoints[endpoint].url;
+      const responseBody = document.getElementById('responseBody');
+      const statusBadge = document.getElementById('responseStatus');
+      
+      responseBody.textContent = '请求中...';
+      
+      try {
+        const res = await fetch(`${API_BASE}${url}`, {
+          headers: {
+            'Authorization': `Bearer ${API_KEY}`
+          }
+        });
+        
+        const data = await res.json();
+        
+        statusBadge.textContent = `${res.status} ${res.statusText}`;
+        statusBadge.className = `status-badge ${res.ok ? 'status-200' : 'status-error'}`;
+        responseBody.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        statusBadge.textContent = 'Error';
+        statusBadge.className = 'status-badge status-error';
+        responseBody.textContent = `错误: ${e.message}\n\n确保 API 服务正在运行 (http://localhost:3000)`;
+      }
+    }
+    
+    function downloadSDK(type) {
+      const msg = document.createElement('div');
+      msg.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--surface-elevated);border:1px solid var(--border);padding:16px 24px;border-radius:12px;z-index:1000;';
+      msg.textContent = `正在准备 ${type.toUpperCase()} SDK...`;
+      document.body.appendChild(msg);
+      setTimeout(() => msg.remove(), 2000);
+    }
+    
+    // Initialize
+    updatePlayground();
+  </script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weak Signals - Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080c;
+      --surface: rgba(15, 15, 22, 0.95);
+      --surface-hover: rgba(25, 25, 35, 0.95);
+      --border: rgba(46, 46, 62, 0.6);
+      --primary: #00e676;
+      --primary-dim: rgba(0, 230, 118, 0.15);
+      --accent: #00bcd4;
+      --accent-purple: #7c4dff;
+      --text: #fff;
+      --text-dim: #6b7280;
+      --text-sub: #4b5563;
+      --warning: #f59e0b;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    
+    .glow-main {
+      position: absolute;
+      top: 10%;
+      left: 30%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(0, 188, 212, 0.08) 0%, transparent 60%);
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(8, 8, 12, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    
+    .nav {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .nav-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    
+    .nav-item:hover { color: var(--text); background: var(--surface-hover); }
+    .nav-item.active { color: var(--accent); background: rgba(0, 188, 212, 0.15); }
+    
+    /* Main */
+    .main {
+      margin-top: 56px;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .page-header {
+      margin-bottom: 20px;
+    }
+    
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Info Banner */
+    .info-banner {
+      background: rgba(0, 188, 212, 0.1);
+      border: 1px solid rgba(0, 188, 212, 0.3);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+    }
+    
+    .info-banner h3 {
+      color: var(--accent);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    
+    .info-banner p {
+      color: var(--text-dim);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    
+    .formula {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 8px;
+    }
+    
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    /* Weak Signal Card */
+    .signals-grid {
+      display: grid;
+      gap: 12px;
+    }
+    
+    .signal-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      transition: all 0.15s;
+    }
+    
+    .signal-card:hover {
+      border-color: var(--accent);
+      background: var(--surface-hover);
+    }
+    
+    .signal-rank {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-dim);
+      min-width: 30px;
+    }
+    
+    .signal-info {
+      flex: 1;
+    }
+    
+    .signal-topic {
+      font-weight: 500;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    
+    .signal-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .signal-score {
+      text-align: right;
+      min-width: 100px;
+    }
+    
+    .score-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+    
+    .score-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    
+    .score-bar {
+      width: 80px;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin-top: 4px;
+    }
+    
+    .score-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    
+    .badge-new { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .badge-growth { background: rgba(0, 230, 118, 0.15); color: var(--primary); }
+    .badge-stable { background: rgba(107, 114, 128, 0.15); color: var(--text-dim); }
+    
+    .source-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--text-sub);
+    }
+    
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 12px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Empty */
+    .empty-state {
+      padding: 60px;
+      text-align: center;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-main"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">SIGNAL<span>.MARKET</span></div>
+    <nav class="nav">
+      <a href="/index.html" class="nav-item">Dashboard</a>
+      <a href="/events.html" class="nav-item">Events</a>
+      <a href="/topics.html" class="nav-item">Topics</a>
+      <a href="/watchlist.html" class="nav-item">Watchlist</a>
+      <a href="/weak-signals.html" class="nav-item active">Weak Signals</a>
+      <a href="/alerts.html" class="nav-item">Alerts</a>
+    </nav>
+  </header>
+  
+  <!-- Main -->
+  <main class="main">
+    <div class="page-header">
+      <h1 class="page-title">Weak Signals</h1>
+      <div class="page-subtitle">EARLY-STAGE TREND DETECTION</div>
+    </div>
+    
+    <!-- Info Banner -->
+    <div class="info-banner">
+      <h3>🔍 What are Weak Signals?</h3>
+      <p>Weak signals are early indicators of emerging trends before mainstream recognition. 
+         They are characterized by low volume but high novelty and cross-source presence.</p>
+      <div class="formula">
+        Score = 0.40×Novelty + 0.25×Expert Source + 0.20×Cross-Domain + 0.15×Early Adopter
+      </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Weak Signals</div>
+        <div class="stat-value" id="totalSignals">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">High Novelty</div>
+        <div class="stat-value" id="highNovelty">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Early Growth</div>
+        <div class="stat-value" id="earlyGrowth">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Cross-Domain</div>
+        <div class="stat-value" id="crossDomain">--</div>
+      </div>
+    </div>
+    
+    <!-- Signals List -->
+    <div class="signals-grid" id="signalsGrid">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Discovering weak signals...
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // API Configuration - 支持本地和演示模式
+    const API_BASE = 'https://purple-dots-hug.loca.lt.loca.lt' /* original: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+      ? 'http://localhost:3000' 
+      : null;
+    
+    // Demo data for production
+    const DEMO_WEAK_SIGNALS = [
+      { topic: 'Edge AI Chips', weak_signal_score: 0.72, novelty: 0.9, velocity_state: 'early_growth', source_count: 3 },
+      { topic: 'Neuromorphic Computing', weak_signal_score: 0.68, novelty: 0.85, velocity_state: 'new', source_count: 2 },
+      { topic: 'Synthetic Biology Tools', weak_signal_score: 0.65, novelty: 0.8, velocity_state: 'early_growth', source_count: 2 },
+      { topic: 'Quantum Error Correction', weak_signal_score: 0.62, novelty: 0.95, velocity_state: 'new', source_count: 1 },
+      { topic: 'Flying Car Startups', weak_signal_score: 0.58, novelty: 0.88, velocity_state: 'stable', source_count: 2 },
+      { topic: 'Solid State Batteries', weak_signal_score: 0.55, novelty: 0.75, velocity_state: 'early_growth', source_count: 2 },
+      { topic: 'Brain-Computer Interfaces', weak_signal_score: 0.52, novelty: 0.82, velocity_state: 'new', source_count: 2 },
+      { topic: 'Rust for WebAssembly', weak_signal_score: 0.48, novelty: 0.7, velocity_state: 'stable', source_count: 2 }
+    ].map((s, i) => ({...s, stage: 'weak', confidence: s.weak_signal_score, evidence_count: 5, updated_at: new Date().toISOString()}));
+    
+    let signals = [];
+    let isLoading = true;
+
+    // Fetch weak signals or use demo data
+    async function fetchWeakSignals() {
+      try {
+        isLoading = true;
+        render();
+        
+        if (!API_BASE) {
+          signals = [...DEMO_WEAK_SIGNALS];
+          isLoading = false;
+          render();
+          updateStats();
+          return;
+        }
+        
+        const response = await fetch(`${API_BASE}/weak-signals`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        
+        const data = await response.json();
+        signals = data.weak_signals || [];
+        
+        isLoading = false;
+        render();
+        updateStats();
+        console.log('✅ Weak signals loaded:', signals.length);
+      } catch (error) {
+        console.error('❌ Error:', error);
+        signals = [...DEMO_WEAK_SIGNALS];
+        isLoading = false;
+        render();
+        updateStats();
+      }
+    }
+
+    // Get velocity badge
+    function getVelocityBadge(state) {
+      if (state === 'early_growth') return '<span class="badge badge-growth">Early Growth</span>';
+      if (state === 'new') return '<span class="badge badge-new">New</span>';
+      return '<span class="badge badge-stable">Stable</span>';
+    }
+
+    // Update stats
+    function updateStats() {
+      document.getElementById('totalSignals').textContent = signals.length;
+      
+      const highNovelty = signals.filter(s => s.novelty > 0.7).length;
+      document.getElementById('highNovelty').textContent = highNovelty;
+      
+      const earlyGrowth = signals.filter(s => s.velocity_state === 'early_growth').length;
+      document.getElementById('earlyGrowth').textContent = earlyGrowth;
+      
+      const crossDomain = signals.filter(s => s.source_count > 1).length;
+      document.getElementById('crossDomain').textContent = crossDomain;
+    }
+
+    // Render signals
+    function render() {
+      const grid = document.getElementById('signalsGrid');
+      
+      if (isLoading) {
+        grid.innerHTML = `
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Discovering weak signals...
+          </div>
+        `;
+        return;
+      }
+      
+      if (signals.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state">
+            No weak signals detected yet. Check back later.
+          </div>
+        `;
+        return;
+      }
+      
+      grid.innerHTML = signals.map((signal, index) => `
+        <div class="signal-card">
+          <div class="signal-rank">#${index + 1}</div>
+          <div class="signal-info">
+            <div class="signal-topic">${signal.topic}</div>
+            <div class="signal-meta">
+              ${getVelocityBadge(signal.velocity_state)}
+              <span class="source-count">${signal.source_count} sources</span>
+            </div>
+          </div>
+          <div class="signal-score">
+            <div class="score-label">Weak Score</div>
+            <div class="score-value">${(signal.weak_signal_score * 100).toFixed(1)}</div>
+            <div class="score-bar">
+              <div class="score-bar-fill" style="width: ${signal.weak_signal_score * 100}%"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Initialize
+    fetchWeakSignals();
+    
+    // Auto-refresh every 30 minutes
+    setInterval(fetchWeakSignals, 30 * 60 * 1000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./output:/app/output
+      - ./config:/app/config
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    
+  pipeline:
+    build: .
+    command: node run_pipeline.js
+    volumes:
+      - ./output:/app/output
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    
+  scheduler:
+    build: .
+    command: node scheduler.js
+    volumes:
+      - ./output:/app/output
+      - ./config:/app/config
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

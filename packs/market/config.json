@@ -1,0 +1,34 @@
+{
+  "pack_id": "market_001",
+  "name": "Market Data Pack",
+  "sources": [
+    {
+      "name": "Binance Public API",
+      "endpoint": "https://api.binance.us/api/v3/ticker/price",
+      "poll_interval": 3600,
+      "cache_ttl": 300,
+      "fallback": "CoinGecko",
+      "proof_path": "/signal-market/output/raw/market/binance_YYYYMMDD.jsonl"
+    },
+    {
+      "name": "CoinGecko",
+      "endpoint": "https://api.coingecko.com/api/v3/simple/price",
+      "poll_interval": 3600,
+      "cache_ttl": 600,
+      "fallback": null,
+      "proof_path": "/signal-market/output/raw/market/coingecko_YYYYMMDD.jsonl"
+    }
+  ],
+  "output_schema": {
+    "raw_event": {"symbol", "price", "timestamp", "source"},
+    "digest": {"top_events", "confidence", "staleness", "failures"}
+  },
+  "quality_rules": {
+    "stale_threshold_minutes": 1440,
+    "missing_raw_threshold": 2
+  },
+  "governance": {
+    "proposal_only": true,
+    "owner_approval_required_for_new_sources": true
+  }
+}

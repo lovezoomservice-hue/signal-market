@@ -1,0 +1,26 @@
+{
+  "pack_id": "trend_001",
+  "name": "Trend Data Pack",
+  "sources": [
+    {
+      "name": "SerpAPI",
+      "endpoint": "https://serpapi.com/search",
+      "poll_interval": 43200,
+      "cache_ttl": 21600,
+      "fallback": null,
+      "proof_path": "/signal-market/output/raw/trend/serpapi_YYYYMMDD.jsonl"
+    }
+  ],
+  "output_schema": {
+    "raw_event": {"query", "results", "timestamp", "source"},
+    "digest": {"top_events", "confidence", "staleness", "failures"}
+  },
+  "quality_rules": {
+    "stale_threshold_minutes": 4320,
+    "missing_raw_threshold": 2
+  },
+  "governance": {
+    "proposal_only": true,
+    "owner_approval_required_for_new_sources": true
+  }
+}

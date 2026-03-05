@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Topics - Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080c;
+      --surface: rgba(15, 15, 22, 0.95);
+      --surface-hover: rgba(25, 25, 35, 0.95);
+      --border: rgba(46, 46, 62, 0.6);
+      --primary: #00e676;
+      --primary-dim: rgba(0, 230, 118, 0.15);
+      --accent: #00bcd4;
+      --accent-purple: #7c4dff;
+      --accent-orange: #ff7043;
+      --text: #fff;
+      --text-dim: #6b7280;
+      --text-sub: #4b5563;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --rise: #22c55e;
+      --fall: #f43f5e;
+      --flat: #6b7280;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    
+    .glow-main {
+      position: absolute;
+      top: 10%;
+      left: 30%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(124, 77, 255, 0.08) 0%, transparent 60%);
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(8, 8, 12, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    
+    .nav {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .nav-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    
+    .nav-item:hover { color: var(--text); background: var(--surface-hover); }
+    .nav-item.active { color: var(--primary); background: var(--primary-dim); }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--success);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    
+    /* Main Content */
+    .main {
+      margin-top: 56px;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Toolbar */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    
+    .toolbar-left h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--surface);
+      padding: 4px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    
+    .tab-btn {
+      padding: 8px 20px;
+      font-size: 12px;
+      color: var(--text-dim);
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { 
+      background: var(--primary-dim); 
+      color: var(--primary); 
+    }
+    
+    /* Topic Grid */
+    .topic-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 16px;
+    }
+    
+    @media (max-width: 900px) {
+      .topic-grid { grid-template-columns: 1fr; }
+    }
+    
+    /* Topic Card */
+    .topic-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .topic-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    
+    .topic-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    
+    .topic-info {
+      flex: 1;
+    }
+    
+    .topic-category {
+      display: inline-block;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .topic-category.stock { background: rgba(0, 230, 118, 0.15); color: var(--primary); }
+    .topic-category.crypto { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .topic-category.forex { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .topic-category.macro { background: rgba(124, 77, 255, 0.15); color: var(--accent-purple); }
+    
+    .topic-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .topic-summary {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+    
+    /* Stage Progress */
+    .topic-stage {
+      padding: 16px;
+      background: rgba(0,0,0,0.2);
+    }
+    
+    .stage-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    
+    .stage-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+    }
+    
+    .stage-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .stage-badge.emerging { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .stage-badge.forming { background: rgba(124, 77, 255, 0.15); color: var(--accent-purple); }
+    .stage-badge.accelerating { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .stage-badge.peak { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .stage-badge.fading { background: rgba(107, 114, 128, 0.15); color: var(--text-dim); }
+    
+    /* Progress Bar */
+    .stage-progress {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 12px;
+    }
+    
+    .progress-step {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .progress-step.active {
+      background: var(--primary);
+    }
+    
+    .progress-step.completed {
+      background: var(--success);
+    }
+    
+    .progress-step::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    .progress-step:not(.active):not(.completed)::after {
+      display: none;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    .stage-names {
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .stage-name {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: var(--text-sub);
+    }
+    
+    .stage-name.active { color: var(--primary); }
+    
+    /* Confidence */
+    .topic-metrics {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .metric {
+      text-align: center;
+    }
+    
+    .metric-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .metric-value.positive { color: var(--rise); }
+    .metric-value.warning { color: var(--warning); }
+    .metric-value.negative { color: var(--fall); }
+    
+    .metric-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+    
+    /* Drivers */
+    .topic-drivers {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .drivers-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+    
+    .drivers-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    
+    .driver-tag {
+      font-size: 11px;
+      padding: 4px 10px;
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--accent-purple);
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Trend indicator */
+    .trend-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+    
+    .trend-indicator.rise { color: var(--rise); }
+    .trend-indicator.fall { color: var(--fall); }
+    .trend-indicator.flat { color: var(--flat); }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-main"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">SIGNAL<span>.MARKET</span></div>
+      <nav class="nav">
+        <a href="/" class="nav-item">Dashboard</a>
+        <a href="/events" class="nav-item">Event Explorer</a>
+        <a href="/topics" class="nav-item active">Topics</a>
+        <a href="/lens" class="nav-item">My Lens</a>
+        <a href="/watchlist" class="nav-item">Watchlist</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <div class="live-indicator">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h1>Topic Stage Dashboard</h1>
+        <div class="page-subtitle">TREND LIFECYCLE MONITORING</div>
+      </div>
+      <div class="tabs">
+        <button class="tab-btn active" data-filter="all">All</button>
+        <button class="tab-btn" data-filter="stock">A-Share</button>
+        <button class="tab-btn" data-filter="crypto">Crypto</button>
+        <button class="tab-btn" data-filter="macro">Macro</button>
+      </div>
+    </div>
+    
+    <!-- Topic Grid -->
+    <div class="topic-grid" id="topicGrid">
+      <!-- Topics will be rendered here -->
+    </div>
+  </main>
+  
+  <script>
+    // Mock Topic Data
+    const topics = [
+      {
+        id: 'topic_001',
+        category: 'crypto',
+        title: 'Bitcoin ETF Approval',
+        summary: 'SEC decision on multiple spot Bitcoin ETF applications expected soon',
+        stage: 'peak',
+        stageIndex: 4,
+        confidence: 87,
+        trend: 'rise',
+        trendValue: 12,
+        events: 12,
+        evidence: 234,
+        drivers: ['SEC Meeting', 'BlackRock Filing', 'Grayscale Ruling', 'Institutional Interest'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 15)
+      },
+      {
+        id: 'topic_002',
+        category: 'stock',
+        title: 'AI Chip Demand Surge',
+        summary: 'NVIDIA and AMD see unprecedented demand for AI accelerators',
+        stage: 'accelerating',
+        stageIndex: 3,
+        confidence: 92,
+        trend: 'rise',
+        trendValue: 8,
+        events: 8,
+        evidence: 156,
+        drivers: ['NVIDIA Earnings', 'Cloud CapEx', 'GPU Shortage', 'Microsoft Deal'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 30)
+      },
+      {
+        id: 'topic_003',
+        category: 'macro',
+        title: 'Fed Rate Cut Expectations',
+        summary: 'Market pricing in multiple rate cuts for 2024',
+        stage: 'forming',
+        stageIndex: 1,
+        confidence: 64,
+        trend: 'rise',
+        trendValue: 15,
+        events: 15,
+        evidence: 89,
+        drivers: ['CPI Data', 'Powell Speech', 'Treasury Yields', 'Swap Markets'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 45)
+      },
+      {
+        id: 'topic_004',
+        category: 'crypto',
+        title: 'Ethereum Shanghai Upgrade',
+        summary: 'Major protocol upgrade enabling ETH staking withdrawals',
+        stage: 'peak',
+        stageIndex: 4,
+        confidence: 95,
+        trend: 'flat',
+        trendValue: 2,
+        events: 5,
+        evidence: 312,
+        drivers: ['Testnet Launch', 'Mainnet Shadow', 'Validator Queue', 'Exchange Support'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 10)
+      },
+      {
+        id: 'topic_005',
+        category: 'stock',
+        title: 'China Tech Recovery',
+        summary: 'Chinese tech giants showing signs of turnaround',
+        stage: 'emerging',
+        stageIndex: 0,
+        confidence: 45,
+        trend: 'rise',
+        trendValue: 20,
+        events: 7,
+        evidence: 45,
+        drivers: ['Stimulus Plan', 'GDP Data', 'Ant Group IPO', 'EV Market'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60)
+      },
+      {
+        id: 'topic_006',
+        category: 'macro',
+        title: 'US Debt Ceiling',
+        summary: 'Potential budget standoff as debt limit approaches',
+        stage: 'forming',
+        stageIndex: 1,
+        confidence: 52,
+        trend: 'rise',
+        trendValue: 10,
+        events: 4,
+        evidence: 34,
+        drivers: ['Treasury Warning', 'Congress Debate', 'Bond Yields', 'Credit Rating'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 90)
+      },
+      {
+        id: 'topic_007',
+        category: 'crypto',
+        title: 'DeFi Protocol Launches',
+        summary: 'New decentralized finance protocols gaining TVL',
+        stage: 'fading',
+        stageIndex: 4,
+        confidence: 23,
+        trend: 'fall',
+        trendValue: -18,
+        events: 3,
+        evidence: 28,
+        drivers: ['Token Launch', 'Airdrop Hunt', 'TVL Growth', 'Governance'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 120)
+      },
+      {
+        id: 'topic_008',
+        category: 'stock',
+        title: 'EV Market Consolidation',
+        summary: 'Electric vehicle industry seeing increased M&A activity',
+        stage: 'accelerating',
+        stageIndex: 3,
+        confidence: 71,
+        trend: 'rise',
+        trendValue: 6,
+        events: 9,
+        evidence: 78,
+        drivers: ['Tesla Price Cut', 'BYD Growth', 'Battery Costs', 'Charging Infra'],
+        updatedAt: new Date(Date.now() - 1000 * 60 * 25)
+      }
+    ];
+    
+    const stageNames = ['Emerging', 'Forming', 'Accelerating', 'Peak', 'Fading'];
+    const categoryNames = {
+      stock: 'A-Share',
+      crypto: 'Crypto',
+      forex: 'Forex',
+      macro: 'Macro'
+    };
+    
+    let currentFilter = 'all';
+    
+    function getTrendIcon(trend) {
+      if (trend === 'rise') return '↑';
+      if (trend === 'fall') return '↓';
+      return '→';
+    }
+    
+    function getConfidenceClass(confidence) {
+      if (confidence >= 80) return 'positive';
+      if (confidence >= 50) return 'warning';
+      return 'negative';
+    }
+    
+    function formatTime(date) {
+      const now = new Date();
+      const diff = now - date;
+      const mins = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return date.toLocaleDateString();
+    }
+    
+    function renderTopics() {
+      const grid = document.getElementById('topicGrid');
+      const filtered = currentFilter === 'all' 
+        ? topics 
+        : topics.filter(t => t.category === currentFilter);
+      
+      grid.innerHTML = filtered.map(topic => `
+        <div class="topic-card" onclick="window.location.href='/events?topic=${topic.id}'">
+          <div class="topic-header">
+            <div class="topic-info">
+              <span class="topic-category ${topic.category}">${categoryNames[topic.category]}</span>
+              <h3 class="topic-title">${topic.title}</h3>
+              <p class="topic-summary">${topic.summary}</p>
+            </div>
+            <div class="trend-indicator ${topic.trend}">
+              ${getTrendIcon(topic.trend)} ${Math.abs(topic.trendValue)}%
+            </div>
+          </div>
+          
+          <div class="topic-stage">
+            <div class="stage-header">
+              <span class="stage-label">Stage Progress</span>
+              <span class="stage-badge ${topic.stage}">${topic.stage}</span>
+            </div>
+            <div class="stage-progress">
+              ${[0,1,2,3,4].map(i => `
+                <div class="progress-step ${i < topic.stageIndex ? 'completed' : ''} ${i === topic.stageIndex ? 'active' : ''}"></div>
+              `).join('')}
+            </div>
+            <div class="stage-names">
+              ${stageNames.map((name, i) => `
+                <span class="stage-name ${i === topic.stageIndex ? 'active' : ''}">${name}</span>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="topic-metrics">
+            <div class="metric">
+              <div class="metric-value ${getConfidenceClass(topic.confidence)}">${topic.confidence}%</div>
+              <div class="metric-label">Confidence</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${topic.events}</div>
+              <div class="metric-label">Events</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${topic.evidence}</div>
+              <div class="metric-label">Evidence</div>
+            </div>
+          </div>
+          
+          <div class="topic-drivers">
+            <div class="drivers-title">Key Drivers</div>
+            <div class="drivers-list">
+              ${topic.drivers.map(d => `<span class="driver-tag">${d}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Tab filtering
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentFilter = this.dataset.filter;
+        renderTopics();
+      });
+    });
+    
+    // Initialize
+    renderTopics();
+    
+    // Simulate real-time updates
+    setInterval(() => {
+      // Randomly update a topic's confidence
+      const randomTopic = topics[Math.floor(Math.random() * topics.length)];
+      const change = Math.floor(Math.random() * 5) - 2;
+      randomTopic.confidence = Math.max(10, Math.min(99, randomTopic.confidence + change));
+      
+      // Randomly change stage occasionally
+      if (Math.random() < 0.1) {
+        randomTopic.stageIndex = Math.min(4, randomTopic.stageIndex + 1);
+        randomTopic.stage = stageNames[randomTopic.stageIndex].toLowerCase();
+      }
+      
+      renderTopics();
+    }, 20000);
+  </script>
+</body>
+</html>

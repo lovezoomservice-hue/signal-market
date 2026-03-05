@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>博客 - Signal Market</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav a:hover, .nav a.active {
+            color: var(--primary);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .hero p {
+            opacity: 0.9;
+            font-size: 1.125rem;
+        }
+        
+        .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        
+        .post-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .post-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+        
+        .post-category {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 4px;
+            margin: 1.25rem 1.25rem 0;
+        }
+        
+        .post-category.update {
+            background: #22c55e;
+        }
+        
+        .post-category.tech {
+            background: #8b5cf6;
+        }
+        
+        .post-category.guide {
+            background: #f59e0b;
+        }
+        
+        .post-content {
+            padding: 1.25rem;
+        }
+        
+        .post-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        
+        .post-title a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .post-title a:hover {
+            color: var(--primary);
+        }
+        
+        .post-excerpt {
+            color: var(--text-light);
+            font-size: 0.9375rem;
+            margin-bottom: 1rem;
+        }
+        
+        .post-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8125rem;
+            color: var(--text-light);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        .changelog-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .version {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .version:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .version-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .version-number {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .version-date {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+        
+        .version-badge {
+            padding: 0.25rem 0.5rem;
+            background: #fef3c7;
+            color: #d97706;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 4px;
+        }
+        
+        .version-badge.current {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .version ul {
+            margin-left: 1.5rem;
+            color: var(--text-light);
+        }
+        
+        .version li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-light);
+            margin-top: 3rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+            
+            .posts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="../docs/index.html" class="logo">Signal Market</a>
+            <nav class="nav">
+                <a href="../docs/index.html">API 文档</a>
+                <a href="../docs/developer.html">开发者中心</a>
+                <a href="index.html" class="active">博客</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>Signal Market 博客</h1>
+            <p>产品更新、技术解读、使用指南 - 了解 Signal Market 的最新动态</p>
+        </div>
+
+        <h2 class="section-title">最新文章</h2>
+        
+        <div class="posts-grid">
+            <article class="post-card">
+                <span class="post-category update">产品更新</span>
+                <div class="post-content">
+                    <h3 class="post-title">
+                        <a href="#v1-release">Signal Market v1.0.0-alpha 正式发布</a>
+                    </h3>
+                    <p class="post-excerpt">全新架构升级！L0-L4 四层管道，实时事件检测，7天/30天概率预测，用户透镜简报等功能现已上线。</p>
+                    <div class="post-meta">
+                        <span>2026-03-05</span>
+                        <span>阅读 5 分钟</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category tech">技术解读</span>
+                <div class="post-content">
+                    <h3 class="post-title">
+                        <a href="#architecture">四层事件检测架构解析</a>
+                    </h3>
+                    <p class="post-excerpt">深入理解 Signal Market 的数据处理管道：L0 数据接入、L1 去噪、L2 事件图谱、L3 概率引擎。</p>
+                    <div class="post-meta">
+                        <span>2026-03-03</span>
+                        <span>阅读 8 分钟</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category guide">使用指南</span>
+                <div class="post-content">
+                    <h3 class="post-title">
+                        <a href="#lens-guide">用户透镜完全指南</a>
+                    </h3>
+                    <p class="post-excerpt">如何利用用户透镜获取个性化事件简报？本文详细介绍三种预设透镜的使用方法。</p>
+                    <div class="post-meta">
+                        <span>2026-03-01</span>
+                        <span>阅读 6 分钟</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category tech">技术解读</span>
+                <div class="post-content">
+                    <h3 class="post-title">
+                        <a href="#probability">概率预测算法详解</a>
+                    </h3>
+                    <p class="post-excerpt">如何将多源异构数据转化为可解释的概率预测？解读我们的概率引擎设计思路。</p>
+                    <div class="post-meta">
+                        <span>2026-02-28</span>
+                        <span>阅读 10 分钟</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category update">产品更新</span>
+                <div class="post-content">
+                    <h3 class="post-title">
+                        <a href="#beta-release">Beta 版本发布公告</a>
+                    </h3>
+                    <p class="post-excerpt">Signal Market Beta 版本正式发布，基础事件检测和概率估算功能现已可用。</p>
+                    <div class="post-meta">
+                        <span>2026-02-15</span>
+                        <span>阅读 3 分钟</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category guide">使用指南</span>
+                <div class="post-content">
+                    <h3 class="post-title">
+                        <a href="#quickstart">快速开始指南</a>
+                    </h3>
+                    <p class="post-excerpt">5分钟快速上手 Signal Market，从 API 调用到获取第一份事件简报。</p>
+                    <div class="post-meta">
+                        <span>2026-02-10</span>
+                        <span>阅读 5 分钟</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <h2 class="section-title">版本更新日志</h2>
+        
+        <div class="changelog-section">
+            <div class="version">
+                <div class="version-header">
+                    <span class="version-number">v1.0.0-alpha</span>
+                    <span class="version-badge current">当前版本</span>
+                    <span class="version-date">2026-03-05</span>
+                </div>
+                <ul>
+                    <li><strong>L0 数据接入层</strong>: 支持新闻API、社交媒体、政策文档等多数据源实时接入</li>
+                    <li><strong>L1 去噪层</strong>: 智能过滤垃圾信息、合并重复内容、质量评分</li>
+                    <li><strong>L2 事件图谱</strong>: 事件实体识别、因果关系推断、阶段检测</li>
+                    <li><strong>L3 概率引擎</strong>: 24小时/7天/30天概率曲线、驱动因子分析、预测市场集成</li>
+                    <li><strong>L4 API层</strong>: 完整的 RESTful 接口，包括事件、概率、简报、监控等</li>
+                    <li><strong>用户透镜</strong>: A股板块(lens_a_stock)、美股宏观(lens_us_macro)、币圈事件(lens_crypto_event)</li>
+                    <li><strong>SDK支持</strong>: Python SDK、JavaScript/Node.js SDK</li>
+                    <li><strong>性能优化</strong>: Pipeline 执行时间 ~1.8s，API 延迟 <2ms</li>
+                </ul>
+            </div>
+
+            <div class="version">
+                <div class="version-header">
+                    <span class="version-number">v0.9.0-beta</span>
+                    <span class="version-date">2026-02-15</span>
+                </div>
+                <ul>
+                    <li>初始 Beta 版本发布</li>
+                    <li>基础事件检测功能</li>
+                    <li>简单概率估算</li>
+                    <li>基础 API 端点</li>
+                    <li>重构数据管道架构</li>
+                    <li>优化去噪算法</li>
+                </ul>
+            </div>
+
+            <div class="version">
+                <div class="version-header">
+                    <span class="version-number">v0.5.0-alpha</span>
+                    <span class="version-date">2026-01-20</span>
+                </div>
+                <ul>
+                    <li>PoC 概念验证</li>
+                    <li>最小可行性产品</li>
+                    <li>基础 CLI 工具</li>
+                </ul>
+            </div>
+        </div>
+
+        <h2 class="section-title">即将推出</h2>
+        
+        <div class="posts-grid">
+            <article class="post-card">
+                <span class="post-category">规划中</span>
+                <div class="post-content">
+                    <h3 class="post-title">WebSocket 实时推送</h3>
+                    <p class="post-excerpt">无需轮询，通过 WebSocket 实时接收事件更新通知。</p>
+                    <div class="post-meta">
+                        <span>即将上线</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category">规划中</span>
+                <div class="post-content">
+                    <h3 class="post-title">自定义透镜创建</h3>
+                    <p class="post-excerpt">创建属于您自己的用户透镜，定义关注领域和推送规则。</p>
+                    <div class="post-meta">
+                        <span>即将上线</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category">规划中</span>
+                <div class="post-content">
+                    <h3 class="post-title">GraphQL 支持</h3>
+                    <p class="post-excerpt">更灵活的 API 查询方式，按需获取字段，减少网络开销。</p>
+                    <div class="post-meta">
+                        <span>即将上线</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="post-card">
+                <span class="post-category">规划中</span>
+                <div class="post-content">
+                    <h3 class="post-title">Slack/Discord 集成</h3>
+                    <p class="post-excerpt">将事件通知直接推送到您的团队沟通工具。</p>
+                    <div class="post-meta">
+                        <span>即将上线</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Signal Market. All rights reserved.</p>
+    </footer>
+</body>
+</html>

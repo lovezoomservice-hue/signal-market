@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Lens - Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080c;
+      --surface: rgba(15, 15, 22, 0.95);
+      --surface-hover: rgba(25, 25, 35, 0.95);
+      --border: rgba(46, 46, 62, 0.6);
+      --primary: #00e676;
+      --primary-dim: rgba(0, 230, 118, 0.15);
+      --accent: #00bcd4;
+      --accent-purple: #7c4dff;
+      --text: #fff;
+      --text-dim: #6b7280;
+      --text-sub: #4b5563;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --rise: #22c55e;
+      --fall: #f43f5e;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    
+    .glow-main {
+      position: absolute;
+      top: 10%;
+      right: -10%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(0, 230, 118, 0.08) 0%, transparent 60%);
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(8, 8, 12, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    
+    .nav {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .nav-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    
+    .nav-item:hover { color: var(--text); background: var(--surface-hover); }
+    .nav-item.active { color: var(--primary); background: var(--primary-dim); }
+    
+         display: flex .header-right {
+;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    
+    /* Main Content */
+    .main {
+      margin-top: 56px;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Welcome Section */
+    .welcome-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    
+    .welcome-text h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .welcome-text p {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    .last-updated {
+      font-size: 11px;
+      color: var(--text-sub);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Grid Layout */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+    }
+    
+    @media (max-width: 1100px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+    
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    
+    .card-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+    }
+    
+    .card-body {
+      padding: 16px;
+    }
+    
+    /* Daily Brief */
+    .brief-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .brief-date {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+    
+    .brief-greeting {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    
+    .brief-summary {
+      font-size: 13px;
+      color: var(--text-dim);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    
+    .brief-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .brief-stat {
+      text-align: center;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+    }
+    
+    .brief-stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .brief-stat-value.rising { color: var(--rise); }
+    .brief-stat-value.falling { color: var(--fall); }
+    
+    .brief-stat-label {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+    
+    /* Opportunity/Risk List */
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border-left: 3px solid transparent;
+    }
+    
+    .list-item:hover {
+      background: var(--surface-hover);
+    }
+    
+    .list-item.opportunity {
+      border-left-color: var(--rise);
+    }
+    
+    .list-item.risk {
+      border-left-color: var(--fall);
+    }
+    
+    .list-item.new {
+      border-left-color: var(--accent);
+    }
+    
+    .item-icon {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    
+    .item-icon.opportunity {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--rise);
+    }
+    
+    .item-icon.risk {
+      background: rgba(244, 63, 94, 0.15);
+      color: var(--fall);
+    }
+    
+    .item-icon.new {
+      background: rgba(0, 188, 212, 0.15);
+      color: var(--accent);
+    }
+    
+    .item-content {
+      flex: 1;
+    }
+    
+    .item-title {
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .item-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+    
+    .item-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .item-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      background: rgba(255,255,255,0.05);
+      color: var(--text-dim);
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .item-prob {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--warning);
+    }
+    
+    /* Lens Settings */
+    .settings-section {
+      margin-bottom: 20px;
+    }
+    
+    .settings-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+      margin-bottom: 12px;
+    }
+    
+    .lens-topics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .lens-topic {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .lens-topic:hover {
+      border-color: var(--primary);
+    }
+    
+    .lens-topic.active {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .lens-topic-remove {
+      opacity: 0;
+      font-size: 14px;
+      transition: opacity 0.15s;
+    }
+    
+    .lens-topic:hover .lens-topic-remove {
+      opacity: 1;
+    }
+    
+    /* Add Topic */
+    .add-topic {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--text-dim);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: 100%;
+      margin-top: 8px;
+    }
+    
+    .add-topic:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    /* New Events */
+    .new-events-section {
+      margin-top: 20px;
+    }
+    
+    .event-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(46, 46, 62, 0.3);
+    }
+    
+    .event-item:last-child {
+      border-bottom: none;
+    }
+    
+    .event-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-sub);
+      min-width: 50px;
+    }
+    
+    .event-title {
+      flex: 1;
+      font-size: 13px;
+    }
+    
+    .event-prob {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--primary);
+    }
+    
+    /* Notification Settings */
+    .notification-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(46, 46, 62, 0.3);
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-label {
+      font-size: 13px;
+    }
+    
+    .notification-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+    
+    .toggle {
+      width: 40px;
+      height: 22px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 11px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .toggle.active {
+      background: var(--primary);
+    }
+    
+    .toggle::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    
+    .toggle.active::after {
+      left: 21px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-main"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">SIGNAL<span>.MARKET</span></div>
+      <nav class="nav">
+        <a href="/" class="nav-item">Dashboard</a>
+        <a href="/events" class="nav-item">Event Explorer</a>
+        <a href="/topics" class="nav-item">Topics</a>
+        <a href="/lens" class="nav-item active">My Lens</a>
+        <a href="/watchlist" class="nav-item">Watchlist</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <div class="user-avatar">JD</div>
+    </div>
+  </header>
+  
+  <!-- Main Content -->
+  <main class="main">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+      <div class="welcome-text">
+        <h1>Good Morning, John</h1>
+        <p>Your personalized intelligence briefing</p>
+      </div>
+      <div class="last-updated">Updated: Just now</div>
+    </div>
+    
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Left Column -->
+      <div>
+        <!-- Daily Brief Card -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">Daily Brief</span>
+            <span style="font-size: 11px; color: var(--text-sub);">📰 AI Summary</span>
+          </div>
+          <div class="card-body">
+            <div class="brief-header">
+              <div>
+                <div class="brief-date" id="currentDate"></div>
+                <div class="brief-greeting">Your Morning Briefing</div>
+              </div>
+            </div>
+            
+            <p class="brief-summary" id="briefSummary">
+              Loading your personalized briefing...
+            </p>
+            
+            <div class="brief-stats">
+              <div class="brief-stat">
+                <div class="brief-stat-value" id="briefNew">--</div>
+                <div class="brief-stat-label">New Events</div>
+              </div>
+              <div class="brief-stat">
+                <div class="brief-stat-value rising" id="briefRising">--</div>
+                <div class="brief-stat-label">Rising</div>
+              </div>
+              <div class="brief-stat">
+                <div class="brief-stat-value" id="briefWatched">--</div>
+                <div class="brief-stat-label">Watched</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Opportunities -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">🎯 Opportunities</span>
+            <span style="font-size: 11px; color: var(--rise);">High probability events</span>
+          </div>
+          <div class="card-body">
+            <div class="items-list" id="opportunitiesList">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- Risks -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">⚠️ Risks</span>
+            <span style="font-size: 11px; color: var(--fall);">Events requiring attention</span>
+          </div>
+          <div class="card-body">
+            <div class="items-list" id="risksList">
+              <!-- Rendered by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Right Column -->
+      <div>
+        <!-- Lens Settings -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">My Lens Settings</span>
+          </div>
+          <div class="card-body">
+            <div class="settings-section">
+              <div class="settings-title">Focus Areas</div>
+              <div class="lens-topics" id="lensTopics">
+                <span class="lens-topic active">BTC <span class="lens-topic-remove">×</span></span>
+                <span class="lens-topic active">ETH <span class="lens-topic-remove">×</span></span>
+                <span class="lens-topic active">NVDA <span class="lens-topic-remove">×</span></span>
+                <span class="lens-topic active">AAPL <span class="lens-topic-remove">×</span></span>
+                <span class="lens-topic active">Fed <span class="lens-topic-remove">×</span></span>
+              </div>
+              <button class="add-topic">+ Add Focus Area</button>
+            </div>
+            
+            <div class="settings-section">
+              <div class="settings-title">Asset Classes</div>
+              <div class="lens-topics">
+                <span class="lens-topic active">Crypto</span>
+                <span class="lens-topic active">A-Share</span>
+                <span class="lens-topic">Forex</span>
+                <span class="lens-topic">Commodities</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- New Events -->
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-header">
+            <span class="card-title">🆕 New Events</span>
+            <span style="font-size: 11px; color: var(--text-sub);">Last 24 hours</span>
+          </div>
+          <div class="card-body" id="newEventsList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+        
+        <!-- Notifications -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Notifications</span>
+          </div>
+          <div class="card-body">
+            <div class="notification-item">
+              <div>
+                <div class="notification-label">Probability Alerts</div>
+                <div class="notification-desc">When watched events change >10%</div>
+              </div>
+              <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="notification-item">
+              <div>
+                <div class="notification-label">Stage Changes</div>
+                <div class="notification-desc">When events enter new stage</div>
+              </div>
+              <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="notification-item">
+              <div>
+                <div class="notification-label">Daily Brief</div>
+                <div class="notification-desc">Morning summary email</div>
+              </div>
+              <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+            </div>
+            <div class="notification-item">
+              <div>
+                <div class="notification-label">New Evidence</div>
+                <div class="notification-desc">When new evidence surfaces</div>
+              </div>
+              <div class="toggle" onclick="this.classList.toggle('active')"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Mock Data
+    const briefData = {
+      date: new Date(),
+      summary: "Today marks a pivotal moment for crypto markets as Bitcoin ETF speculation reaches fever pitch. The Fed's recent dovish signals have strengthened rate cut expectations, benefiting risk assets. Watch for NVIDIA's upcoming earnings which could further fuel the AI trade.",
+      newEvents: 5,
+      rising: 8,
+      watched: 12
+    };
+    
+    const opportunities = [
+      {
+        title: 'Bitcoin ETF Approval',
+        desc: 'SEC decision expected any day now. BlackRock filing suggests high confidence.',
+        tags: ['BTC', 'Crypto'],
+        prob: 87,
+        time: '2h ago'
+      },
+      {
+        title: 'NVIDIA Earnings Beat',
+        desc: 'AI chip demand continues to exceed expectations. Revenue guidance raised.',
+        tags: ['NVDA', 'AI'],
+        prob: 78,
+        time: '4h ago'
+      },
+      {
+        title: 'ETH Shanghai Upgrade',
+        desc: 'Staking withdrawals enabled. Institutional interest increasing.',
+        tags: ['ETH', 'DeFi'],
+        prob: 95,
+        time: '1d ago'
+      }
+    ];
+    
+    const risks = [
+      {
+        title: 'China Tech Crackdown',
+        desc: 'Regulatory uncertainty remains high. Ant IPO may face delays.',
+        tags: ['BABA', 'China'],
+        prob: 45,
+        time: '6h ago'
+      },
+      {
+        title: 'Fed Pivot Delayed',
+        desc: 'Inflation sticky. Rate cuts may come later than market expects.',
+        tags: ['Macro', 'Fed'],
+        prob: 35,
+        time: '1d ago'
+      }
+    ];
+    
+    const newEvents = [
+      { title: 'Solana ETF Filing', prob: 41, time: '3h' },
+      { title: 'Apple Vision Pro Pre-orders', prob: 89, time: '5h' },
+      { title: 'US CPI Surprise', prob: 67, time: '8h' },
+      { title: 'Tesla Delivery Numbers', prob: 72, time: '12h' },
+      { title: 'Bitcoin Whale Movement', prob: 55, time: '18h' }
+    ];
+    
+    // Render Functions
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+    
+    function renderBrief() {
+      document.getElementById('currentDate').textContent = formatDate(briefData.date);
+      document.getElementById('briefSummary').textContent = briefData.summary;
+      document.getElementById('briefNew').textContent = briefData.newEvents;
+      document.getElementById('briefRising').textContent = briefData.rising;
+      document.getElementById('briefWatched').textContent = briefData.watched;
+    }
+    
+    function renderOpportunities() {
+      const list = document.getElementById('opportunitiesList');
+      list.innerHTML = opportunities.map(opp => `
+        <div class="list-item opportunity" onclick="window.location.href='/events'">
+          <div class="item-icon opportunity">📈</div>
+          <div class="item-content">
+            <div class="item-title">${opp.title}</div>
+            <div class="item-desc">${opp.desc}</div>
+            <div class="item-meta">
+              ${opp.tags.map(t => `<span class="item-tag">${t}</span>`).join('')}
+              <span class="item-prob">${opp.prob}%</span>
+              <span class="item-tag">${opp.time}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function renderRisks() {
+      const list = document.getElementById('risksList');
+      list.innerHTML = risks.map(risk => `
+        <div class="list-item risk" onclick="window.location.href='/events'">
+          <div class="item-icon risk">📉</div>
+          <div class="item-content">
+            <div class="item-title">${risk.title}</div>
+            <div class="item-desc">${risk.desc}</div>
+            <div class="item-meta">
+              ${risk.tags.map(t => `<span class="item-tag">${t}</span>`).join('')}
+              <span class="item-prob">${risk.prob}%</span>
+              <span class="item-tag">${risk.time}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function renderNewEvents() {
+      const list = document.getElementById('newEventsList');
+      list.innerHTML = newEvents.map(event => `
+        <div class="event-item" onclick="window.location.href='/events'">
+          <span class="event-time">${event.time}</span>
+          <span class="event-title">${event.title}</span>
+          <span class="event-prob">${event.prob}%</span>
+        </div>
+      `).join('');
+    }
+    
+    // Lens topic toggle
+    document.querySelectorAll('.lens-topic').forEach(topic => {
+      topic.addEventListener('click', function() {
+        this.classList.toggle('active');
+      });
+    });
+    
+    // Initialize
+    renderBrief();
+    renderOpportunities();
+    renderRisks();
+    renderNewEvents();
+    
+    // Simulate brief updates
+    setInterval(() => {
+      briefData.rising = Math.max(0, briefData.rising + Math.floor(Math.random() * 3) - 1);
+      document.getElementById('briefRising').textContent = briefData.rising;
+    }, 30000);
+  </script>
+</body>
+</html>

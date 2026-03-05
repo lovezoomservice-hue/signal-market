@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alerts - Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08080c;
+      --surface: rgba(15, 15, 22, 0.95);
+      --surface-hover: rgba(25, 25, 35, 0.95);
+      --border: rgba(46, 46, 62, 0.6);
+      --primary: #00e676;
+      --primary-dim: rgba(0, 230, 118, 0.15);
+      --accent: #00bcd4;
+      --accent-purple: #7c4dff;
+      --text: #fff;
+      --text-dim: #6b7280;
+      --text-sub: #4b5563;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.6;
+    }
+    
+    .glow-main {
+      position: absolute;
+      top: 10%;
+      left: 30%;
+      width: 50%;
+      height: 50%;
+      background: radial-gradient(ellipse, rgba(0, 230, 118, 0.08) 0%, transparent 60%);
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(8, 8, 12, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+    
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    
+    .nav {
+      display: flex;
+      gap: 4px;
+    }
+    
+    .nav-item {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: var(--text-dim);
+      text-decoration: none;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+    
+    .nav-item:hover { color: var(--text); background: var(--surface-hover); }
+    .nav-item.active { color: var(--primary); background: var(--primary-dim); }
+    
+    /* Main */
+    .main {
+      margin-top: 56px;
+      padding: 20px 24px;
+      position: relative;
+      z-index: 1;
+      min-height: calc(100vh - 56px);
+    }
+    
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+    
+    .page-subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    /* Stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    
+    .stat-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    /* Alerts List */
+    .alerts-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    
+    .alert-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    
+    .alert-item:last-child {
+      border-bottom: none;
+    }
+    
+    .alert-item:hover {
+      background: var(--surface-hover);
+    }
+    
+    .alert-item.unread {
+      background: rgba(0, 230, 118, 0.05);
+    }
+    
+    .alert-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    
+    .alert-icon.stage { background: rgba(0, 188, 212, 0.15); }
+    .alert-icon.confidence { background: rgba(124, 77, 255, 0.15); }
+    .alert-icon.urgent { background: rgba(239, 68, 68, 0.15); }
+    
+    .alert-content {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .alert-topic {
+      font-weight: 500;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .alert-message {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    
+    .alert-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    
+    .alert-type {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+    
+    .alert-type.stage { background: rgba(0, 188, 212, 0.15); color: var(--accent); }
+    .alert-type.confidence { background: rgba(124, 77, 255, 0.15); color: var(--accent-purple); }
+    
+    /* Empty State */
+    .empty-state {
+      padding: 60px;
+      text-align: center;
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+    
+    .empty-title {
+      font-size: 16px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    
+    .empty-desc {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 20px;
+    }
+    
+    .browse-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: var(--primary-dim);
+      color: var(--primary);
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 13px;
+      transition: all 0.15s;
+    }
+    
+    .browse-btn:hover {
+      background: var(--primary);
+      color: var(--bg);
+    }
+    
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 60px;
+      color: var(--text-sub);
+    }
+    
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 12px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-main"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">SIGNAL<span>.MARKET</span></div>
+      <nav class="nav">
+        <a href="/index.html" class="nav-item">Dashboard</a>
+        <a href="/events.html" class="nav-item">Events</a>
+        <a href="/topics.html" class="nav-item">Topics</a>
+        <a href="/watchlist.html" class="nav-item">Watchlist</a>
+        <a href="/alerts.html" class="nav-item active">Alerts</a>
+      </nav>
+    </div>
+  </header>
+  
+  <!-- Main -->
+  <main class="main">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Alerts</h1>
+        <div class="page-subtitle">SIGNAL STAGE & CONFIDENCE CHANGES</div>
+      </div>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Total Alerts</div>
+        <div class="stat-value" id="totalAlerts">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unread</div>
+        <div class="stat-value" id="unreadAlerts">--</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Stage Changes</div>
+        <div class="stat-value" id="stageAlerts">--</div>
+      </div>
+    </div>
+    
+    <!-- Alerts List -->
+    <div class="alerts-container" id="alertsContainer">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Loading alerts...
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // API Configuration - 支持本地和演示模式
+    const API_BASE = 'https://purple-dots-hug.loca.lt.loca.lt' /* original: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+      ? 'http://localhost:3000' 
+      : null;
+    
+    // Demo data for production
+    const DEMO_ALERTS = [
+      { id: 'alert_1', topic: 'AI Agents', type: 'stage_change', message: 'AI Agents moved from Emerging to Accelerating', timestamp: new Date().toISOString(), read: false },
+      { id: 'alert_2', topic: 'Bitcoin ETF', type: 'confidence_change', message: 'Bitcoin ETF confidence increased to 87%', timestamp: new Date(Date.now() - 3600000).toISOString(), read: false },
+      { id: 'alert_3', topic: 'GPU Shortage', type: 'stage_change', message: 'GPU Shortage moved from Weak to Emerging', timestamp: new Date(Date.now() - 7200000).toISOString(), read: true }
+    ];
+    
+    let alerts = [];
+    let isLoading = true;
+
+    // Fetch alerts from API or use demo data
+    async function fetchAlerts() {
+      try {
+        isLoading = true;
+        renderAlerts();
+        
+        if (!API_BASE) {
+          alerts = [...DEMO_ALERTS];
+          isLoading = false;
+          renderAlerts();
+          updateStats();
+          return;
+        }
+        
+        const response = await fetch(`${API_BASE}/alerts`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        
+        const data = await response.json();
+        alerts = data.alerts || [];
+        
+        isLoading = false;
+        renderAlerts();
+        updateStats();
+        console.log('✅ Alerts loaded:', alerts.length);
+      } catch (error) {
+        console.error('❌ Alerts fetch error:', error);
+        alerts = [...DEMO_ALERTS];
+        isLoading = false;
+        renderAlerts();
+        updateStats();
+      }
+    }
+
+    // Get icon based on alert type
+    function getAlertIcon(type) {
+      if (type === 'stage_change') return { icon: '🔄', class: 'stage' };
+      if (type === 'confidence_change') return { icon: '📊', class: 'confidence' };
+      return { icon: '⚠️', class: 'urgent' };
+    }
+
+    // Format time
+    function formatTime(timestamp) {
+      if (!timestamp) return 'Unknown';
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diff = now - date;
+      const mins = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      
+      if (mins < 1) return 'Just now';
+      if (mins < 60) return `${mins}m ago`;
+      if (hours < 24) return `${hours}h ago`;
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    // Update stats
+    function updateStats() {
+      document.getElementById('totalAlerts').textContent = alerts.length;
+      document.getElementById('unreadAlerts').textContent = alerts.filter(a => !a.read).length;
+      document.getElementById('stageAlerts').textContent = alerts.filter(a => a.type === 'stage_change').length;
+    }
+
+    // Render alerts
+    function renderAlerts() {
+      const container = document.getElementById('alertsContainer');
+      
+      if (isLoading) {
+        container.innerHTML = `
+          <div class="loading">
+            <div class="loading-spinner"></div>
+            Loading alerts...
+          </div>
+        `;
+        return;
+      }
+      
+      if (alerts.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🔔</div>
+            <div class="empty-title">No alerts yet</div>
+            <div class="empty-desc">Add topics to your watchlist to receive alerts when stages change</div>
+            <a href="/watchlist.html" class="browse-btn">Go to Watchlist →</a>
+          </div>
+        `;
+        return;
+      }
+      
+      container.innerHTML = alerts.map(alert => {
+        const iconInfo = getAlertIcon(alert.type);
+        return `
+          <div class="alert-item ${alert.read ? '' : 'unread'}">
+            <div class="alert-icon ${iconInfo.class}">${iconInfo.icon}</div>
+            <div class="alert-content">
+              <div class="alert-topic">${alert.topic || 'Unknown'}</div>
+              <div class="alert-message">${alert.message || 'Alert triggered'}</div>
+              <div class="alert-meta">
+                <span class="alert-type ${alert.type === 'stage_change' ? 'stage' : 'confidence'}">
+                  ${alert.type || 'alert'}
+                </span>
+                <span>${formatTime(alert.timestamp)}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initialize
+    fetchAlerts();
+    
+    // Auto-refresh every 30 seconds
+    setInterval(fetchAlerts, 30000);
+  </script>
+</body>
+</html>

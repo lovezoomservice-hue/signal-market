@@ -1,0 +1,32 @@
+{
+  "name": "signal-market",
+  "version": "1.0.0",
+  "description": "Intelligence Layer for AI Agents",
+  "main": "l4/api_server.js",
+  "scripts": {
+    "start": "node l4/api_server_secure.js",
+    "start:basic": "node l4/api_server.js",
+    "start:enhanced": "node l4/api_server_enhanced.js",
+    "start:v2": "node l4/api_server_v2.js",
+    "pipeline": "node run_pipeline.js",
+    "scheduler": "node scheduler.js",
+    "test": "node test/acceptance.js",
+    "test:integration": "node test/integration.js",
+    "dashboard": "node ui/dashboard.js",
+    "alerts": "node l4/alerts.js",
+    "cli": "node cli.js"
+  },
+  "keywords": [
+    "intelligence",
+    "ai",
+    "agents",
+    "events",
+    "probability",
+    "signals"
+  ],
+  "author": "Signal Market",
+  "license": "MIT",
+  "dependencies": {
+    "stripe": "^20.4.0"
+  }
+}

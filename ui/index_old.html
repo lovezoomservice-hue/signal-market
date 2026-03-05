@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Market - AI智能体世界认知层</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #6366f1;
+            --accent-glow: #818cf8;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2e2e3a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 70%, rgba(129, 140, 248, 0.1) 0%, transparent 40%);
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-2%, 2%) rotate(1deg); }
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 100px;
+            font-size: 14px;
+            color: var(--accent-glow);
+            margin-bottom: 32px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        .badge::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+        
+        h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(40px, 8vw, 80px);
+            font-weight: 700;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            animation: fadeInUp 0.6s ease-out 0.1s both;
+        }
+        
+        h1 span {
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-glow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            font-size: 20px;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 48px;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.6s ease-out 0.3s both;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #4f46e5 100%);
+            color: white;
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.5);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+        }
+        
+        /* Features */
+        .features {
+            padding: 120px 0;
+            position: relative;
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+        
+        .section-header h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 40px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+        
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 18px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+        
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+        
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(129, 140, 248, 0.1) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+        
+        /* API Preview */
+        .api-preview {
+            padding: 80px 0;
+            background: var(--bg-secondary);
+        }
+        
+        .code-block {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin-top: 32px;
+        }
+        
+        .code-block .comment { color: #6b7280; }
+        .code-block .keyword { color: #c084fc; }
+        .code-block .string { color: #34d399; }
+        .code-block .number { color: #fbbf24; }
+        
+        /* Live Demo */
+        .demo {
+            padding: 120px 0;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-top: 48px;
+        }
+        
+        .demo-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .demo-header {
+            padding: 16px 24px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .demo-header h4 {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .demo-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--success);
+        }
+        
+        .demo-status::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+        }
+        
+        .demo-body {
+            padding: 24px;
+        }
+        
+        .demo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .demo-item:last-child {
+            border-bottom: none;
+        }
+        
+        .demo-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        
+        .demo-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .demo-value.up { color: var(--success); }
+        .demo-value.down { color: var(--danger); }
+        .demo-value.neutral { color: var(--warning); }
+        
+        /* Footer */
+        footer {
+            padding: 48px 0;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero { min-height: auto; padding: 100px 0 60px; }
+            .features-grid { grid-template-columns: 1fr; }
+            .demo-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="badge">
+                    <span>●</span> Intelligence Layer for AI Agents
+                </div>
+                <h1>
+                    AI智能体的<br>
+                    <span>世界认知层</span>
+                </h1>
+                <p class="subtitle">
+                    不是新闻App。是"事件→概率→影响→行动"的情报层。
+                    让AI agents第一时间理解世界。
+                </p>
+                <div class="cta-group">
+                    <a href="#demo" class="btn btn-primary">
+                        🚀 体验Demo
+                    </a>
+                    <a href="#api" class="btn btn-secondary">
+                        📖 查看API文档
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>4个核心输出</h2>
+                <p>只输出决策，不输出新闻</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Event 事件主线</h3>
+                    <p>从海量噪声中识别主线事件，建立事件图谱，把握趋势脉络。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Probability 概率曲线</h3>
+                    <p>可解释的概率引擎，随证据滚动更新。Brier Score &lt; 0.25。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🗺️</div>
+                    <h3>Impact 影响映射</h3>
+                    <p>事件→资产/板块/风险/机会，量化影响范围和方向。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>Action 个性化提醒</h3>
+                    <p>用户透镜 + 定时/阈值推送，只给你关心的决策。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="api-preview" id="api">
+        <div class="container">
+            <div class="section-header">
+                <h2>极简 API</h2>
+                <p>只需6个端点，构建智能应用</p>
+            </div>
+            <div class="code-block">
+<pre><span class="comment"># Python SDK</span>
+<span class="keyword">from</span> signal_market <span class="keyword">import</span> create_client
+
+client = create_client(<span class="string">"your-api-key"</span>)
+
+<span class="comment"># 获取每日简报</span>
+brief = client.get_lens_brief(<span class="string">"lens_a_stock"</span>)
+
+<span class="comment"># 获取预测概率</span>
+prediction = client.get_prediction(<span class="string">"evt_iran_conflict"</span>)
+
+<span class="comment"># 创建监控</span>
+watch = client.create_watch(
+    topic=<span class="string">"商业航天"</span>,
+    market=<span class="string">"A-share"</span>,
+    delivery=<span class="string">"08:30"</span>
+)</pre>
+            </div>
+        </div>
+    </section>
+    
+    <section class="demo" id="demo">
+        <div class="container">
+            <div class="section-header">
+                <h2>实时数据</h2>
+                <p>当前系统输出</p>
+            </div>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <div class="demo-header">
+                        <h4>📈 A股板块阶段 (lens_a_stock)</h4>
+                        <span class="demo-status">实时</span>
+                    </div>
+                    <div class="demo-body">
+                        <div class="demo-item">
+                            <span class="demo-label">商业航天</span>
+                            <span class="demo-value up">主升 (71%)</span>
+                        </div>
+                        <div class="demo-item">
+                            <span class="demo-label">AI算力</span>
+                            <span class="demo-value up">形成 (65%)</span>
+                        </div>
+                        <div class="demo-item">
+                            <span class="demo-label">机器人</span>
+                            <span class="demo-value neutral">震荡 (45%)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="demo-card">
+                    <div class="demo-header">
+                        <h4>🎯 预测市场事件</h4>
+                        <span class="demo-status">实时</span>
+                    </div>
+                    <div class="demo-body">
+                        <div class="demo-item">
+                            <span class="demo-label">伊以冲突 (7天)</span>
+                            <span class="demo-value down">34% ↓</span>
+                        </div>
+                        <div class="demo-item">
+                            <span class="demo-label">美联储降息 (30天)</span>
+                            <span class="demo-value neutral">29%</span>
+                        </div>
+                        <div class="demo-item">
+                            <span class="demo-label">BTC $100k (180天)</span>
+                            <span class="demo-value up">32% ↑</span>
+                        </div>
+                        <div class="demo-item">
+                            <span class="demo-label">美国衰退 (90天)</span>
+                            <span class="demo-value neutral">23%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="container">
+            <p>© 2026 Signal Market - Intelligence Layer for AI Agents</p>
+            <p style="margin-top: 8px;">
+                <a href="#">文档</a> · 
+                <a href="#">SDK</a> · 
+                <a href="#">GitHub</a>
+            </p>
+        </div>
+    </footer>
+    
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+        
+        // Live data refresh
+        async function refreshData() {
+            try {
+                const response = await fetch('http://localhost:3000/lenses/lens_a_stock/daily-brief');
+                const data = await response.json();
+                console.log('Data refreshed:', data);
+            } catch(e) {
+                console.log('Using demo data');
+            }
+        }
+        
+        // Refresh every 30 seconds
+        setInterval(refreshData, 30000);
+    </script>
+</body>
+</html>

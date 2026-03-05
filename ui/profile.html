@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Market - 个人中心</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: rgba(18, 18, 26, 0.8);
+      --surface-elevated: rgba(26, 26, 36, 0.9);
+      --glass: rgba(26, 26, 36, 0.7);
+      --border: rgba(46, 46, 58, 0.6);
+      --primary: #00ff88;
+      --primary-glow: rgba(0, 255, 136, 0.3);
+      --accent: #6366f1;
+      --accent-cyan: #22d3ee;
+      --text: #fff;
+      --text-dim: #888;
+      --text-sub: #666;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .header {
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-cyan) 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    
+    .logo-text {
+      background: linear-gradient(135deg, var(--primary) 0%, #00ccff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .nav-link {
+      padding: 8px 16px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 14px;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .nav-link:hover, .nav-link.active {
+      color: var(--text);
+      background: var(--glass);
+    }
+    
+    .main {
+      padding: 80px 24px 40px;
+      max-width: 1000px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .page-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .page-desc {
+      color: var(--text-dim);
+      font-size: 15px;
+      margin-bottom: 32px;
+    }
+    
+    /* Profile Header */
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 32px;
+      padding: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-cyan) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .profile-info {
+      flex: 1;
+    }
+    
+    .profile-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .profile-email {
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+    
+    .profile-badge {
+      padding: 6px 12px;
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--primary);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    /* Tabs */
+    .profile-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 24px;
+      background: var(--glass);
+      padding: 4px;
+      border-radius: 12px;
+      width: fit-content;
+    }
+    
+    .profile-tab {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: all 0.2s;
+    }
+    
+    .profile-tab:hover {
+      color: var(--text);
+    }
+    
+    .profile-tab.active {
+      background: var(--accent);
+      color: white;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* Settings */
+    .settings-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    
+    .settings-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    
+    .settings-desc {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px;
+      background: var(--surface-elevated);
+      border-radius: 12px;
+      margin-bottom: 12px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .setting-item:hover {
+      border-color: var(--border);
+    }
+    
+    .setting-info h4 {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+    
+    .setting-info p {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    /* Toggle Switch */
+    .toggle {
+      position: relative;
+      width: 48px;
+      height: 26px;
+    }
+    
+    .toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--border);
+      border-radius: 26px;
+      transition: 0.3s;
+    }
+    
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    
+    .toggle input:checked + .toggle-slider {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-cyan) 100%);
+    }
+    
+    .toggle input:checked + .toggle-slider:before {
+      transform: translateX(22px);
+    }
+    
+    /* Form */
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+    
+    .form-input {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.1);
+    }
+    
+    .form-select {
+      width: 100%;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
+    
+    .save-btn {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-cyan) 100%);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .save-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    }
+    
+    /* API Key */
+    .api-key-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0d0d12;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+    }
+    
+    .api-key-value {
+      flex: 1;
+      font-family: 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--primary);
+    }
+    
+    .copy-btn {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .copy-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    /* Usage Chart */
+    .usage-chart {
+      background: var(--surface-elevated);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    
+    .usage-bar {
+      height: 8px;
+      background: var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    
+    .usage-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent-cyan) 100%);
+      border-radius: 4px;
+      transition: width 0.5s;
+    }
+    
+    .usage-fill.warning {
+      background: linear-gradient(90deg, var(--warning) 0%, var(--danger) 100%);
+    }
+    
+    .usage-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    /* Danger Zone */
+    .danger-zone {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    
+    .danger-zone .settings-title {
+      color: var(--danger);
+    }
+    
+    .danger-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .danger-btn:hover {
+      background: var(--danger);
+      color: white;
+    }
+    
+    @media (max-width: 768px) {
+      .profile-header { flex-direction: column; text-align: center; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">◈</div>
+      <span class="logo-text">Signal Market</span>
+    </div>
+    <nav class="nav-links">
+      <a href="index.html" class="nav-link">首页</a>
+      <a href="dashboard_live.html" class="nav-link">Dashboard</a>
+      <a href="portal.html" class="nav-link">Portal</a>
+      <a href="developer.html" class="nav-link">开发者</a>
+      <a href="profile.html" class="nav-link active">个人</a>
+    </nav>
+  </header>
+  
+  <main class="main">
+    <h1 class="page-title">个人中心</h1>
+    <p class="page-desc">管理您的账户设置、通知偏好和 API 使用情况</p>
+    
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="avatar">U</div>
+      <div class="profile-info">
+        <div class="profile-name" id="displayName">用户</div>
+        <div class="profile-email" id="displayEmail">user@example.com</div>
+      </div>
+      <span class="profile-badge">Pro 会员</span>
+    </div>
+    
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="statApiCalls">0</div>
+        <div class="stat-label">API 调用次数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statQuota">100K</div>
+        <div class="stat-label">本月限额</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="statDays">0</div>
+        <div class="stat-label">账户天数</div>
+      </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="profile-tabs">
+      <button class="profile-tab active" onclick="switchTab('settings')">账户设置</button>
+      <button class="profile-tab" onclick="switchTab('notifications')">通知设置</button>
+      <button class="profile-tab" onclick="switchTab('usage')">使用统计</button>
+      <button class="profile-tab" onclick="switchTab('api')">API 密钥</button>
+    </div>
+    
+    <!-- Account Settings -->
+    <div class="tab-content active" id="tab-settings">
+      <div class="settings-section">
+        <div class="settings-title">个人信息</div>
+        <div class="settings-desc">更新您的个人资料信息</div>
+        
+        <div class="form-group">
+          <label class="form-label">显示名称</label>
+          <input type="text" class="form-input" id="inputName" placeholder="您的名称">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">邮箱地址</label>
+          <input type="email" class="form-input" id="inputEmail" placeholder="your@email.com">
+        </div>
+        
+        <button class="save-btn" onclick="saveProfile()">保存更改</button>
+      </div>
+      
+      <div class="settings-section danger-zone">
+        <div class="settings-title">危险区域</div>
+        <div class="settings-desc">不可恢复的操作，请谨慎操作</div>
+        <button class="danger-btn" onclick="confirmDelete()">删除账户</button>
+      </div>
+    </div>
+    
+    <!-- Notifications -->
+    <div class="tab-content" id="tab-notifications">
+      <div class="settings-section">
+        <div class="settings-title">通知偏好</div>
+        <div class="settings-desc">选择您希望接收的通知类型</div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h4>新事件提醒</h4>
+            <p>当检测到新的重要事件时通知您</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifyEvents" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h4>预测信号</h4>
+            <p>当出现高概率预测信号时通知</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifyPredictions" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h4>系统健康</h4>
+            <p>系统状态变化或维护通知</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifyHealth">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h4>使用量提醒</h4>
+            <p>当 API 使用量达到 80% 时提醒</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifyUsage" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <div class="setting-info">
+            <h4>每周报告</h4>
+            <p>每周发送一次数据汇总报告</p>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="notifyWeekly">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="settings-section">
+        <div class="settings-title">通知渠道</div>
+        <div class="settings-desc">选择接收通知的方式</div>
+        
+        <div class="form-group">
+          <label class="form-label">通知方式</label>
+          <select class="form-select" id="notifyChannel">
+            <option value="email">邮件通知</option>
+            <option value="webhook">Webhook</option>
+            <option value="both">邮件 + Webhook</option>
+          </select>
+        </div>
+        
+        <div class="form-group" id="webhookUrlGroup" style="display:none">
+          <label class="form-label">Webhook URL</label>
+          <input type="url" class="form-input" id="webhookUrl" placeholder="https://your-server.com/webhook">
+        </div>
+        
+        <button class="save-btn" onclick="saveNotifications()">保存通知设置</button>
+      </div>
+    </div>
+    
+    <!-- Usage Stats -->
+    <div class="tab-content" id="tab-usage">
+      <div class="settings-section">
+        <div class="settings-title">API 使用统计</div>
+        <div class="settings-desc">查看您的 API 使用情况</div>
+        
+        <div class="usage-chart">
+          <div class="usage-bar">
+            <div class="usage-fill" id="usageFill" style="width: 0%"></div>
+          </div>
+          <div class="usage-stats">
+            <span>已使用: <strong id="usageUsed">0</strong> 次</span>
+            <span>剩余: <strong id="usageRemaining">100,000</strong> 次</span>
+          </div>
+        </div>
+        
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px">
+          <div class="stat-card">
+            <div class="stat-value" id="todayCalls">0</div>
+            <div class="stat-label">今日调用</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="avgLatency">0ms</div>
+            <div class="stat-label">平均延迟</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="successRate">100%</div>
+            <div class="stat-label">成功率</div>
+          </div>
+        </div>
+        
+        <button class="save-btn" style="margin-top:20px" onclick="exportUsage()">导出使用报告</button>
+      </div>
+    </div>
+    
+    <!-- API Keys -->
+    <div class="tab-content" id="tab-api">
+      <div class="settings-section">
+        <div class="settings-title">API 密钥</div>
+        <div class="settings-desc">使用 API 密钥访问 Signal Market 服务</div>
+        
+        <div class="form-group">
+          <label class="form-label">您的 API 密钥</label>
+          <div class="api-key-box">
+            <span class="api-key-value" id="apiKeyDisplay">sk-••••••••••••••••••••••••</span>
+            <button class="copy-btn" onclick="copyApiKey()">复制</button>
+          </div>
+        </div>
+        
+        <button class="save-btn" onclick="regenerateKey()">重新生成密钥</button>
+      </div>
+      
+      <div class="settings-section">
+        <div class="settings-title">API 端点</div>
+        <div class="settings-desc">可用的 API 端点地址</div>
+        
+        <div class="api-key-box" style="margin-bottom:12px">
+          <span class="api-key-value">https://api.signalmarket.io/v1</span>
+          <button class="copy-btn" onclick="copyEndpoint('prod')">复制</button>
+        </div>
+        
+        <div class="api-key-box">
+          <span class="api-key-value">https://staging.signalmarket.io/v1</span>
+          <button class="copy-btn" onclick="copyEndpoint('staging')">复制</button>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <script>
+    // Mock user data
+    const userData = {
+      name: '用户',
+      email: 'user@example.com',
+      apiKey: 'sk-abc123xyz789',
+      plan: 'pro',
+      usage: {
+        used: 45230,
+        limit: 100000,
+        today: 1234,
+        avgLatency: 45,
+        successRate: 99.8
+      },
+      notifications: {
+        events: true,
+        predictions: true,
+        health: false,
+        usage: true,
+        weekly: false,
+        channel: 'email'
+      },
+      createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+    };
+    
+    function init() {
+      // Profile
+      document.getElementById('displayName').textContent = userData.name;
+      document.getElementById('displayEmail').textContent = userData.email;
+      document.getElementById('inputName').value = userData.name;
+      document.getElementById('inputEmail').value = userData.email;
+      
+      // Stats
+      document.getElementById('statApiCalls').textContent = userData.usage.used.toLocaleString();
+      document.getElementById('statQuota').textContent = (userData.usage.limit / 1000) + 'K';
+      const days = Math.floor((Date.now() - userData.createdAt) / (24 * 60 * 60 * 1000));
+      document.getElementById('statDays').textContent = days;
+      
+      // Usage
+      const usagePct = (userData.usage.used / userData.usage.limit) * 100;
+      document.getElementById('usageFill').style.width = usagePct + '%';
+      if (usagePct > 80) document.getElementById('usageFill').classList.add('warning');
+      document.getElementById('usageUsed').textContent = userData.usage.used.toLocaleString();
+      document.getElementById('usageRemaining').textContent = (userData.usage.limit - userData.usage.used).toLocaleString();
+      document.getElementById('todayCalls').textContent = userData.usage.today.toLocaleString();
+      document.getElementById('avgLatency').textContent = userData.usage.avgLatency + 'ms';
+      document.getElementById('successRate').textContent = userData.usage.successRate + '%';
+      
+      // Notifications
+      document.getElementById('notifyEvents').checked = userData.notifications.events;
+      document.getElementById('notifyPredictions').checked = userData.notifications.predictions;
+      document.getElementById('notifyHealth').checked = userData.notifications.health;
+      document.getElementById('notifyUsage').checked = userData.notifications.usage;
+      document.getElementById('notifyWeekly').checked = userData.notifications.weekly;
+      document.getElementById('notifyChannel').value = userData.notifications.channel;
+      updateWebhookField();
+    }
+    
+    function switchTab(tabId) {
+      document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      
+      document.querySelector(`.profile-tab[onclick="switchTab('${tabId}')"]`).classList.add('active');
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+    
+    function saveProfile() {
+      userData.name = document.getElementById('inputName').value;
+      userData.email = document.getElementById('inputEmail').value;
+      document.getElementById('displayName').textContent = userData.name;
+      document.getElementById('displayEmail').textContent = userData.email;
+      showToast('个人资料已保存');
+    }
+    
+    function saveNotifications() {
+      userData.notifications.events = document.getElementById('notifyEvents').checked;
+      userData.notifications.predictions = document.getElementById('notifyPredictions').checked;
+      userData.notifications.health = document.getElementById('notifyHealth').checked;
+      userData.notifications.usage = document.getElementById('notifyUsage').checked;
+      userData.notifications.weekly = document.getElementById('notifyWeekly').checked;
+      userData.notifications.channel = document.getElementById('notifyChannel').value;
+      showToast('通知设置已保存');
+    }
+    
+    function updateWebhookField() {
+      const channel = document.getElementById('notifyChannel').value;
+      document.getElementById('webhookUrlGroup').style.display = 
+        (channel === 'webhook' || channel === 'both') ? 'block' : 'none';
+    }
+    
+    document.getElementById('notifyChannel').addEventListener('change', updateWebhookField);
+    
+    function copyApiKey() {
+      navigator.clipboard.writeText(userData.apiKey);
+      showToast('API 密钥已复制');
+    }
+    
+    function copyEndpoint(env) {
+      const endpoint = env === 'prod' 
+        ? 'https://api.signalmarket.io/v1'
+        : 'https://staging.signalmarket.io/v1';
+      navigator.clipboard.writeText(endpoint);
+      showToast('端点已复制');
+    }
+    
+    function regenerateKey() {
+      if (confirm('确定要重新生成 API 密钥吗？旧密钥将立即失效。')) {
+        userData.apiKey = 'sk-' + Math.random().toString(36).substring(2, 26);
+        document.getElementById('apiKeyDisplay').textContent = userData.apiKey;
+        showToast('API 密钥已重新生成');
+      }
+    }
+    
+    function exportUsage() {
+      const data = {
+        period: '2026-04',
+        used: userData.usage.used,
+        limit: userData.usage.limit,
+        exportedAt: new Date().toISOString()
+      };
+      
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `signal-market-usage-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('使用报告已导出');
+    }
+    
+    function confirmDelete() {
+      alert('请联系客服删除账户');
+    }
+    
+    function showToast(message) {
+      const toast = document.createElement('div');
+      toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--surface-elevated);border:1px solid var(--border);padding:16px 24px;border-radius:12px;z-index:1000;font-size:14px;';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+    
+    init();
+  </script>
+</body>
+</html>

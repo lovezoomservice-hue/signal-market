@@ -1,0 +1,26 @@
+{
+  "pack_id": "macro_001",
+  "name": "Macro Data Pack",
+  "sources": [
+    {
+      "name": "FRED",
+      "endpoint": "https://api.stlouisfed.org/fred/series/observations",
+      "poll_interval": 86400,
+      "cache_ttl": 43200,
+      "fallback": null,
+      "proof_path": "/signal-market/output/raw/macro/fred_YYYYMMDD.jsonl"
+    }
+  ],
+  "output_schema": {
+    "raw_event": {"series_id", "value", "date", "source"},
+    "digest": {"top_events", "confidence", "staleness", "failures"}
+  },
+  "quality_rules": {
+    "stale_threshold_minutes": 10080,
+    "missing_raw_threshold": 3
+  },
+  "governance": {
+    "proposal_only": true,
+    "owner_approval_required_for_new_sources": true
+  }
+}

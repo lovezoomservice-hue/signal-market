@@ -1,0 +1,30 @@
+{
+  "pack_id": "news_001",
+  "name": "News Data Pack",
+  "sources": [
+    {
+      "name": "CryptoCompare",
+      "endpoint": "https://min-api.cryptocompare.com/data/v2/news/?lang=EN",
+      "poll_interval": 3600,
+      "status": "active"
+    },
+    {
+      "name": "HackerNews",
+      "endpoint": "https://hacker-news.firebaseio.com/v0/topstories.json",
+      "poll_interval": 1800,
+      "status": "active"
+    },
+    {
+      "name": "Reddit r/worldnews",
+      "endpoint": "https://www.reddit.com/r/worldnews.json",
+      "poll_interval": 3600,
+      "status": "active"
+    },
+    {
+      "name": "GDELT RSS",
+      "endpoint": "https://www.gdeltproject.org/rss/rssaggdata.xml",
+      "poll_interval": 7200,
+      "status": "active"
+    }
+  ]
+}

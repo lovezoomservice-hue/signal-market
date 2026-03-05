@@ -1,0 +1,553 @@
+openapi: 3.0.3
+info:
+  title: Signal Market API
+  description: |
+    Signal Market API 提供事件检测、预测概率、用户透镜简报等功能。
+    
+    ## 认证
+    部分端点需要 API Key，在请求头中传递:
+    ```
+    x-api-key: your_api_key
+    ```
+  version: 1.0.0
+  contact:
+    name: Signal Market Team
+    url: https://signal.market
+
+servers:
+  - url: http://localhost:3000
+    description: 本地开发服务器
+  - url: https://api.signal.market
+    description: 生产服务器
+
+paths:
+  /signals/health:
+    get:
+      summary: 健康检查
+      description: 检查系统健康状态和各层数据输出
+      operationId: getHealth
+      tags:
+        - System
+      responses:
+        '200':
+          description: 系统健康
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '500':
+          description: 服务器错误
+
+  /events:
+    get:
+      summary: 获取事件列表
+      description: |
+        获取当前事件列表，支持分页、过滤和排序。
+        
+        ## 过滤参数
+        - stage: 按阶段过滤 (emerging, accelerating, peak, fading)
+        - topic: 按主题过滤 (多个用逗号分隔)
+        
+        ## 排序
+        - sortBy: timestamp, probability, title
+        - sortOrder: asc, desc
+      operationId: getEvents
+      tags:
+        - Events
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: 返回数量限制
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: 偏移量
+        - name: stage
+          in: query
+          schema:
+            type: string
+          description: 按阶段过滤 (emerging,accelerating,peak,fading)
+          example: "accelerating,peak"
+        - name: topic
+          in: query
+          schema:
+            type: string
+          description: 按主题过滤
+          example: "AI算力"
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [timestamp, probability, title]
+            default: timestamp
+          description: 排序字段
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: 排序方向
+      responses:
+        '200':
+          description: 事件列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+
+  /events/{event_id}/probability:
+    get:
+      summary: 获取事件概率详情
+      description: 获取特定事件的概率数据
+      operationId: getEventProbability
+      tags:
+        - Events
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 事件ID
+          example: "evt_001"
+      responses:
+        '200':
+          description: 概率详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProbabilityResponse'
+        '404':
+          description: 事件不存在
+
+  /lenses/{lens_id}/daily-brief:
+    get:
+      summary: 获取用户透镜简报
+      description: 获取指定透镜的每日简报
+      operationId: getLensBrief
+      tags:
+        - Lenses
+      parameters:
+        - name: lens_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 透镜ID
+          example: "lens_a_stock"
+      responses:
+        '200':
+          description: 透镜简报
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LensBriefResponse'
+        '404':
+          description: 透镜不存在
+
+  /evidence/{event_id}:
+    get:
+      summary: 获取事件证据
+      description: 获取与事件相关的证据列表
+      operationId: getEvidence
+      tags:
+        - Evidence
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 事件ID
+          example: "evt_001"
+      responses:
+        '200':
+          description: 证据详情
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvidenceResponse'
+        '404':
+          description: 证据不存在
+
+  /predictions:
+    get:
+      summary: 获取预测市场列表
+      description: 获取预测市场事件列表，支持分页和过滤
+      operationId: getPredictions
+      tags:
+        - Predictions
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: 返回数量限制
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: 偏移量
+        - name: topic
+          in: query
+          schema:
+            type: string
+          description: 按主题过滤
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [timestamp, probability, horizon]
+            default: timestamp
+          description: 排序字段
+        - name: sortOrder
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: 排序方向
+      responses:
+        '200':
+          description: 预测市场列表
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionsResponse'
+
+  /predictions/{event_id}:
+    get:
+      summary: 获取预测概率曲线
+      description: 获取特定预测事件的历史概率曲线
+      operationId: getPredictionCurve
+      tags:
+        - Predictions
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 预测事件ID
+          example: "evt_iran_conflict"
+      responses:
+        '200':
+          description: 概率曲线
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PredictionCurveResponse'
+        '404':
+          description: 预测事件不存在
+
+  /watch:
+    post:
+      summary: 创建事件监控
+      description: 创建新的事件监控任务
+      operationId: createWatch
+      tags:
+        - Watch
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WatchRequest'
+      responses:
+        '200':
+          description: 监控创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WatchResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded]
+        timestamp:
+          type: string
+          format: date-time
+        checks:
+                   properties:
+            type: object
+ raw:
+              type: boolean
+            clean:
+              type: boolean
+            events:
+              type: boolean
+            probability:
+              type: boolean
+        updates_today:
+          type: integer
+        system_health:
+          type: string
+
+    EventItem:
+      type: object
+      properties:
+        event_id:
+          type: string
+        topic:
+          type: string
+        title:
+          type: string
+        stage:
+          type: string
+          enum: [emerging, accelerating, peak, fading]
+        probability:
+          type: number
+          nullable: true
+        evidence_refs:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+        offset:
+          type: integer
+        total:
+          type: integer
+        hasMore:
+          type: boolean
+
+    EventsResponse:
+      type: object
+      properties:
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        timestamp:
+          type: string
+          format: date-time
+
+    ProbabilityResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+        topic:
+          type: string
+        current:
+          type: number
+        P_7d:
+          type: number
+        P_30d:
+          type: number
+        trend:
+          type: string
+          enum: [rising, falling, stable]
+        timestamp:
+          type: string
+          format: date-time
+
+    StageSummary:
+      type: object
+      properties:
+        topic:
+          type: string
+        current_stage:
+          type: string
+        probability:
+          type: number
+        probability_7d:
+          type: number
+
+    Opportunity:
+      type: object
+      properties:
+        topic:
+          type: string
+        stage:
+          type: string
+        action:
+          type: string
+
+    LensBriefResponse:
+      type: object
+      properties:
+        lens_id:
+          type: string
+        user_id:
+          type: string
+        date:
+          type: string
+        topics_watched:
+          type: array
+          items:
+            type: string
+        stage_summary:
+          type: array
+          items:
+            $ref: '#/components/schemas/StageSummary'
+        top_opportunities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Opportunity'
+        risk_alerts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Opportunity'
+        evidence_refs:
+          type: array
+          items:
+            type: string
+        generated_at:
+          type: string
+          format: date-time
+
+    EvidenceResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+        evidence_id:
+          type: string
+        type:
+          type: string
+          enum: [news, social, report, alert]
+        title:
+          type: string
+        source:
+          type: string
+        url:
+          type: string
+          format: uri
+        timestamp:
+          type: string
+          format: date-time
+        sentiment:
+          type: string
+          enum: [positive, negative, neutral]
+
+    PredictionItem:
+      type: object
+      properties:
+        event_id:
+          type: string
+        topic:
+          type: string
+        description:
+          type: string
+        horizon:
+          type: string
+        probability:
+          type: number
+        probability_pct:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    PredictionsResponse:
+      type: object
+      properties:
+        predictions:
+          type: array
+          items:
+            $ref: '#/components/schemas/PredictionItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+        timestamp:
+          type: string
+          format: date-time
+
+    CurvePoint:
+      type: object
+      properties:
+        date:
+          type: string
+        probability:
+          type: number
+        probability_pct:
+          type: string
+
+    PredictionCurveResponse:
+      type: object
+      properties:
+        event_id:
+          type: string
+        topic:
+          type: string
+        horizon:
+          type: string
+        curve:
+          type: array
+          items:
+            $ref: '#/components/schemas/CurvePoint'
+        current:
+          type: number
+        change_7d:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+
+    WatchRequest:
+      type: object
+      properties:
+        event_ids:
+          type: array
+          items:
+            type: string
+        notify_email:
+          type: string
+          format: email
+
+    WatchResponse:
+      type: object
+      properties:
+        watch_id:
+          type: string
+        status:
+          type: string
+        next_output:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: API Key 认证
+
+security:
+  - ApiKeyAuth: []

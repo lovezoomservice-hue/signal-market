@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Market - 用户中心</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --success: #10b981;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-600: #4b5563;
+      --gray-700: #374151;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      min-height: 100vh;
+      background-image: radial-gradient(ellipse at 20% 0%, rgba(37, 99, 235, 0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 100%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+    }
+    
+    .container { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    
+    .header { background: white; border-bottom: 1px solid var(--gray-200); padding: 1rem 0; margin-bottom: 2rem; position: sticky; top: 0; z-index: 50; }
+    .header-content { max-width: 900px; margin: 0 auto; padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+    .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), #00ff88); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; }
+    .nav-links { display: flex; gap: 1rem; }
+    .nav-links a { color: var(--gray-600); text-decoration: none; font-size: 0.875rem; padding: 8px 12px; border-radius: 8px; transition: all 0.2s; }
+    .nav-links a:hover { color: var(--primary); background: rgba(37, 99, 235, 0.1); }
+    
+    .auth-container { max-width: 420px; margin: 2rem auto; background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .auth-header { text-align: center; margin-bottom: 2rem; }
+    .auth-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .auth-header p { color: var(--gray-500); font-size: 0.875rem; }
+    .auth-tabs { display: flex; margin-bottom: 1.5rem; background: var(--gray-50); border-radius: 10px; padding: 4px; }
+    .auth-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; color: var(--gray-500); border-radius: 8px; font-weight: 500; font-size: 0.9rem; transition: all 0.2s; }
+    .auth-tab.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--gray-700); }
+    .form-group input { width: 100%; padding: 12px 14px; border: 2px solid var(--gray-200); border-radius: 10px; font-size: 0.95rem; transition: all 0.2s; background: var(--gray-50); }
+    .form-group input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+    .form-group input.error { border-color: var(--danger); background: #fef2f2; }
+    .form-group input.valid { border-color: var(--success); }
+    .form-group .hint { font-size: 0.75rem; color: var(--gray-500); margin-top: 4px; }
+    .form-group .error-text { font-size: 0.8rem; color: var(--danger); margin-top: 4px; display: none; }
+    .form-group.has-error .error-text { display: block; }
+    
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 0.95rem; cursor: pointer; border: none; transition: all 0.2s; width: 100%; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-outline { background: white; border: 2px solid var(--gray-200); color: var(--gray-700); }
+    .btn-outline:hover { border-color: var(--gray-300); background: var(--gray-50); }
+    .btn-sm { padding: 8px 16px; font-size: 0.8rem; width: auto; }
+    
+    .error-msg { color: var(--danger); font-size: 0.875rem; margin-bottom: 1rem; padding: 12px; background: #fef2f2; border-radius: 10px; display: none; border-left: 4px solid var(--danger); }
+    .error-msg.show { display: flex; align-items: center; gap: 8px; }
+    
+    .dashboard { display: none; }
+    .dashboard.show { display: block; }
+    .card { background: white; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--gray-100); }
+    .card-title { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 600; }
+    
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    .stat-item { text-align: center; padding: 1.25rem 1rem; background: linear-gradient(135deg, var(--gray-50), white); border: 1px solid var(--gray-100); border-radius: 12px; transition: all 0.2s; }
+    .stat-item:hover { transform: translateY(-2px); border-color: var(--primary); }
+    .stat-value { font-family: 'Space Grotesk', sans-serif; font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-label { font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem; font-weight: 500; }
+    
+    .usage-progress { margin-top: 1rem; }
+    .progress-bar { height: 8px; background: var(--gray-200); border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #00ff88); border-radius: 4px; transition: width 0.5s ease; }
+    .progress-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--gray-500); margin-top: 6px; }
+    
+    .plan-badge { display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .plan-free { background: var(--gray-200); color: var(--gray-600); }
+    .plan-basic { background: #dbeafe; color: var(--primary); }
+    .plan-pro { background: #fef3c7; color: #b45309; }
+    .plan-enterprise { background: #d1fae5; color: #047857; }
+    
+    .api-key-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; border: 1px solid var(--gray-200); border-radius: 12px; margin-bottom: 0.75rem; transition: all 0.2s; }
+    .api-key-item:hover { border-color: var(--primary); background: rgba(37, 99, 235, 0.02); }
+    .api-key-info { flex: 1; }
+    .api-key-name { font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
+    .api-key-value { font-family: 'SF Mono', 'Monaco', monospace; font-size: 0.8rem; color: var(--gray-600); background: var(--gray-50); padding: 6px 10px; border-radius: 6px; display: inline-block; }
+    .api-key-meta { font-size: 0.7rem; color: var(--gray-400); margin-top: 0.5rem; }
+    .api-key-actions { display: flex; gap: 0.5rem; margin-left: 12px; }
+    
+    .plans-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .plan-card { border: 2px solid var(--gray-200); border-radius: 14px; padding: 1.5rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+    .plan-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--gray-200); transition: background 0.2s; }
+    .plan-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .plan-card:hover::before { background: var(--primary); }
+    .plan-card.selected { border-color: var(--primary); background: #eff6ff; }
+    .plan-card.selected::before { background: var(--primary); }
+    .plan-name { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .plan-price { font-size: 1.75rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .plan-price span { font-size: 0.8rem; color: var(--gray-500); font-weight: normal; }
+    .plan-features { list-style: none; margin-top: 1rem; text-align: left; }
+    .plan-features li { font-size: 0.8rem; color: var(--gray-600); padding: 4px 0; display: flex; align-items: center; gap: 6px; }
+    .plan-features li::before { content: "✓"; color: var(--success); font-weight: bold; }
+    
+    .user-info { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    .user-avatar { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, var(--primary), #00ff88); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+    .user-details { flex: 1; min-width: 150px; }
+    .user-details h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; margin-bottom: 0.25rem; }
+    .user-details p { font-size: 0.875rem; color: var(--gray-500); }
+    
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); padding: 14px 24px; border-radius: 12px; color: white; font-weight: 500; opacity: 0; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; }
+    .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    .toast-success { background: var(--success); }
+    .toast-error { background: var(--danger); }
+    
+    .loading { text-align: center; padding: 2rem; color: var(--gray-500); }
+    
+    @media (max-width: 768px) {
+      .container { padding: 1rem; }
+      .header-content { padding: 0 1rem; }
+      .logo span { display: none; }
+      .nav-links a { padding: 8px; font-size: 0.8rem; }
+      .auth-container { margin: 1rem auto; padding: 1.5rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+      .stat-item { padding: 1rem 0.75rem; }
+      .stat-value { font-size: 1.5rem; }
+      .api-key-item { flex-direction: column; gap: 1rem; }
+      .api-key-actions { margin-left: 0; width: 100%; }
+      .api-key-actions .btn { flex: 1; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .user-info { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/" class="logo"><div class="logo-icon">S</div><span>Signal Market</span></a>
+      <nav class="nav-links" id="navLinks"></nav>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div class="auth-container" id="authContainer">
+      <div class="auth-header">
+        <h1>欢迎回来</h1>
+        <p>登录或注册以访问 Signal Market</p>
+      </div>
+      
+      <div class="auth-tabs">
+        <div class="auth-tab active" data-tab="login">登录</div>
+        <div class="auth-tab" data-tab="register">注册</div>
+      </div>
+      
+      <div class="error-msg" id="authError"></div>
+      
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label>邮箱地址</label>
+          <input type="email" name="email" id="loginEmail" required placeholder="your@email.com" autocomplete="email">
+          <span class="error-text" id="loginEmailError">请输入有效的邮箱地址</span>
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" name="password" id="loginPassword" required placeholder="••••••••" autocomplete="current-password">
+          <span class="error-text" id="loginPasswordError">请输入密码</span>
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn">登录</button>
+      </form>
+      
+      <form id="registerForm" style="display: none;" novalidate>
+        <div class="form-group">
+          <label>邮箱地址</label>
+          <input type="email" name="email" id="regEmail" required placeholder="your@email.com" autocomplete="email">
+          <span class="hint">我们将发送验证链接到此邮箱</span>
+          <span class="error-text" id="regEmailError">请输入有效的邮箱地址</span>
+        </div>
+        <div class="form-group">
+          <label>用户名 <span style="color:var(--gray-400);font-weight:normal">(可选)</span></label>
+          <input type="text" name="name" id="regName" placeholder="设置您的显示名称" autocomplete="name">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" name="password" id="regPassword" required placeholder="至少6位密码" minlength="6" autocomplete="new-password">
+          <span class="error-text" id="regPasswordError">密码至少需要6位</span>
+        </div>
+        <button type="submit" class="btn btn-primary" id="registerBtn">注册</button>
+      </form>
+    </div>
+    
+    <div class="dashboard" id="dashboard">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">账户信息</div>
+          <button class="btn btn-outline btn-sm" id="logoutBtn">退出登录</button>
+        </div>
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-details">
+            <h2 id="userName">用户名</h2>
+            <p id="userEmail">user@example.com</p>
+          </div>
+          <span class="plan-badge" id="userPlan">FREE</span>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header"><div class="card-title">使用统计</div></div>
+        <div class="stats-grid">
+          <div class="stat-item"><div class="stat-value" id="statToday">0</div><div class="stat-label">今日请求</div></div>
+          <div class="stat-item"><div class="stat-value" id="statLimit">100</div><div class="stat-label">每日限额</div></div>
+          <div class="stat-item"><div class="stat-value" id="statRemaining">100</div><div class="stat-label">剩余</div></div>
+          <div class="stat-item"><div class="stat-value" id="statReset">--</div><div class="stat-label">重置时间</div></div>
+        </div>
+        <div class="usage-progress">
+          <div class="progress-bar"><div class="progress-fill" id="usageProgress" style="width: 0%"></div></div>
+          <div class="progress-text"><span id="usageText">0% 已使用</span><span id="resetText">重置于: --</span></div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">API Keys</div>
+          <button class="btn btn-primary btn-sm" id="createKeyBtn">+ 新建 Key</button>
+        </div>
+        <div id="apiKeysList"><div class="loading">加载中</div></div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header"><div class="card-title">订阅计划</div></div>
+        <div class="plans-grid" id="plansGrid"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="toast" id="toast"></div>
+  
+  <script>
+    const API_BASE = window.location.origin;
+    let sessionToken = localStorage.getItem('sessionToken');
+    let currentUser = null;
+    
+    const validators = {
+      email: (value) => { const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; return re.test(value) ? null : '请输入有效的邮箱地址'; },
+      password: (value, minLength = 6) => { if (!value) return '此字段为必填项'; return value.length < minLength ? `密码至少需要${minLength}位` : null; }
+    };
+    
+    function validateField(input, validatorFn) {
+      const errorEl = document.getElementById(input.id + 'Error');
+      const value = input.value.trim();
+      const error = validatorFn ? validatorFn(value) : null;
+      input.classList.remove('error', 'valid');
+      if (errorEl) errorEl.parentElement.classList.toggle('has-error', !!error);
+      if (!error && value) input.classList.add('valid');
+      return !error;
+    }
+    
+    document.getElementById('loginEmail')?.addEventListener('blur', function() { validateField(this, validators.email); });
+    document.getElementById('loginPassword')?.addEventListener('input', function() { validateField(this, (v) => validators.password(v, 1)); });
+    document.getElementById('regEmail')?.addEventListener('blur', function() { validateField(this, validators.email); });
+    document.getElementById('regPassword')?.addEventListener('input', function() { validateField(this, validators.password); });
+    
+    async function apiRequest(endpoint, options = {}) {
+      const headers = { 'Content-Type': 'application/json' };
+      if (sessionToken) headers['X-Session-Token'] = sessionToken;
+      const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers: { ...headers, ...options.headers } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || '请求失败');
+      return data;
+    }
+    
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const icons = { success: '✓', error: '✕' };
+      toast.innerHTML = `<span>${icons[type] || ''}</span> ${message}`;
+      toast.className = `toast toast-${type} show`;
+      setTimeout(() => toast.className = 'toast', 3000);
+    }
+    
+    function showAuth() {
+      document.getElementById('authContainer').style.display = 'block';
+      document.getElementById('dashboard').classList.remove('show');
+      document.getElementById('navLinks').innerHTML = '';
+    }
+    
+    function showDashboard() {
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('dashboard').classList.add('show');
+      document.getElementById('navLinks').innerHTML = '<a href="dashboard_live.html">📊 Dashboard</a><a href="developer.html">🛠️ 开发者</a><a href="profile.html">👤 个人</a><a href="#" id="refreshBtn">🔄 刷新</a><a href="#" id="logoutLink">退出</a>';
+    }
+    
+    document.querySelectorAll('.auth-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const isLogin = tab.dataset.tab === 'login';
+        document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+        document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+        document.getElementById('authError').classList.remove('show');
+        document.querySelectorAll('.form-group').forEach(g => g.classList.remove('has-error'));
+        document.querySelectorAll('input').forEach(i => i.classList.remove('error', 'valid'));
+      });
+    });
+    
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const emailValid = validateField(form.email, validators.email);
+      const passValid = validateField(form.password, (v) => validators.password(v, 1));
+      if (!emailValid || !passValid) return;
+      
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = true;
+      btn.textContent = '登录中...';
+      
+      try {
+        const data = await apiRequest('/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+        sessionToken = data.sessionToken;
+        localStorage.setItem('sessionToken', sessionToken);
+        currentUser = data.user;
+        showToast('登录成功！');
+        loadDashboard();
+      } catch(err) {
+        document.getElementById('authError').innerHTML = `<span>✕</span> ${err.message}`;
+        document.getElementById('authError').classList.add('show');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '登录';
+      }
+    });
+    
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const email = form.email.value.trim();
+      const password = form.password.value;
+      const name = form.name.value.trim();
+      const emailValid = validateField(form.email, validators.email);
+      const passValid = validateField(form.password, validators.password);
+      if (!emailValid || !passValid) return;
+      
+      const btn = document.getElementById('registerBtn');
+      btn.disabled = true;
+      btn.textContent = '注册中...';
+      
+      try {
+        const data = await apiRequest('/register', { method: 'POST', body: JSON.stringify({ email, password, name: name || undefined }) });
+        sessionToken = data.sessionToken;
+        localStorage.setItem('sessionToken', sessionToken);
+        currentUser = data.user;
+        showToast('注册成功！已生成免费 API Key');
+        loadDashboard();
+      } catch(err) {
+        document.getElementById('authError').innerHTML = `<span>✕</span> ${err.message}`;
+        document.getElementById('authError').classList.add('show');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '注册';
+      }
+    });
+    
+    async function logout() {
+      try { await apiRequest('/logout', { method: 'POST' }); } catch(e) {}
+      sessionToken = null;
+      localStorage.removeItem('sessionToken');
+      currentUser = null;
+      showAuth();
+      showToast('已退出登录', 'success');
+    }
+    
+    document.addEventListener('click', (e) => {
+      if (e.target.id === 'logoutBtn' || e.target.id === 'logoutLink') { e.preventDefault(); logout(); }
+      if (e.target.id === 'refreshBtn') { e.preventDefault(); loadDashboard(); }
+    });
+    
+    async function loadDashboard() {
+      if (!sessionToken) { showAuth(); return; }
+      try {
+        const data = await apiRequest('/me');
+        currentUser = data.user;
+        showDashboard();
+        
+        const initial = (currentUser.name || currentUser.email || 'U')[0].toUpperCase();
+        document.getElementById('userAvatar').textContent = initial;
+        document.getElementById('userName').textContent = currentUser.name || '用户';
+        document.getElementById('userEmail').textContent = currentUser.email;
+        
+        const planBadge = document.getElementById('userPlan');
+        planBadge.textContent = currentUser.plan.toUpperCase();
+        planBadge.className = `plan-badge plan-${currentUser.plan}`;
+        
+        const usage = data.usage;
+        const today = usage.todayRequests || 0;
+        const limit = usage.limit === 'unlimited' ? -1 : usage.limit;
+        const remaining = usage.remaining === 'unlimited' ? -1 : usage.remaining;
+        
+        document.getElementById('statToday').textContent = today;
+        document.getElementById('statLimit').textContent = limit === -1 ? '∞' : limit;
+        document.getElementById('statRemaining').textContent = remaining === -1 ? '∞' : remaining;
+        document.getElementById('statReset').textContent = new Date(usage.resetAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        
+        if (limit > 0) {
+          const usedPercent = Math.round((today / limit) * 100);
+          document.getElementById('usageProgress').style.width = `${usedPercent}%`;
+          document.getElementById('usageText').textContent = `${usedPercent}% 已使用`;
+          if (usedPercent > 90) document.getElementById('usageProgress').style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
+        } else {
+          document.getElementById('usageProgress').style.width = '0%';
+          document.getElementById('usageText').textContent = '无限额';
+        }
+        
+        document.getElementById('resetText').textContent = `重置于: ${new Date(usage.resetAt).toLocaleDateString('zh-CN')} ${new Date(usage.resetAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}`;
+        
+        renderAPIKeys(data.apiKeys);
+        loadPlans();
+      } catch(err) { console.error(err); logout(); }
+    }
+    
+    function renderAPIKeys(keys) {
+      const container = document.getElementById('apiKeysList');
+      if (keys.length === 0) { container.innerHTML = '<p style="color: var(--gray-500); text-align: center; padding: 2rem;">暂无 API Keys</p>'; return; }
+      
+      container.innerHTML = keys.map(k => `
+        <div class="api-key-item">
+          <div class="api-key-info">
+            <div class="api-key-name">${k.name} <span class="plan-badge plan-${k.plan}">${k.plan}</span></div>
+            <div class="api-key-value">${k.fullKey || k.key}</div>
+            <div class="api-key-meta">创建于: ${new Date(k.createdAt).toLocaleDateString('zh-CN')} | 请求: ${k.requestsCount} | 最后使用: ${k.lastUsedAt ? new Date(k.lastUsedAt).toLocaleDateString('zh-CN') : '从未'}</div>
+          </div>
+          <div class="api-key-actions">
+            <button class="btn btn-outline btn-sm" onclick="copyKey('${k.fullKey || k.key}')">复制</button>
+            <button class="btn btn-danger btn-sm" onclick="revokeKey('${k.fullKey || k.key}')">吊销</button>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    window.copyKey = async function(key) {
+      try { await navigator.clipboard.writeText(key); showToast('已复制到剪贴板'); } catch(e) { showToast('复制失败', 'error'); }
+    };
+    
+    window.revokeKey = async function(key) {
+      if (!confirm('确定要吊销此 API Key 吗？此操作不可恢复。')) return;
+      try {
+        await apiRequest(`/api-key/${key}`, { method: 'DELETE' });
+        showToast('API Key 已吊销');
+        loadDashboard();
+      } catch(err) { showToast(err.message, 'error'); }
+    };
+    
+    document.getElementById('createKeyBtn').addEventListener('click', async () => {
+      const name = prompt('请输入 Key 名称:', `${currentUser.plan} Key`);
+      if (!name) return;
+      try {
+        const data = await apiRequest('/api-key', { method: 'POST', body: JSON.stringify({ name }) });
+        showToast(`API Key 已创建: ${data.apiKey.substring(0, 20)}...`);
+        loadDashboard();
+      } catch(err) { showToast(err.message, 'error'); }
+    });
+    
+    async function loadPlans() {
+      try {
+        const data = await apiRequest('/plans');
+        const container = document.getElementById('plansGrid');
+        container.innerHTML = Object.entries(data.plans).map(([key, plan]) => `
+          <div class="plan-card ${key === currentUser.plan ? 'selected' : ''}" onclick="selectPlan('${key}')">
+            <div class="plan-name">${plan.name}</div>
+            <div class="plan-price">${plan.price === 0 ? '免费' : `$${plan.price}<span>/月</span>`}</div>
+            <ul class="plan-features">${plan.features.map(f => `<li>${f}</li>`).join('')}</ul>
+          </div>
+        `).join('');
+      } catch(err) { console.error(err); }
+    }
+    
+    window.selectPlan = function(plan) { showToast('请联系客服升级计划: support@signalmarket.io'); };
+    
+    loadDashboard();
+  </script>
+</body>
+</html>

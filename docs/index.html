@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Market API 文档</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #64748b;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+        
+        .nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        
+        .nav a:hover {
+            color: var(--primary);
+        }
+        
+        .nav a.active {
+            color: var(--primary);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+        
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+        
+        .sidebar-section {
+            background: var(--surface);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+        }
+        
+        .sidebar-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 1rem;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+        }
+        
+        .sidebar-nav li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .sidebar-nav a {
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.9375rem;
+            display: block;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-nav a:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+        
+        .main-content {
+            min-width: 0;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 3rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+        
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .endpoint {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .method {
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        
+        .method.get {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .method.post {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .endpoint-path {
+            font-family: 'Fira Code', monospace;
+            font-size: 1rem;
+            color: var(--text);
+        }
+        
+        .endpoint-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .endpoint-description {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+        
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+        }
+        
+        .params-table th,
+        .params-table td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .params-table th {
+            font-weight: 600;
+            color: var(--text-light);
+            background: var(--bg);
+        }
+        
+        .params-table td {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8125rem;
+        }
+        
+        .param-name {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .param-type {
+            color: var(--secondary);
+            font-size: 0.75rem;
+        }
+        
+        .try-it-section {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .try-it-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .try-it-header h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #0369a1;
+        }
+        
+        .try-it-form {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        .try-it-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.625rem 1rem;
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-family: 'Fira Code', monospace;
+        }
+        
+        .try-it-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .try-it-btn {
+            padding: 0.625rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .try-it-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .try-it-result {
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .try-it-result.show {
+            display: block;
+        }
+        
+        .try-it-result pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            max-height: 400px;
+            overflow: auto;
+        }
+        
+        .try-it-error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .try-it-error.show {
+            display: block;
+        }
+        
+        .footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-light);
+            margin-top: 4rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 1.75rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">Signal Market API</a>
+            <nav class="nav">
+                <a href="index.html" class="active">API 文档</a>
+                <a href="developer.html">开发者中心</a>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">端点分类</h3>
+                <ul class="sidebar-nav">
+                    <li><a href="#system">系统</a></li>
+                    <li><a href="#events">事件</a></li>
+                    <li><a href="#lenses">用户透镜</a></li>
+                    <li><a href="#evidence">证据</a></li>
+                    <li><a href="#predictions">预测市场</a></li>
+                    <li><a href="#watch">监控</a></li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">快速链接</h3>
+                <ul class="sidebar-nav">
+                    <li><a href="#authentication">认证方式</a></li>
+                    <li><a href="#errors">错误响应</a></li>
+                    <li><a href="#examples">使用示例</a></li>
+                </ul>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="hero">
+                <h1>Signal Market API</h1>
+                <p>获取实时事件检测、预测概率、用户透镜简报等功能。构建您自己的金融事件监控系统。</p>
+            </div>
+
+            <section id="authentication">
+                <h2 style="margin-bottom: 1rem;">认证方式</h2>
+                <div class="endpoint">
+                    <p>部分端点需要 API Key 认证，在请求头中传递:</p>
+                    <div class="code-block">x-api-key: your_api_key_here</div>
+                </div>
+            </section>
+
+            <section id="system">
+                <h2 style="margin-bottom: 1rem;">系统端点</h2>
+                
+                <div class="endpoint" id="health">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/signals/health</span>
+                    </div>
+                    <h3 class="endpoint-title">健康检查</h3>
+                    <p class="endpoint-description">检查系统健康状态和各层数据输出</p>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="health-url" value="/signals/health" readonly>
+                            <button class="try-it-btn" onclick="tryEndpoint('health')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="health-result"></div>
+                        <div class="try-it-error" id="health-error"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="events">
+                <h2 style="margin-bottom: 1rem;">事件端点</h2>
+                
+                <div class="endpoint" id="events-list">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/events</span>
+                    </div>
+                    <h3 class="endpoint-title">获取事件列表</h3>
+                    <p class="endpoint-description">获取当前事件列表，支持分页、过滤和排序</p>
+                    
+                    <h4>查询参数</h4>
+                    <table class="params-table">
+                        <thead>
+                            <tr>
+                                <th>参数</th>
+                                <th>类型</th>
+                                <th>默认值</th>
+                                <th>描述</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="param-name">limit</span></td>
+                                <td><span class="param-type">integer</span></td>
+                                <td>20</td>
+                                <td>返回数量限制 (1-100)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">offset</span></td>
+                                <td><span class="param-type">integer</span></td>
+                                <td>0</td>
+                                <td>偏移量</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">stage</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>-</td>
+                                <td>按阶段过滤 (emerging, accelerating, peak, fading)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">topic</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>-</td>
+                                <td>按主题过滤</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">sortBy</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>timestamp</td>
+                                <td>排序字段 (timestamp, probability, title)</td>
+                            </tr>
+                            <tr>
+                                <td><span class="param-name">sortOrder</span></td>
+                                <td><span class="param-type">string</span></td>
+                                <td>desc</td>
+                                <td>排序方向 (asc, desc)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="events-url" value="/events?limit=5" placeholder="输入查询参数">
+                            <button class="try-it-btn" onclick="tryEndpoint('events')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="events-result"></div>
+                        <div class="try-it-error" id="events-error"></div>
+                    </div>
+                </div>
+
+                <div class="endpoint" id="event-probability">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/events/{event_id}/probability</span>
+                    </div>
+                    <h3 class="endpoint-title">获取事件概率详情</h3>
+                    <p class="endpoint-description">获取特定事件的概率数据</p>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="probability-url" value="/events/evt_001/probability" placeholder="输入事件ID">
+                            <button class="try-it-btn" onclick="tryEndpoint('probability')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="probability-result"></div>
+                        <div class="try-it-error" id="probability-error"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="lenses">
+                <h2 style="margin-bottom: 1rem;">用户透镜端点</h2>
+                
+                <div class="endpoint" id="lens-brief">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/lenses/{lens_id}/daily-brief</span>
+                    </div>
+                    <h3 class="endpoint-title">获取用户透镜简报</h3>
+                    <p class="endpoint-description">获取指定透镜的每日简报</p>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="lens-url" value="/lenses/lens_a_stock/daily-brief" placeholder="输入透镜ID">
+                            <button class="try-it-btn" onclick="tryEndpoint('lens')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="lens-result"></div>
+                        <div class="try-it-error" id="lens-error"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="evidence">
+                <h2 style="margin-bottom: 1rem;">证据端点</h2>
+                
+                <div class="endpoint" id="evidence-detail">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/evidence/{event_id}</span>
+                    </div>
+                    <h3 class="endpoint-title">获取事件证据</h3>
+                    <p class="endpoint-description">获取与事件相关的证据列表</p>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="evidence-url" value="/evidence/evt_001" placeholder="输入事件ID">
+                            <button class="try-it-btn" onclick="tryEndpoint('evidence')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="evidence-result"></div>
+                        <div class="try-it-error" id="evidence-error"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="predictions">
+                <h2 style="margin-bottom: 1rem;">预测市场端点</h2>
+                
+                <div class="endpoint" id="predictions-list">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/predictions</span>
+                    </div>
+                    <h3 class="endpoint-title">获取预测市场列表</h3>
+                    <p class="endpoint-description">获取预测市场事件列表，支持分页和过滤</p>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="predictions-url" value="/predictions?limit=5" placeholder="输入查询参数">
+                            <button class="try-it-btn" onclick="tryEndpoint('predictions')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="predictions-result"></div>
+                        <div class="try-it-error" id="predictions-error"></div>
+                    </div>
+                </div>
+
+                <div class="endpoint" id="prediction-curve">
+                    <div class="endpoint-header">
+                        <span class="method get">GET</span>
+                        <span class="endpoint-path">/predictions/{event_id}</span>
+                    </div>
+                    <h3 class="endpoint-title">获取预测概率曲线</h3>
+                    <p class="endpoint-description">获取特定预测事件的历史概率曲线</p>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="curve-url" value="/predictions/evt_iran_conflict" placeholder="输入事件ID">
+                            <button class="try-it-btn" onclick="tryEndpoint('curve')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="curve-result"></div>
+                        <div class="try-it-error" id="curve-error"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="watch">
+                <h2 style="margin-bottom: 1rem;">监控端点</h2>
+                
+                <div class="endpoint" id="create-watch">
+                    <div class="endpoint-header">
+                        <span class="method post">POST</span>
+                        <span class="endpoint-path">/watch</span>
+                    </div>
+                    <h3 class="endpoint-title">创建事件监控</h3>
+                    <p class="endpoint-description">创建新的事件监控任务</p>
+                    
+                    <h4>请求体</h4>
+                    <div class="code-block">{
+  "event_ids": ["evt_001", "evt_002"],
+  "notify_email": "user@example.com"
+}</div>
+                    
+                    <div class="try-it-section">
+                        <div class="try-it-header">
+                            <h4>在线试用</h4>
+                        </div>
+                        <div class="try-it-form">
+                            <input type="text" class="try-it-input" id="watch-url" value="/watch" readonly>
+                            <button class="try-it-btn" onclick="tryEndpoint('watch')">发送请求</button>
+                        </div>
+                        <div class="try-it-result" id="watch-result"></div>
+                        <div class="try-it-error" id="watch-error"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="errors">
+                <h2 style="margin-bottom: 1rem;">错误响应</h2>
+                <div class="endpoint">
+                    <p>所有错误响应遵循以下格式:</p>
+                    <div class="code-block">{
+  "error": "Error message description",
+  "code": "ERROR_CODE",
+  "timestamp": "2024-01-15T08:30:00.000Z"
+}</div>
+                </div>
+            </section>
+
+            <section id="examples">
+                <h2 style="margin-bottom: 1rem;">使用示例</h2>
+                
+                <div class="endpoint">
+                    <h3>cURL</h3>
+                    <div class="code-block"># 健康检查
+curl http://localhost:3000/signals/health
+
+# 获取事件 (分页)
+curl "http://localhost:3000/events?limit=10&offset=0"
+
+# 按阶段过滤
+curl "http://localhost:3000/events?stage=accelerating,peak"
+
+# 排序
+curl "http://localhost:3000/events?sortBy=probability&sortOrder=desc"</div>
+                </div>
+                
+                <div class="endpoint">
+                    <h3>JavaScript</h3>
+                    <div class="code-block">const API_URL = 'http://localhost:3000';
+
+async function getEvents(options = {}) {
+  const params = new URLSearchParams(options);
+  const res = await fetch(`${API_URL}/events?${params}`);
+  return res.json();
+}
+
+// 使用
+const data = await getEvents({
+  limit: 10,
+  stage: 'accelerating',
+  sortBy: 'probability',
+  sortOrder: 'desc'
+});
+
+console.log(data);</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2024 Signal Market. All rights reserved.</p>
+    </footer>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+        
+        async function tryEndpoint(type) {
+            const inputIds = {
+                'health': 'health-url',
+                'events': 'events-url',
+                'probability': 'probability-url',
+                'lens': 'lens-url',
+                'evidence': 'evidence-url',
+                'predictions': 'predictions-url',
+                'curve': 'curve-url',
+                'watch': 'watch-url'
+            };
+            
+            const resultId = type + '-result';
+            const errorId = type + '-error';
+            
+            const urlInput = document.getElementById(inputIds[type]);
+            const resultDiv = document.getElementById(resultId);
+            const errorDiv = document.getElementById(errorId);
+            
+            if (!urlInput) {
+                showError(errorId, '未找到输入元素');
+                return;
+            }
+            
+            const path = urlInput.value.startsWith('/') ? urlInput.value : '/' + urlInput.value;
+            const fullUrl = API_BASE_URL + path;
+            
+            resultDiv.innerHTML = '<pre>正在请求...</pre>';
+            resultDiv.classList.add('show');
+            errorDiv.classList.remove('show');
+            
+            try {
+                const options = type === 'watch' ? {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event_ids: ['evt_001'], notify_email: 'test@example.com' })
+                } : {};
+                
+                const response = await fetch(fullUrl, options);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                } else {
+                    showError(errorId, 'HTTP ' + response.status + ': ' + (data.error || '请求失败'));
+                }
+            } catch (error) {
+                showMockData(type, resultId, errorId);
+            }
+        }
+        
+        function showMockData(type, resultId, errorId) {
+            const mockData = {
+                'health': { status: 'healthy', timestamp: new Date().toISOString(), checks: { raw: true, clean: true, events: true, probability: true }, updates_today: 4, system_health: 'healthy' },
+                'events': { events: [{ event_id: 'evt_001', topic: 'AI算力', title: 'AI算力需求激增', stage: 'accelerating', probability: 0.75, evidence_refs: ['ev_001'], timestamp: new Date().toISOString() }, { event_id: 'evt_002', topic: '商业航天', title: '商业航天快速发展', stage: 'peak', probability: 0.85, evidence_refs: ['ev_002'], timestamp: new Date().toISOString() }], pagination: { limit: 5, offset: 0, total: 45, hasMore: true }, timestamp: new Date().toISOString() },
+                'probability': { event_id: 'evt_001', topic: 'AI算力', current: 0.75, P_7d: 0.65, P_30d: 0.45, trend: 'rising', timestamp: new Date().toISOString() },
+                'lens': { lens_id: 'lens_a_stock', user_id: 'lens_a_stock', date: new Date().toISOString().split('T')[0], topics_watched: ['商业航天', 'AI算力', '机器人'], stage_summary: [{ topic: 'AI算力', current_stage: 'accelerating', probability: 0.75, probability_7d: 0.65 }], top_opportunities: [{ topic: 'AI算力', stage: 'accelerating', action: '关注' }], risk_alerts: [], evidence_refs: ['ev_001'], generated_at: new Date().toISOString() },
+                'evidence': { event_id: 'evt_001', evidence_id: 'ev_001', type: 'news', title: 'GPU需求持续增长', source: 'TechNews', url: 'https://example.com', timestamp: new Date().toISOString(), sentiment: 'positive' },
+                'predictions': { predictions: [{ event_id: 'evt_iran_conflict', topic: 'Iran-Israel Conflict', description: '伊以冲突升级', horizon: '7d', probability: 0.35, probability_pct: '35%', timestamp: new Date().toISOString() }], pagination: { limit: 5, offset: 0, total: 5, hasMore: false }, timestamp: new Date().toISOString() },
+                'curve': { event_id: 'evt_iran_conflict', topic: 'Iran-Israel Conflict', horizon: '7d', curve: [{ date: '2024-01-08', probability: 0.30, probability_pct: '30%' }, { date: '2024-01-09', probability: 0.32, probability_pct: '32%' }, { date: '2024-01-10', probability: 0.35, probability_pct: '35%' }], current: 0.35, change_7d: 0.05, timestamp: new Date().toISOString() },
+                'watch': { watch_id: 'watch_' + Date.now(), status: 'created', next_output: new Date(Date.now() + 86400000).toISOString() }
+            };
+            
+            const data = mockData[type];
+            if (data) {
+                document.getElementById(resultId).innerHTML = '<pre style="color: #f59e0b;">(模拟数据 - 服务器未连接)\n\n' + JSON.stringify(data, null, 2) + '</pre>';
+                document.getElementById(resultId).classList.add('show');
+                document.getElementById(errorId).classList.remove('show');
+            }
+        }
+        
+        function showError(errorId, message) {
+            const errorDiv = document.getElementById(errorId);
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            document.getElementById(errorId.replace('error', 'result')).classList.remove('show');
+        }
+    </script>
+</body>
+</html>

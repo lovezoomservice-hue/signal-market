@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Market - Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: rgba(18, 18, 26, 0.8);
+      --surface-elevated: rgba(26, 26, 36, 0.9);
+      --glass: rgba(26, 26, 36, 0.7);
+      --border: rgba(46, 46, 58, 0.6);
+      --primary: #00ff88;
+      --primary-glow: rgba(0, 255, 136, 0.3);
+      --accent: #6366f1;
+      --accent-cyan: #22d3ee;
+      --text: #fff;
+      --text-dim: #888;
+      --text-sub: #666;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Animated Background */
+    .bg-grid {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image: 
+        linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    .glow-1 {
+      position: absolute;
+      top: -30%;
+      left: -20%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(circle, rgba(0, 255, 136, 0.12) 0%, transparent 60%);
+      animation: float-glow 20s ease-in-out infinite;
+    }
+    
+    .glow-2 {
+      position: absolute;
+      bottom: -30%;
+      right: -20%;
+      width: 70%;
+      height: 70%;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 60%);
+      animation: float-glow 25s ease-in-out infinite reverse;
+    }
+    
+    .glow-3 {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      width: 40%;
+      height: 40%;
+      background: radial-gradient(circle, rgba(34, 211, 238, 0.08) 0%, transparent 50%);
+      animation: float-glow 18s ease-in-out infinite;
+    }
+    
+    @keyframes float-glow {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(40px, 40px) scale(1.1); }
+    }
+    
+    /* Header */
+    .header {
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-cyan) 100%);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+    }
+    
+    .logo-text {
+      background: linear-gradient(135deg, var(--primary) 0%, #00ccff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      box-shadow: 0 0 12px var(--success);
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+    
+    .refresh-btn {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .refresh-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: rgba(0, 255, 136, 0.1);
+    }
+    
+    .refresh-btn.loading {
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    
+    .refresh-btn svg {
+      transition: transform 0.3s;
+    }
+    
+    .refresh-btn.loading svg {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Search & Filter */
+    .search-box {
+      position: relative;
+    }
+    
+    .search-input {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 14px 8px 36px;
+      border-radius: 10px;
+      font-size: 13px;
+      width: 180px;
+      transition: all 0.2s;
+      backdrop-filter: blur(10px);
+    }
+    
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      width: 240px;
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+    }
+    
+    .search-input::placeholder {
+      color: var(--text-dim);
+    }
+    
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+    
+    /* Export Dropdown */
+    .export-dropdown {
+      position: relative;
+    }
+    
+    .export-btn {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      padding: 8px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .export-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .export-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 0;
+      min-width: 140px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+      z-index: 200;
+      display: none;
+      backdrop-filter: blur(20px);
+    }
+    
+    .export-menu.show {
+      display: block;
+    }
+    
+    .export-menu button {
+      display: block;
+      width: 100%;
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    
+    .export-menu button:hover {
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--primary);
+    }
+    
+    /* Filter Tags */
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .filter-tag {
+      padding: 6px 14px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .filter-tag:hover {
+      border-color: var(--accent);
+    }
+    
+    .filter-tag.active {
+      background: rgba(99, 102, 241, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    
+    .main {
+      padding: 80px 20px 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    /* Quick Stats */
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    
+    .stat-card:hover {
+      border-color: var(--primary-glow);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stat-card:hover::before {
+      opacity: 1;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--primary);
+      text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+      transition: all 0.3s;
+    }
+    
+    .stat-card:hover .stat-value {
+      text-shadow: 0 0 40px rgba(0, 255, 136, 0.5);
+    }
+    
+    .stat-label {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-top: 6px;
+    }
+    
+    /* Lens Tabs */
+    .lens-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    
+    .lens-tab {
+      padding: 12px 20px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .lens-tab:hover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.1);
+    }
+    
+    .lens-tab.active {
+      border-color: var(--primary);
+      background: rgba(0, 255, 136, 0.1);
+      color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+    }
+    
+    /* Main Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+    
+    .card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(20px);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    }
+    
+    .card:hover {
+      border-color: rgba(0, 255, 136, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    
+    .card-badge {
+      font-size: 11px;
+      padding: 5px 12px;
+      background: rgba(0, 255, 136, 0.15);
+      color: var(--primary);
+      border-radius: 20px;
+      font-weight: 500;
+    }
+    
+    /* Event Items */
+    .event-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: var(--surface-elevated);
+      border-radius: 14px;
+      margin-bottom: 12px;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    
+    .event-item:hover {
+      transform: translateX(6px);
+      border-left: 3px solid var(--primary);
+      background: rgba(0, 255, 136, 0.05);
+    }
+    
+    .event-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .event-topic {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    
+    .event-evidence {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    
+    .stage-badge {
+      font-size: 11px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    
+    .stage-emerging { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+    .stage-forming { background: rgba(0, 255, 136, 0.2); color: var(--primary); }
+    .stage-accelerating { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+    .stage-peak { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+    .stage-fading { background: rgba(136, 136, 136, 0.2); color: var(--text-dim); }
+    
+    /* Probability Bars */
+    .prob-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    
+    .prob-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+      border-radius: 3px;
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+    
+    .prob-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      animation: shimmer 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    .prob-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    
+    .prob-label {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    
+    /* Mini Chart */
+    .mini-chart {
+      height: 36px;
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+    }
+    
+    .chart-bar {
+      flex: 1;
+      background: linear-gradient(to top, var(--primary), var(--accent-cyan));
+      border-radius: 2px;
+      opacity: 0.6;
+      transition: all 0.3s;
+    }
+    
+    .chart-bar:hover {
+      opacity: 1;
+    }
+    
+    /* Health Indicators */
+    .health-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px;
+      background: var(--surface-elevated);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .health-item:hover {
+      border-color: var(--border);
+    }
+    
+    .health-item:last-child {
+      margin-bottom: 0;
+    }
+    
+    .health-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+    
+    .health-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 10px currentColor;
+    }
+    
+    .health-dot.healthy { background: var(--success); }
+    .health-dot.warning { background: var(--warning); }
+    .health-dot.error { background: var(--danger); }
+    
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 32px 24px;
+      color: var(--text-dim);
+      font-size: 13px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 20%;
+      right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+    
+    .time { color: var(--text-sub); font-size: 12px; }
+    
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-dim);
+    }
+    
+    .empty-state svg {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+    
+    /* Responsive */
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    
+    @media (max-width: 768px) {
+      .header { padding: 12px 16px; }
+      .logo { font-size: 16px; }
+      .status span:last-child { display: none; }
+      .main { padding: 70px 12px 16px; }
+      .quick-stats { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .stat-card { padding: 14px; }
+      .stat-value { font-size: 24px; }
+      .lens-tabs { gap: 6px; }
+      .lens-tab { padding: 10px 14px; font-size: 13px; }
+    }
+    
+    @media (max-width: 480px) {
+      .quick-stats { grid-template-columns: 1fr 1fr; }
+      .card { padding: 16px; }
+      .event-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+    
+    /* Fade in animation */
+    .fade-in {
+      animation: fadeIn 0.4s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow">
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+    <div class="glow-3"></div>
+  </div>
+  
+  <!-- Header -->
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">◈</div>
+      <span class="logo-text">Signal Market</span>
+    </div>
+    <div class="header-right">
+      <div class="search-box">
+        <svg class="search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <input type="text" class="search-input" id="searchInput" placeholder="搜索事件/预测..." oninput="handleSearch()">
+      </div>
+      <div class="export-dropdown">
+        <button class="export-btn" onclick="toggleExportMenu()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          导出
+        </button>
+        <div class="export-menu" id="exportMenu">
+          <button onclick="exportData('json')">📄 导出 JSON</button>
+          <button onclick="exportData('csv')">📊 导出 CSV</button>
+        </div>
+      </div>
+      <div class="status">
+        <span class="status-dot"></span>
+        <span>Live</span>
+      </div>
+      <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        刷新
+      </button>
+      <a href="portal.html" class="refresh-btn" style="text-decoration:none;color:var(--text-dim)">Portal</a>
+      <a href="developer.html" class="refresh-btn" style="text-decoration:none;color:var(--text-dim)">🛠️</a>
+      <a href="profile.html" class="refresh-btn" style="text-decoration:none;color:var(--text-dim)">👤</a>
+    </div>
+  </header>
+  
+  <main class="main">
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+      <div class="stat-card">
+        <div class="stat-value" id="stat-events">0</div>
+        <div class="stat-label">活跃事件</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-predictions">0</div>
+        <div class="stat-label">预测信号</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-avg-prob">0%</div>
+        <div class="stat-label">平均概率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="stat-health">✓</div>
+        <div class="stat-label">系统状态</div>
+      </div>
+    </div>
+    
+    <!-- Lens Tabs -->
+    <div class="lens-tabs">
+      <button class="lens-tab active" onclick="switchLens('lens_a_stock')">📈 A股板块</button>
+      <button class="lens-tab" onclick="switchLens('lens_us_macro')">🌎 美股宏观</button>
+      <button class="lens-tab" onclick="switchLens('lens_crypto_event')">₿ 加密货币</button>
+    </div>
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filterBar">
+      <span style="color:var(--text-dim);font-size:13px;margin-right:8px">筛选:</span>
+      <div class="filter-tag active" data-filter="all" onclick="setFilter('all')">全部</div>
+      <div class="filter-tag" data-filter="emerging" onclick="setFilter('emerging')">新兴</div>
+      <div class="filter-tag" data-filter="forming" onclick="setFilter('forming')">形成中</div>
+      <div class="filter-tag" data-filter="accelerating" onclick="setFilter('accelerating')">加速中</div>
+      <div class="filter-tag" data-filter="peak" onclick="setFilter('peak')">峰值</div>
+      <div class="filter-tag" data-filter="fading" onclick="setFilter('fading')">衰退</div>
+    </div>
+    
+    <!-- Main Grid -->
+    <div class="grid">
+      <!-- Events -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🎯 Active Events</span>
+          <span class="card-badge" id="event-count">0 events</span>
+        </div>
+        <div id="events-list">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            <div>加载中...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Predictions -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 Probability Forecast</span>
+          <span class="card-badge">7-Day</span>
+        </div>
+        <div id="predictions-list">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3v18h18"/>
+              <path d="M18 9l-5 5-4-4-3 3"/>
+            </svg>
+            <div>加载中...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Lens Brief -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 Daily Brief</span>
+          <span class="card-badge" id="lens-name">lens_a_stock</span>
+        </div>
+        <div id="lens-brief">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/>
+            </svg>
+            <div>加载中...</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Health -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">💚 System Health</span>
+        </div>
+        <div id="health-status">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+            <div>加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p>最后更新: <span id="last-updated">-</span></p>
+      <p class="time">Signal Market © 2026</p>
+    </div>
+  </main>
+  
+  <script>
+    const API_BASE = 'http://localhost:3000';
+    let currentLens = 'lens_a_stock';
+    
+    // Loading state
+    function setLoading(loading) {
+      const btn = document.getElementById('refreshBtn');
+      if (loading) {
+        btn.classList.add('loading');
+      } else {
+        btn.classList.remove('loading');
+      }
+    }
+    
+    async function fetchJSON(url) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        return await res.json();
+      } catch(e) {
+        console.error(url, e);
+        return null;
+      }
+    }
+    
+    // Generate mini chart bars
+    function generateMiniChart(data, maxVal = null) {
+      const max = maxVal || Math.max(...data, 1);
+      return data.map(v => 
+        `<div class="chart-bar" style="height:${Math.max(4, (v / max) * 100)}%"></div>`
+      ).join('');
+    }
+    
+    async function loadEvents() {
+      const data = await fetchJSON(`${API_BASE}/events`);
+      if (!data) return;
+      
+      const list = document.getElementById('events-list');
+      const count = data.events?.length || 0;
+      
+      document.getElementById('event-count').textContent = `${count} events`;
+      document.getElementById('stat-events').textContent = count;
+      
+      if (!data.events || data.events.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div>暂无事件</div></div>';
+        return;
+      }
+      
+      // Generate mock chart data for visualization
+      const mockHistory = () => Array.from({length: 12}, () => Math.random() * 100);
+      
+      list.innerHTML = data.events.slice(0, 6).map(e => `
+        <div class="event-item fade-in">
+          <div style="flex:1">
+            <div class="event-topic">${e.topic}</div>
+            <div class="event-evidence">${e.evidence_refs?.length || 0} 个证据来源</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <div class="mini-chart">${generateMiniChart(mockHistory())}</div>
+            <span class="stage-badge stage-${e.stage}">${e.stage}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    async function loadPredictions() {
+      const data = await fetchJSON(`${API_BASE}/predictions`);
+      if (!data) return;
+      
+      const list = document.getElementById('predictions-list');
+      const predictions = data.predictions || [];
+      
+      document.getElementById('stat-predictions').textContent = predictions.length;
+      
+      // Calculate average probability
+      if (predictions.length > 0) {
+        const avgProb = predictions.reduce((sum, p) => sum + (p.probability_pct || 0), 0) / predictions.length;
+        document.getElementById('stat-avg-prob').textContent = `${Math.round(avgProb * 100)}%`;
+      }
+      
+      if (predictions.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div>暂无预测</div></div>';
+        return;
+      }
+      
+      list.innerHTML = predictions.slice(0, 5).map(p => {
+        const prob = p.probability_pct || 0;
+        const probPct = Math.round(prob * 100);
+        // Generate trend chart based on probability
+        const trendData = Array.from({length: 12}, (_, i) => prob * 100 * (0.7 + Math.random() * 0.6));
+        
+        return `
+          <div class="event-item fade-in">
+            <div style="flex:1;padding-right:12px">
+              <div class="event-topic">${p.topic}</div>
+              <div class="prob-bar">
+                <div class="prob-fill" style="width:${probPct}%"></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+              <div class="mini-chart">${generateMiniChart(trendData, 100)}</div>
+              <div style="text-align:right">
+                <div class="prob-value">${probPct}%</div>
+                <div class="prob-label">7天</div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    async function loadLensBrief() {
+      document.getElementById('lens-name').textContent = currentLens;
+      
+      const data = await fetchJSON(`${API_BASE}/lenses/${currentLens}/daily-brief`);
+      if (!data) return;
+      
+      const list = document.getElementById('lens-brief');
+      const summary = data.stage_summary || [];
+      
+      if (summary.length === 0) {
+        list.innerHTML = '<div class="empty-state"><div>暂无数据</div></div>';
+        return;
+      }
+      
+      list.innerHTML = summary.slice(0, 4).map(s => {
+        const prob = s.probability || 0;
+        const probPct = Math.round(prob * 100);
+        
+        return `
+          <div class="event-item fade-in">
+            <div style="flex:1">
+              <div class="event-topic">${s.topic}</div>
+              <div class="prob-bar">
+                <div class="prob-fill" style="width:${probPct}%"></div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <span class="stage-badge stage-${s.current_stage}">${s.current_stage}</span>
+              <div class="prob-label" style="margin-top:6px">P=${probPct}%</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    async function loadHealth() {
+      const data = await fetchJSON(`${API_BASE}/signals/health`);
+      if (!data) {
+        document.getElementById('stat-health').textContent = '!';
+        document.getElementById('stat-health').style.color = 'var(--warning)';
+        return;
+      }
+      
+      const list = document.getElementById('health-status');
+      const isHealthy = data.status === 'healthy';
+      
+      document.getElementById('stat-health').textContent = isHealthy ? '✓' : '!';
+      document.getElementById('stat-health').style.color = isHealthy ? 'var(--success)' : 'var(--warning)';
+      
+      const statusClass = isHealthy ? 'healthy' : 'warning';
+      const statusText = isHealthy ? '健康' : '警告';
+      
+      list.innerHTML = `
+        <div class="health-item fade-in">
+          <div class="health-label">
+            <span class="health-dot ${statusClass}">状态
+          </span>
+            系统</div>
+          <span class="stage-badge" style="background:${isHealthy ? 'rgba(34,197,94,0.2)' : 'rgba(245,158,11,0.2)'};color:${isHealthy ? 'var(--success)' : 'var(--warning)'}">${statusText}</span>
+        </div>
+        <div class="health-item fade-in">
+          <div class="health-label">
+            <span class="health-dot ${data.updates_today > 0 ? 'healthy' : 'warning'}"></span>
+            今日更新
+          </div>
+          <span style="font-weight:600">${data.updates_today || 0}</span>
+        </div>
+        <div class="health-item fade-in">
+          <div class="health-label">
+            <span class="health-dot ${data.checks?.events ? 'healthy' : 'error'}"></span>
+            事件监控
+          </div>
+          <span style="color:var(--text-dim)">${data.checks?.events ? '✅ 运行中' : '❌ 停止'}</span>
+        </div>
+        <div class="health-item fade-in">
+          <div class="health-label">
+            <span class="health-dot ${data.checks?.predictions ? 'healthy' : 'warning'}"></span>
+            预测引擎
+          </div>
+          <span style="color:var(--text-dim)">${data.checks?.predictions ? '✅ 运行中' : '⚠️ 空闲'}</span>
+        </div>
+      `;
+    }
+    
+    function switchLens(lens) {
+      currentLens = lens;
+      document.querySelectorAll('.lens-tab').forEach(t => t.classList.remove('active'));
+      const tabs = document.querySelectorAll('.lens-tab');
+      tabs.forEach(t => {
+        if (t.textContent.includes(lens.replace('lens_', '').replace('_', ' '))) {
+          t.classList.add('active');
+        }
+      });
+      loadLensBrief();
+    }
+    
+    async function loadAll() {
+      setLoading(true);
+      try {
+        await Promise.all([
+          loadEvents(),
+          loadPredictions(),
+          loadLensBrief(),
+          loadHealth()
+        ]);
+        document.getElementById('last-updated').textContent = new Date().toLocaleString('zh-CN');
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    // Initial load
+    loadAll();
+    
+    // Auto refresh every 30s
+    setInterval(loadAll, 30000);
+    
+    // ========== Search & Filter & Export ==========
+    let currentFilter = 'all';
+    let searchQuery = '';
+    let cachedEvents = [];
+    let cachedPredictions = [];
+    
+    function toggleExportMenu() {
+      document.getElementById('exportMenu').classList.toggle('show');
+    }
+    
+    // Close export menu on outside click
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.export-dropdown')) {
+        document.getElementById('exportMenu').classList.remove('show');
+      }
+    });
+    
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+      document.querySelector(`.filter-tag[data-filter="${filter}"]`).classList.add('active');
+      renderFilteredData();
+    }
+    
+    function handleSearch() {
+      searchQuery = document.getElementById('searchInput').value.toLowerCase();
+      renderFilteredData();
+    }
+    
+    function renderFilteredData() {
+      // Filter events
+      let filteredEvents = cachedEvents;
+      if (currentFilter !== 'all') {
+        filteredEvents = cachedEvents.filter(e => e.stage === currentFilter);
+      }
+      if (searchQuery) {
+        filteredEvents = filteredEvents.filter(e => 
+          (e.topic && e.topic.toLowerCase().includes(searchQuery))
+        );
+      }
+      
+      // Filter predictions
+      let filteredPredictions = cachedPredictions;
+      if (searchQuery) {
+        filteredPredictions = cachedPredictions.filter(p => 
+          (p.topic && p.topic.toLowerCase().includes(searchQuery))
+        );
+      }
+      
+      // Update UI
+      const eventsList = document.getElementById('events-list');
+      const predictionsList = document.getElementById('predictions-list');
+      
+      if (filteredEvents.length === 0) {
+        eventsList.innerHTML = '<div class="empty-state"><div>暂无匹配事件</div></div>';
+      } else {
+        const mockHistory = () => Array.from({length: 12}, () => Math.random() * 100);
+        eventsList.innerHTML = filteredEvents.slice(0, 6).map(e => `
+          <div class="event-item fade-in">
+            <div style="flex:1">
+              <div class="event-topic">${e.topic}</div>
+              <div class="event-evidence">${e.evidence_refs?.length || 0} 个证据来源</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              <div class="mini-chart">${generateMiniChart(mockHistory())}</div>
+              <span class="stage-badge stage-${e.stage}">${e.stage}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+      
+      if (filteredPredictions.length === 0) {
+        predictionsList.innerHTML = '<div class="empty-state"><div>暂无匹配预测</div></div>';
+      } else {
+        predictionsList.innerHTML = filteredPredictions.slice(0, 5).map(p => {
+          const prob = p.probability_pct || 0;
+          const probPct = Math.round(prob * 100);
+          const trendData = Array.from({length: 12}, (_, i) => prob * 100 * (0.7 + Math.random() * 0.6));
+          
+          return `
+            <div class="event-item fade-in">
+              <div style="flex:1;padding-right:12px">
+                <div class="event-topic">${p.topic}</div>
+                <div class="prob-bar">
+                  <div class="prob-fill" style="width:${probPct}%"></div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                <div class="mini-chart">${generateMiniChart(trendData, 100)}</div>
+                <div style="text-align:right">
+                  <div class="prob-value">${probPct}%</div>
+                  <div class="prob-label">7天</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+      
+      // Update stats
+      document.getElementById('stat-events').textContent = filteredEvents.length;
+      document.getElementById('stat-predictions').textContent = filteredPredictions.length;
+    }
+    
+    function exportData(format) {
+      const data = {
+        events: cachedEvents,
+        predictions: cachedPredictions,
+        exportedAt: new Date().toISOString()
+      };
+      
+      let content, filename, mimeType;
+      
+      if (format === 'json') {
+        content = JSON.stringify(data, null, 2);
+        filename = `signal-market-export-${Date.now()}.json`;
+        mimeType = 'application/json';
+      } else {
+        // CSV format
+        const rows = ['topic,stage,probability,evidence_count,timestamp'];
+        data.events.forEach(e => {
+          rows.push(`"${e.topic}","${e.stage}",${e.probability_pct || 0},${e.evidence_refs?.length || 0},"${e.created_at || ''}"`);
+        });
+        data.predictions.forEach(p => {
+          rows.push(`"${p.topic}","prediction",${p.probability_pct || 0},0,"${p.created_at || ''}"`);
+        });
+        content = rows.join('\n');
+        filename = `signal-market-export-${Date.now()}.csv`;
+        mimeType = 'text/csv';
+      }
+      
+      // Download file
+      const blob = new Blob([content], { type: mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      document.getElementById('exportMenu').classList.remove('show');
+    }
+    
+    // Store data for filtering
+    const originalLoadEvents = loadEvents;
+    loadEvents = async function() {
+      await originalLoadEvents();
+      const data = await fetchJSON(`${API_BASE}/events`);
+      if (data?.events) {
+        cachedEvents = data.events;
+      }
+    };
+    
+    const originalLoadPredictions = loadPredictions;
+    loadPredictions = async function() {
+      await originalLoadPredictions();
+      const data = await fetchJSON(`${API_BASE}/predictions`);
+      if (data?.predictions) {
+        cachedPredictions = data.predictions;
+      }
+    };
+  </script>
+</body>
+</html>
