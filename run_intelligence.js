@@ -1,20 +1,12 @@
-/**
- * Signal Intelligence Pipeline
- * End-to-end signal processing
- */
-
 const { fetchGitHubTrending, fetchHackerNews, fetchArxivPapers } = require('./l0/data_sources');
-const { processSignals } = require('./l1/topic_discovery');
+const { processTrendGraph } = require('./l1/topic_discovery');
 const fs = require('fs');
 const path = require('path');
 
-const OUTPUT_DIR = './output/processed';
-
 async function runPipeline() {
-  console.log('🔄 Running Signal Intelligence Pipeline...');
+  console.log('🔄 Running Signal Intelligence Pipeline v3...');
   
-  // Step 1: Collect raw data
-  console.log('📥 Collecting data from sources...');
+  console.log('📥 Collecting data...');
   const [github, hn, arxiv] = await Promise.all([
     fetchGitHubTrending(),
     fetchHackerNews(),
@@ -22,45 +14,34 @@ async function runPipeline() {
   ]);
   
   const rawData = [...github, ...hn, ...arxiv];
-  console.log(`   Collected ${rawData.length} raw items`);
+  console.log(`   Collected ${rawData.length} items`);
   
-  // Step 2: Process into signals
-  console.log('🧠 Processing signals...');
-  const signals = processSignals(rawData);
-  console.log(`   Generated ${signals.length} signals`);
+  console.log('🧠 Building trend graph...');
+  const result = processTrendGraph(rawData);
+  console.log(`   Generated ${result.trends.length} trends`);
   
-  // Step 3: Save results
+  // Save
+  const OUTPUT_DIR = './output/processed';
+  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
-  
-  // Ensure output directory exists
-  if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  }
-  
-  // Save processed signals
   fs.writeFileSync(
-    path.join(OUTPUT_DIR, `signals_${date}.json`),
-    JSON.stringify({
-      timestamp: new Date().toISOString(),
-      count: signals.length,
-      signals
-    }, null, 2)
+    path.join(OUTPUT_DIR, `trends_${date}.json`),
+    JSON.stringify(result, null, 2)
   );
   
-  console.log(`✅ Pipeline complete! ${signals.length} signals generated`);
-  
-  // Show top signals
-  console.log('\n📊 Top Signals:');
-  signals.slice(0, 5).forEach((s, i) => {
-    console.log(`   ${i+1}. ${s.topic} [${s.stage}] priority: ${s.priority}`);
+  console.log(`\n✅ Pipeline complete!`);
+  console.log('\n📊 Top Trends:');
+  result.trends.slice(0, 5).forEach((t, i) => {
+    console.log(`   ${i+1}. ${t.topic} [${t.stage}] score: ${t.trend_score} connections: ${t.connectivity}`);
   });
   
-  return signals;
+  console.log('\n🔗 Trend Clusters:');
+  result.clusters.slice(0, 3).forEach((c, i) => {
+    console.log(`   ${i+1}. ${c.name}: ${c.nodes.length} topics`);
+  });
+  
+  return result;
 }
 
-// Run if called directly
-if (require.main === module) {
-  runPipeline().catch(console.error);
-}
-
-module.exports = { runPipeline };
+runPipeline().catch(console.error);
