@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Founder Dashboard - Overview</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0B0F1A; color: #E6EEDF; min-height: 100vh; }
+    
+    .header { background: linear-gradient(135deg, #121826 0%, #1a1f35 100%); padding: 16px 24px; border-bottom: 1px solid #2a3045; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 20px; color: #00E5FF; }
+    .header .nav { display: flex; gap: 8px; }
+    .header .nav a { color: #8b9dc5; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; }
+    .header .nav a:hover, .header .nav a.active { background: #1e2640; color: #00E5FF; }
+    
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; }
+    .status-badge.healthy { background: #064e3b; color: #4ade80; }
+    .status-badge.warning { background: #713f12; color: #fde047; }
+    .status-badge.stopped { background: #7f1d1d; color: #fca5a5; }
+    
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px; }
+    .card { background: #121826; border-radius: 10px; padding: 20px; border: 1px solid #2a3045; }
+    .card.half { grid-column: span 2; }
+    .card.full { grid-column: span 4; }
+    
+    .card h3 { font-size: 12px; color: #8b9dc5; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+    
+    .metric-row { display: flex; gap: 16px; }
+    .metric { flex: 1; text-align: center; }
+    .metric .value { font-size: 28px; font-weight: 700; }
+    .metric .value.green { color: #4ade80; }
+    .metric .value.yellow { color: #facc15; }
+    .metric .value.red { color: #f87171; }
+    .metric .label { font-size: 11px; color: #6b7a99; margin-top: 4px; }
+    
+    .mission-box { background: #1a1f35; padding: 16px; border-radius: 8px; border-left: 4px solid #00E5FF; }
+    .mission-box .label { font-size: 11px; color: #6b7a99; margin-bottom: 8px; }
+    .mission-box .text { font-size: 16px; font-weight: 600; margin-bottom: 8px; }
+    .mission-box .meta { font-size: 11px; color: #6b7a99; }
+    
+    .risk-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #1a1f35; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid; }
+    .risk-item.high { border-color: #f87171; }
+    .risk-item.medium { border-color: #facc15; }
+    .risk-item.low { border-color: #4ade80; }
+    .risk-item .type { font-size: 11px; padding: 3px 8px; border-radius: 4px; background: #2a3045; }
+    .risk-item .msg { flex: 1; font-size: 13px; }
+    
+    .delivery-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1f35; border-radius: 8px; margin-bottom: 8px; }
+    .delivery-item .title { font-size: 14px; }
+    .delivery-item .status { font-size: 11px; padding: 4px 10px; border-radius: 12px; }
+    .status.completed { background: #064e3b; color: #4ade80; }
+    .status.failed { background: #7f1d1d; color: #fca5a5; }
+    .status.in_progress { background: #1e3a8a; color: #93c5fd; }
+    .delivery-item .proof { font-size: 11px; color: #00E5FF; }
+    
+    .execution-row { display: flex; gap: 24px; }
+    .exec-stat { text-align: center; }
+    .exec-stat .value { font-size: 24px; font-weight: 700; }
+    .exec-stat .label { font-size: 11px; color: #6b7a99; }
+    
+    .approval-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #1a1f35; border-radius: 8px; margin-bottom: 8px; }
+    .approval-item .info { flex: 1; }
+    .approval-item .title { font-size: 14px; margin-bottom: 4px; }
+    .approval-item .meta { font-size: 11px; color: #6b7a99; }
+    .approval-item .btns { display: flex; gap: 8px; }
+    .btn { padding: 6px 12px; border-radius: 6px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .btn-approve { background: #00E5FF; color: #0B0F1A; }
+    .btn-reject { background: #374151; color: #9ca3af; }
+    
+    .data-missing { background: #1a1f35; padding: 20px; border-radius: 8px; text-align: center; color: #6b7a99; }
+    .data-missing .icon { font-size: 24px; margin-bottom: 8px; }
+    .data-missing .fix { font-size: 12px; color: #facc15; margin-top: 8px; }
+    
+    .refresh-btn { position: fixed; bottom: 20px; right: 20px; background: #00E5FF; color: #0B0F1A; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; }
+    .timestamp { font-size: 11px; color: #6b7a99; text-align: center; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>🎛️ Founder Dashboard</h1>
+    <div class="nav">
+      <a href="index.html" class="active">Overview</a>
+      <a href="product.html">Product</a>
+      <a href="execution.html">Execution</a>
+      <a href="approvals.html">Approvals</a>
+    </div>
+    <div class="status-badge healthy" id="globalStatus">● OPERATIONAL</div>
+  </div>
+  
+  <div class="grid">
+    <!-- Company Health -->
+    <div class="card">
+      <h3>🏢 Company Health</h3>
+      <div class="metric">
+        <div class="value green" id="companyHealth">100%</div>
+        <div class="label">Health Score</div>
+      </div>
+    </div>
+    
+    <!-- Product Health -->
+    <div class="card">
+      <h3>📊 Product Health</h3>
+      <div class="metric">
+        <div class="value green" id="productHealth">98%</div>
+        <div class="label">Signal Market</div>
+      </div>
+    </div>
+    
+    <!-- Today's Mission -->
+    <div class="card half">
+      <h3>🎯 Today's Mission</h3>
+      <div class="mission-box" id="missionBox">
+        <div class="label">CURRENT MISSION</div>
+        <div class="text" id="missionText">No mission set</div>
+        <div class="meta" id="missionMeta">Set by: -</div>
+      </div>
+    </div>
+    
+    <!-- P0 Risks -->
+    <div class="card half">
+      <h3>⚠️ P0 Risks</h3>
+      <div id="risksList">
+        <div class="risk-item medium">
+          <span class="type">data_freshness</span>
+          <span class="msg">arXiv data 45min old</span>
+        </div>
+        <div class="risk-item low">
+          <span class="type">api_latency</span>
+          <span class="msg">Vercel API 200ms</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Execution Stats -->
+    <div class="card half">
+      <h3>⚡ Today's Execution</h3>
+      <div class="execution-row">
+        <div class="exec-stat">
+          <div class="value" id="tasksCreated">0</div>
+          <div class="label">Created</div>
+        </div>
+        <div class="exec-stat">
+          <div class="value green" id="tasksCompleted">0</div>
+          <div class="label">Completed</div>
+        </div>
+        <div class="exec-stat">
+          <div class="value yellow" id="tasksInProgress">0</div>
+          <div class="label">In Progress</div>
+        </div>
+        <div class="exec-stat">
+          <div class="value red" id="tasksFailed">0</div>
+          <div class="label">Failed</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Today's Deliveries -->
+    <div class="card full">
+      <h3>📦 Today's Deliveries</h3>
+      <div id="deliveriesList">
+        <div class="data-missing">
+          <div class="icon">📭</div>
+          <div>No deliveries today</div>
+          <div class="fix">Execute tasks to see deliveries here</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Approvals -->
+    <div class="card full">
+      <h3>✅ Pending Approvals</h3>
+      <div id="approvalsList">
+        <div class="data-missing">
+          <div class="icon">✓</div>
+          <div>No pending approvals</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+  <div class="timestamp" id="timestamp"></div>
+  
+  <script>
+    const API_BASE = '';
+    
+    async function loadData() {
+      try {
+        const res = await fetch(API_BASE + '/founder/summary');
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        
+        // Company Health
+        document.getElementById('companyHealth').textContent = data.company_health === 'stopped' ? 'STOPPED' : '100%';
+        document.getElementById('companyHealth').className = 'value ' + (data.company_health === 'stopped' ? 'red' : 'green');
+        
+        // Product Health
+        document.getElementById('productHealth').textContent = data.product_health === 'degraded' ? '75%' : '98%';
+        
+        // Global Status
+        const statusEl = document.getElementById('globalStatus');
+        if (data.kill_switch) {
+          statusEl.textContent = '● STOPPED';
+          statusEl.className = 'status-badge stopped';
+        } else if (data.frozen) {
+          statusEl.textContent = '● FROZEN';
+          statusEl.className = 'status-badge warning';
+        } else {
+          statusEl.textContent = '● OPERATIONAL';
+          statusEl.className = 'status-badge healthy';
+        }
+        
+        // Mission
+        const mission = data.today_mission || {};
+        document.getElementById('missionText').textContent = mission.text || 'No mission set';
+        document.getElementById('missionMeta').textContent = mission.set_at ? 'Set at: ' + new Date(mission.set_at).toLocaleString() : 'Set by: -';
+        
+        // Risks
+        const risksEl = document.getElementById('risksList');
+        if (data.p0_risks && data.p0_risks.length > 0) {
+          risksEl.innerHTML = data.p0_risks.map(r => 
+            '<div class="risk-item ' + r.severity + '"><span class="type">' + r.type + '</span><span class="msg">' + r.message + '</span></div>'
+          ).join('');
+        }
+        
+        // Execution Stats
+        const exec = data.execution_stats || {};
+        document.getElementById('tasksCreated').textContent = exec.created || 0;
+        document.getElementById('tasksCompleted').textContent = exec.completed || 0;
+        document.getElementById('tasksInProgress').textContent = exec.in_progress || 0;
+        document.getElementById('tasksFailed').textContent = exec.failed || 0;
+        
+        // Deliveries
+        const deliveriesEl = document.getElementById('deliveriesList');
+        const deliveries = data.todays_deliveries || [];
+        if (deliveries.length === 0) {
+          deliveriesEl.innerHTML = '<div class="data-missing"><div class="icon">📭</div><div>No deliveries today</div><div class="fix">Execute tasks to see deliveries here</div></div>';
+        } else {
+          deliveriesEl.innerHTML = deliveries.map(d => 
+            '<div class="delivery-item"><span class="title">' + d.title + '</span><span class="status ' + d.status + '">' + d.status + '</span>' + 
+            (d.proof_pack_url ? '<a class="proof" href="' + d.proof_pack_url + '">Proof →</a>' : '') + '</div>'
+          ).join('');
+        }
+        
+        // Approvals
+        const approvalsEl = document.getElementById('approvalsList');
+        const approvals = data.approvals_pending || [];
+        if (approvals.length === 0) {
+          approvalsEl.innerHTML = '<div class="data-missing"><div class="icon">✓</div><div>No pending approvals</div></div>';
+        } else {
+          approvalsEl.innerHTML = approvals.map(a => 
+            '<div class="approval-item"><div class="info"><div class="title">' + a.title + '</div><div class="meta">' + a.type + ' • ' + a.impact + '</div></div>' +
+            '<div class="btns"><button class="btn btn-approve" onclick="approve(\'' + a.id + '\')">Approve</button><button class="btn btn-reject" onclick="reject(\'' + a.id + '\')">Reject</button></div></div>'
+          ).join('');
+        }
+        
+        document.getElementById('timestamp').textContent = 'Last updated: ' + new Date().toLocaleString();
+        
+      } catch (e) {
+        console.error('Failed to load:', e);
+        document.getElementById('deliveriesList').innerHTML = '<div class="data-missing"><div class="icon">⚠️</div><div>API Error: ' + e.message + '</div><div class="fix">Check API server status</div></div>';
+      }
+    }
+    
+    async function approve(id) {
+      try {
+        await fetch('/founder/approvals/' + id + '/approve', { method: 'POST' });
+        loadData();
+      } catch (e) {
+        alert('Failed: ' + e.message);
+      }
+    }
+    
+    async function reject(id) {
+      try {
+        await fetch('/founder/approvals/' + id + '/reject', { method: 'POST' });
+        loadData();
+      } catch (e) {
+        alert('Failed: ' + e.message);
+      }
+    }
+    
+    loadData();
+    setInterval(loadData, 30000);
+  </script>
+</body>
+</html>

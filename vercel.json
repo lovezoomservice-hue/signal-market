@@ -1,21 +1,11 @@
 {
   "version": 2,
   "builds": [
-    { "src": "/api/signals.js", "use": "@vercel/node" },
-    { "src": "/api/events.js", "use": "@vercel/node" },
-    { "src": "/api/trends.js", "use": "@vercel/node" },
-    { "src": "/api/future-trends.js", "use": "@vercel/node" },
-    { "src": "/api/watchlist.js", "use": "@vercel/node" },
-    { "src": "/api/alerts.js", "use": "@vercel/node" },
-    { "src": "/api/health.js", "use": "@vercel/node" }
+    { "src": "api/**/*.js", "use": "@vercel/node" },
+    { "src": "founder_dashboard/ui/*.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/signals", "dest": "/api/signals.js" },
-    { "src": "/events", "dest": "/api/events.js" },
-    { "src": "/trends", "dest": "/api/trends.js" },
-    { "src": "/future-trends", "dest": "/api/future-trends.js" },
-    { "src": "/watchlist", "dest": "/api/watchlist.js" },
-    { "src": "/alerts", "dest": "/api/alerts.js" },
-    { "src": "/health", "dest": "/api/health.js" }
+    { "src": "/founder(/.*)?", "dest": "/founder_dashboard/ui$1" },
+    { "src": "/founder/api/(.*)", "dest": "/founder_dashboard/api/$1" }
   ]
 }
