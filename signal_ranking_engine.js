@@ -132,3 +132,15 @@ class SignalRankingEngine {
 }
 
 module.exports = { SignalRankingEngine };
+
+  // Anti-Hype: Penalize high-buzz low-activity signals
+  calculateAntiHypeScore(baseScore, signal) {
+    const developerActivity = (signal.developer_contributions || signal.forks || 0) / 100;
+    const evidenceStrength = Math.min(1, (signal.evidence_count || 1) / 50);
+    
+    // If high buzz (mentions) but low dev activity = likely hype
+    const buzzFactor = signal.mentions ? signal.mentions / 1000 : 0.5;
+    const penaltyFactor = 1 - Math.min(0.4, (1 - developerActivity) * (1 - evidenceStrength) * buzzFactor * 0.5);
+    
+    return baseScore * penaltyFactor;
+  }

@@ -257,3 +257,21 @@ function processTrendGraph(rawData) {
 }
 
 module.exports = { processTrendGraph };
+
+// Dynamic Time Window based on topic cluster
+function getDynamicWindow(topicCluster) {
+  const windows = {
+    'ai-coding': { short: 7, long: 30 },    // Fast-moving
+    'ai-agent': { short: 7, long: 30 },     // Fast-moving
+    'video-gen': { short: 7, long: 30 },    // Fast-moving
+    'llm': { short: 7, long: 30 },          // Fast-moving
+    'quantum': { short: 30, long: 90 },      // Slow-moving
+    'robotics': { short: 14, long: 60 },    // Medium
+    'biotech': { short: 30, long: 90 },     // Slow-moving
+    'default': { short: 7, long: 30 }
+  };
+  
+  return windows[topicCluster] || windows.default;
+}
+
+module.exports = { processTrendGraph, getDynamicWindow };
