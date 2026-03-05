@@ -2,16 +2,5 @@
   "version": 2,
   "builds": [
     { "src": "api/index.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/trends", "dest": "/api/index.js" },
-    { "src": "/future-trends", "dest": "/api/index.js" },
-    { "src": "/signals", "dest": "/api/index.js" },
-    { "src": "/events", "dest": "/api/index.js" },
-    { "src": "/weak-signals", "dest": "/api/index.js" },
-    { "src": "/watchlist", "dest": "/api/index.js" },
-    { "src": "/alerts", "dest": "/api/index.js" },
-    { "src": "/health", "dest": "/api/index.js" },
-    { "src": "/(.*)", "dest": "/api/index.js" }
   ]
 }
