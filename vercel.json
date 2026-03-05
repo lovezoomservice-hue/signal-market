@@ -1,33 +1,6 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/signals.js", "use": "@vercel/node" },
-    { "src": "api/events.js", "use": "@vercel/node" },
-    { "src": "api/trends.js", "use": "@vercel/node" },
-    { "src": "api/future-trends.js", "use": "@vercel/node" },
-    { "src": "api/watchlist.js", "use": "@vercel/node" },
-    { "src": "api/alerts.js", "use": "@vercel/node" },
-    { "src": "api/health.js", "use": "@vercel/node" },
-    { "src": "founder_dashboard/api/founder.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    { "src": "/signals", "dest": "/api/signals.js" },
-    { "src": "/events", "dest": "/api/events.js" },
-    { "src": "/trends", "dest": "/api/trends.js" },
-    { "src": "/future-trends", "dest": "/api/future-trends.js" },
-    { "src": "/watchlist", "dest": "/api/watchlist.js" },
-    { "src": "/alerts", "dest": "/api/alerts.js" },
-    { "src": "/health", "dest": "/api/health.js" },
-    { "src": "/founder/summary", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/product/(.*)", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/execution/(.*)", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/approvals", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/approvals/(.*)", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/mission", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/freeze", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/kill-switch", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/risk", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder/compute", "dest": "/founder_dashboard/api/founder.js" },
-    { "src": "/founder(/.*)?", "dest": "/founder_dashboard/ui$1" }
+    { "src": "api/index.js", "use": "@vercel/node" }
   ]
 }
