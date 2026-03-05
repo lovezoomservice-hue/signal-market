@@ -1,0 +1,10 @@
+{
+  "status": "healthy",
+  "timestamp": "2026-03-06T02:15:00Z",
+  "version": "1.0",
+  "components": {
+    "ui": { "status": "healthy", "provider": "cloudflare" },
+    "api": { "status": "degraded", "provider": "vercel" },
+    "database": { "status": "healthy", "type": "in-memory" }
+  }
+}
