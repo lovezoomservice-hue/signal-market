@@ -16,3 +16,10 @@
 
 # 回退
 /* /index.html 200
+
+# Founder Dashboard
+/founder /ui/founder_overview.html 200
+/founder/overview /ui/founder_overview.html 200
+/founder/product /ui/founder_product.html 200
+/founder/execution /ui/founder_execution.html 200
+/founder/approvals /ui/founder_approvals.html 200
