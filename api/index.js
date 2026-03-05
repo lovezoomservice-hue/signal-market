@@ -216,7 +216,73 @@ export default async function handler(req, res) {
 
     return res.status(404).json({ error: 'Not found', path });
 
-  } catch (error) {
-    return res.status(500).json({ error: error.message });
+    // FOUNDER DASHBOARD ENDPOINTS
+    if (method === 'GET' && path === '/founder/summary') {
+      return res.json({
+        company_health: 'healthy',
+        product_health: 'healthy',
+        today_mission: { text: 'Complete Signal Market MVP', set_at: new Date().toISOString() },
+        p0_risks: [],
+        todays_deliveries: [],
+        execution_stats: { created: 5, completed: 3, failed: 0, in_progress: 2 },
+        approvals_pending: [],
+        frozen: false,
+        kill_switch: false,
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    if (method === 'GET' && path === '/founder/product/signal-market') {
+      return res.json({
+        sources_health: [
+          { source: 'github', status: 'healthy', freshness_min: 5 },
+          { source: 'hackernews', status: 'healthy', freshness_min: 8 },
+          { source: 'arxiv', status: 'warning', freshness_min: 45 }
+        ],
+        freshness: 45,
+        signals: { total: 156, emerging: 8, accelerating: 4, peak: 2 },
+        api_status: [
+          { endpoint: '/signals', status: 'healthy', latency_ms: 120 },
+          { endpoint: '/events', status: 'healthy', latency_ms: 80 }
+        ],
+        watchlist_count: 3,
+        alerts_count: 2,
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    if (method === 'GET' && path.startsWith('/founder/execution')) {
+      return res.json({
+        tasks: [
+          { id: 'task_1', title: 'Fix Vercel deployment', owner_agent: 'devops', status: 'in_progress', proof_pack_url: null, sandbox_status: 'passed', trace_id: 'trace_123', evidence_count: 5, created_at: new Date().toISOString() }
+        ],
+        total: 1,
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    if (method === 'GET' && path === '/founder/approvals') {
+      return res.json({
+        items: [],
+        total_pending: 0,
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    if (method === 'POST' && path === '/founder/mission') {
+      return res.json({ success: true, mission: { text: 'Mission set', set_at: new Date().toISOString() } });
+    }
+
+    if (method === 'POST' && path === '/founder/freeze') {
+      return res.json({ success: true, frozen: false, scope: 'none' });
+    }
+
+    if (method === 'POST' && path === '/founder/kill-switch') {
+      return res.json({ success: true, kill_switch: false });
+    }
+
+    return res.status(404).json({ error: 'Not found', path });
   }
-}
+];
+
+module.exports = handler;
