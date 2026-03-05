@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Founder Dashboard - Execution</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0B0F1A; color: #E6EEDF; min-height: 100vh; }
+    
+    .header { background: linear-gradient(135deg, #121826 0%, #1a1f35 100%); padding: 16px 24px; border-bottom: 1px solid #2a3045; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 20px; color: #00E5FF; }
+    .header .nav { display: flex; gap: 8px; }
+    .header .nav a { color: #8b9dc5; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; }
+    .header .nav a:hover, .header .nav a.active { background: #1e2640; color: #00E5FF; }
+    
+    .filters { padding: 16px 20px; display: flex; gap: 8px; }
+    .filter-btn { padding: 8px 16px; border-radius: 6px; border: 1px solid #2a3045; background: #121826; color: #8b9dc5; cursor: pointer; font-size: 12px; }
+    .filter-btn.active { background: #00E5FF; color: #0B0F1A; border-color: #00E5FF; }
+    
+    .task-list { padding: 0 20px 20px; }
+    .task-item { background: #121826; border-radius: 10px; padding: 16px; margin-bottom: 12px; border: 1px solid #2a3045; }
+    .task-item .header { display: flex; justify-content: space-between; align-items: center; padding: 0; border: none; background: none; }
+    .task-item .title { font-size: 15px; font-weight: 600; }
+    .task-item .status { font-size: 11px; padding: 4px 10px; border-radius: 12px; }
+    .status.completed { background: #064e3b; color: #4ade80; }
+    .status.failed { background: #7f1d1d; color: #fca5a5; }
+    .status.in_progress { background: #1e3a8a; color: #93c5fd; }
+    .status.pending { background: #374151; color: #9ca3af; }
+    
+    .task-item .meta { display: flex; gap: 20px; margin-top: 12px; font-size: 12px; color: #6b7a99; }
+    .task-item .meta span { display: flex; align-items: center; gap: 4px; }
+    .task-item .links { display: flex; gap: 12px; margin-top: 12px; }
+    .task-item .link { font-size: 12px; color: #00E5FF; text-decoration: none; }
+    .task-item .link:hover { text-decoration: underline; }
+    
+    .data-missing { background: #121826; padding: 40px; border-radius: 10px; text-align: center; color: #6b7a99; }
+    .data-missing .icon { font-size: 32px; margin-bottom: 12px; }
+    
+    .refresh-btn { position: fixed; bottom: 20px; right: 20px; background: #00E5FF; color: #0B0F1A; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>⚡ Execution Control</h1>
+    <div class="nav">
+      <a href="index.html">Overview</a>
+      <a href="product.html">Product</a>
+      <a href="execution.html" class="active">Execution</a>
+      <a href="approvals.html">Approvals</a>
+    </div>
+  </div>
+  
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterTasks('all')">All</button>
+    <button class="filter-btn" onclick="filterTasks('in_progress')">In Progress</button>
+    <button class="filter-btn" onclick="filterTasks('completed')">Completed</button>
+    <button class="filter-btn" onclick="filterTasks('failed')">Failed</button>
+    <button class="filter-btn" onclick="filterTasks('pending')">Pending</button>
+  </div>
+  
+  <div class="task-list" id="taskList">
+    <div class="data-missing"><div class="icon">⏳</div><div>Loading tasks...</div></div>
+  </div>
+  
+  <button class="refresh-btn" onclick="loadTasks()">🔄 Refresh</button>
+  
+  <script>
+    let currentFilter = 'all';
+    
+    async function loadTasks() {
+      try {
+        const url = '/founder/execution/tasks' + (currentFilter !== 'all' ? '?status=' + currentFilter : '');
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        
+        const listEl = document.getElementById('taskList');
+        
+        if (!data.tasks || data.tasks.length === 0) {
+          listEl.innerHTML = '<div class="data-missing"><div class="icon">📭</div><div>No tasks found</div></div>';
+          return;
+        }
+        
+        listEl.innerHTML = data.tasks.map(t => {
+          const created = t.created_at ? new Date(t.created_at).toLocaleString() : '-';
+          const updated = t.updated_at ? new Date(t.updated_at).toLocaleString() : '-';
+          
+          return '<div class="task-item">' +
+            '<div class="header">' +
+              '<span class="title">' + (t.title || t.id) + '</span>' +
+              '<span class="status ' + t.status + '">' + t.status + '</span>' +
+            '</div>' +
+            '<div class="meta">' +
+              '<span>👤 ' + (t.owner_agent || 'unassigned') + '</span>' +
+              '<span>📅 Created: ' + created + '</span>' +
+              '<span>🔄 Updated: ' + updated + '</span>' +
+              '<span>📊 Evidence: ' + (t.evidence_count || 0) + '</span>' +
+            '</div>' +
+            '<div class="links">' +
+              (t.proof_pack_url ? '<a class="link" href="' + t.proof_pack_url + '">📦 Proof Pack</a>' : '') +
+              '<a class="link" href="#trace-' + t.trace_id + '">🔍 Trace: ' + (t.trace_id || '-') + '</a>' +
+              '<span style="font-size:12px;color:#6b7a99">Sandbox: ' + (t.sandbox_status || 'unknown') + '</span>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+        
+      } catch (e) {
+        console.error('Error:', e);
+        document.getElementById('taskList').innerHTML = '<div class="data-missing"><div class="icon">⚠️</div><div>Error: ' + e.message + '</div></div>';
+      }
+    }
+    
+    function filterTasks(status) {
+      currentFilter = status;
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+      loadTasks();
+    }
+    
+    loadTasks();
+    setInterval(loadTasks, 30000);
+  </script>
+</body>
+</html>

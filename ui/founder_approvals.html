@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Founder Dashboard - Approvals</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0B0F1A; color: #E6EEDF; min-height: 100vh; }
+    
+    .header { background: linear-gradient(135deg, #121826 0%, #1a1f35 100%); padding: 16px 24px; border-bottom: 1px solid #2a3045; display: flex; justify-content: space-between; align-items: center; }
+    .header h1 { font-size: 20px; color: #00E5FF; }
+    .header .nav { display: flex; gap: 8px; }
+    .header .nav a { color: #8b9dc5; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 13px; }
+    .header .nav a:hover, .header .nav a.active { background: #1e2640; color: #00E5FF; }
+    
+    .content { padding: 20px; }
+    
+    .approval-item { background: #121826; border-radius: 10px; padding: 20px; margin-bottom: 16px; border: 1px solid #2a3045; }
+    .approval-item .header { display: flex; justify-content: space-between; padding: 0; border: none; background: none; }
+    .approval-item .title { font-size: 18px; font-weight: 600; }
+    .approval-item .type { font-size: 12px; color: #00E5FF; text-transform: uppercase; }
+    .approval-item .description { margin: 12px 0; font-size: 14px; color: #8b9dc5; }
+    
+    .approval-item .tags { display: flex; gap: 8px; margin-top: 12px; }
+    .tag { font-size: 11px; padding: 4px 10px; border-radius: 12px; }
+    .tag.impact { background: #1e3a5f; color: #93c5fd; }
+    .tag.risk { background: #713f12; color: #fde047; }
+    .tag.risk.high { background: #7f1d1d; color: #fca5a5; }
+    .tag.pending { background: #374151; color: #9ca3af; }
+    
+    .approval-item .proposed-by { font-size: 12px; color: #6b7a99; margin-top: 12px; }
+    
+    .approval-item .actions { display: flex; gap: 12px; margin-top: 16px; }
+    .btn { padding: 10px 24px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .btn-approve { background: #00E5FF; color: #0B0F1A; }
+    .btn-reject { background: #374151; color: #9ca3af; }
+    .btn-approve:hover { background: #00b8d4; }
+    .btn-reject:hover { background: #4b5563; }
+    
+    .empty-state { background: #121826; padding: 60px; border-radius: 10px; text-align: center; color: #6b7a99; }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    
+    .refresh-btn { position: fixed; bottom: 20px; right: 20px; background: #00E5FF; color: #0B0F1A; border: none; padding: 12px 20px; border-radius: 25px; font-weight: 600; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>✅ Approvals Center</h1>
+    <div class="nav">
+      <a href="index.html">Overview</a>
+      <a href="product.html">Product</a>
+      <a href="execution.html">Execution</a>
+      <a href="approvals.html" class="active">Approvals</a>
+    </div>
+  </div>
+  
+  <div class="content" id="approvalsList">
+    <div class="empty-state"><div class="icon">⏳</div><div>Loading...</div></div>
+  </div>
+  
+  <button class="refresh-btn" onclick="loadApprovals()">🔄 Refresh</button>
+  
+  <script>
+    async function loadApprovals() {
+      try {
+        const res = await fetch('/founder/approvals');
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        
+        const listEl = document.getElementById('approvalsList');
+        
+        if (!data.items || data.items.length === 0) {
+          listEl.innerHTML = '<div class="empty-state"><div class="icon">✓</div><div>No pending approvals</div><div style="font-size:12px;margin-top:8px">All caught up!</div></div>';
+          return;
+        }
+        
+        if (data.items.length > 3) {
+          listEl.innerHTML = '<div style="background:#713f12;padding:12px;border-radius:8px;margin-bottom:16px;color:#fde047;font-size:13px">⚠️ Warning: More than 3 pending approvals. Consider reviewing soon.</div>';
+        }
+        
+        listEl.innerHTML += data.items.map(item => 
+          '<div class="approval-item">' +
+            '<div class="header">' +
+              '<span class="title">' + item.title + '</span>' +
+              '<span class="type">' + item.type + '</span>' +
+            '</div>' +
+            '<div class="description">Impact: ' + item.impact + '</div>' +
+            '<div class="tags">' +
+              '<span class="tag impact">Impact: ' + item.impact + '</span>' +
+              '<span class="tag risk ' + (item.risk === 'high' ? 'high' : '') + '">Risk: ' + item.risk + '</span>' +
+              '<span class="tag pending">Requires Founder</span>' +
+            '</div>' +
+            '<div class="proposed-by">Proposed by: ' + item.proposed_by + ' • ' + new Date(item.created_at).toLocaleString() + '</div>' +
+            '<div class="actions">' +
+              '<button class="btn btn-approve" onclick="approve(\'' + item.id + '\')">✅ Approve</button>' +
+              '<button class="btn btn-reject" onclick="reject(\'' + item.id + '\')">❌ Reject</button>' +
+            '</div>' +
+          '</div>'
+        ).join('');
+        
+      } catch (e) {
+        console.error('Error:', e);
+        document.getElementById('approvalsList').innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><div>API Error: ' + e.message + '</div></div>';
+      }
+    }
+    
+    async function approve(id) {
+      try {
+        await fetch('/founder/approvals/' + id + '/approve', { method: 'POST' });
+        loadApprovals();
+      } catch (e) {
+        alert('Failed: ' + e.message);
+      }
+    }
+    
+    async function reject(id) {
+      try {
+        await fetch('/founder/approvals/' + id + '/reject', { method: 'POST' });
+        loadApprovals();
+      } catch (e) {
+        alert('Failed: ' + e.message);
+      }
+    }
+    
+    loadApprovals();
+    setInterval(loadApprovals, 30000);
+  </script>
+</body>
+</html>
