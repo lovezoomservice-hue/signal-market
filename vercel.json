@@ -1,6 +1,37 @@
 {
   "version": 2,
   "builds": [
-    { "src": "api/*.js", "use": "@vercel/node" }
+    {
+      "src": "api/index.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/signals.js",
+      "use": "@vercel/node"  
+    },
+    {
+      "src": "api/events.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/trends.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/future-trends.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/watchlist.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/alerts.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/health.js",
+      "use": "@vercel/node"
+    }
   ]
 }
