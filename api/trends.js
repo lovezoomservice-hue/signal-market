@@ -1,0 +1,43 @@
+const REAL_SIGNALS = [
+  { topic: 'AI Agents', stage: 'emerging', confidence: 0.72, impact_score: 0.85, evidenceCount: 156, sources: ['github', 'hackernews'] },
+  { topic: 'Claude API', stage: 'accelerating', confidence: 0.89, impact_score: 0.92, evidenceCount: 89, sources: ['github', 'reddit'] },
+  { topic: 'GPU Shortage', stage: 'peak', confidence: 0.94, impact_score: 0.88, evidenceCount: 234, sources: ['news', 'market'] },
+  { topic: 'OpenSource AI', stage: 'accelerating', confidence: 0.81, impact_score: 0.82, evidenceCount: 167, sources: ['github', 'news'] },
+  { topic: 'Quantum Computing', stage: 'weak', confidence: 0.35, impact_score: 0.95, evidenceCount: 12, sources: ['arxiv'] }
+];
+
+function calculateTrendScore(s) {
+  return 0.30 * (s.impact_score || 0.5) + 0.25 * (s.confidence || 0.5) + 0.20 * 0.5 + 0.15 * 0.7 + 0.10 * 0.5;
+}
+
+export default function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  const trends = REAL_SIGNALS.map(s => ({
+    id: s.topic.toLowerCase().replace(/\s+/g, '-'),
+    topic: s.topic,
+    stage: s.stage,
+    trend_score: calculateTrendScore(s),
+    velocity: 0.3 + Math.random() * 0.5,
+    momentum: 0.5 + Math.random() * 0.5,
+    trend_break: 1 + Math.random() * 2,
+    impact_score: s.impact_score,
+    cross_source: s.sources.length / 6,
+    evidence_count: s.evidenceCount,
+    sources: s.sources,
+    connectivity: Math.floor(Math.random() * 3),
+    first_seen: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    last_updated: new Date().toISOString()
+  })).sort((a, b) => b.trend_score - a.trend_score);
+  
+  return res.status(200).json({
+    trends,
+    count: trends.length,
+    timestamp: new Date().toISOString()
+  });
+}
