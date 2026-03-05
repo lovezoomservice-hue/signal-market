@@ -1,45 +1,51 @@
-const { fetchGitHubTrending, fetchHackerNews, fetchArxivPapers } = require('./l0/data_sources');
+/**
+ * Signal Intelligence Pipeline - Global Scanner v3
+ */
+
+const { collectAllData } = require('./l0/global_scanner');
 const { processTrendGraph } = require('./l1/topic_discovery');
 const fs = require('fs');
 const path = require('path');
 
 async function runPipeline() {
-  console.log('🔄 Running Signal Intelligence Pipeline v3...');
+  console.log('🌍 Running Global Signal Scanner Pipeline...\n');
   
-  console.log('📥 Collecting data...');
-  const [github, hn, arxiv] = await Promise.all([
-    fetchGitHubTrending(),
-    fetchHackerNews(),
-    fetchArxivPapers()
-  ]);
+  // Step 1: Collect all data
+  console.log('📥 Step 1: Collecting global data...');
+  const rawData = await collectAllData();
+  console.log(`   Total items: ${rawData.length}\n`);
   
-  const rawData = [...github, ...hn, ...arxiv];
-  console.log(`   Collected ${rawData.length} items`);
-  
-  console.log('🧠 Building trend graph...');
+  // Step 2: Build trend graph
+  console.log('🧠 Step 2: Building trend graph...');
   const result = processTrendGraph(rawData);
-  console.log(`   Generated ${result.trends.length} trends`);
+  console.log(`   Trends: ${result.trends.length}`);
+  console.log(`   Clusters: ${result.clusters.length}`);
+  console.log(`   Connections: ${result.edges.length}\n`);
   
-  // Save
+  // Step 3: Save results
   const OUTPUT_DIR = './output/processed';
-  if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  }
   
   const date = new Date().toISOString().split('T')[0].replace(/-/g, '');
+  
   fs.writeFileSync(
-    path.join(OUTPUT_DIR, `trends_${date}.json`),
+    path.join(OUTPUT_DIR, `global_signals_${date}.json`),
     JSON.stringify(result, null, 2)
   );
   
-  console.log(`\n✅ Pipeline complete!`);
-  console.log('\n📊 Top Trends:');
-  result.trends.slice(0, 5).forEach((t, i) => {
-    console.log(`   ${i+1}. ${t.topic} [${t.stage}] score: ${t.trend_score} connections: ${t.connectivity}`);
+  console.log('📊 Top Trends:');
+  result.trends.slice(0, 8).forEach((t, i) => {
+    console.log(`   ${i+1}. ${t.topic} [${t.stage}] score: ${t.trend_score} conn: ${t.connectivity}`);
   });
   
-  console.log('\n🔗 Trend Clusters:');
-  result.clusters.slice(0, 3).forEach((c, i) => {
-    console.log(`   ${i+1}. ${c.name}: ${c.nodes.length} topics`);
+  console.log('\n🔗 Top Clusters:');
+  result.clusters.slice(0, 5).forEach((c, i) => {
+    console.log(`   ${i+1}. ${c.name}: ${c.nodes.length} topics, ${c.totalEvidence} evidence`);
   });
+  
+  console.log('\n✅ Pipeline complete!');
   
   return result;
 }
