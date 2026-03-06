@@ -8,6 +8,7 @@ on:
 
 env:
   NODE_VERSION: '20'
+  PRODUCTION_PUBLIC_DOMAIN: 'https://signal-market.vercel.app'
 
 jobs:
   # ==================== STAGE 1: LINT ====================
@@ -307,11 +308,42 @@ jobs:
           echo "❌ Health check failed"
           exit 1
 
+  # ==================== STAGE 9: PUBLIC READINESS ====================
+  public-readiness:
+    name: Public Readiness
+    runs-on: ubuntu-latest
+    needs: [deploy-production, health-check]
+    if: github.ref == 'refs/heads/main' && needs.deploy-production.outputs.deploy_blocked != 'true'
+    steps:
+      - name: Check public production APIs
+        run: |
+          BASE_URL="${{ env.PRODUCTION_PUBLIC_DOMAIN }}"
+          echo "Checking public domain: $BASE_URL"
+
+          check_endpoint() {
+            local path="$1"
+            local expected="$2"
+            local code
+            code=$(curl -s -o /tmp/public_check -w "%{http_code}" "$BASE_URL$path")
+            echo "$path -> $code (expected $expected)"
+            if [ "$code" != "$expected" ]; then
+              echo "❌ Public API check failed: $path expected $expected got $code"
+              head -c 300 /tmp/public_check || true
+              return 1
+            fi
+            return 0
+          }
+
+          check_endpoint "/api/health" "200"
+          check_endpoint "/api/signals" "200"
+          check_endpoint "/api/events" "200"
+          echo "✅ Public readiness passed"
+
   # ==================== NOTIFICATION ====================
   notify:
     name: Notify
     runs-on: ubuntu-latest
-    needs: [deploy-production, health-check]
+    needs: [deploy-production, health-check, public-readiness]
     if: always()
     steps:
       - name: Create deployment status
@@ -319,4 +351,5 @@ jobs:
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "✅ Deploy Job: ${{ needs.deploy-production.result }}" >> $GITHUB_STEP_SUMMARY
           echo "🚦 Deploy Blocked: ${{ needs.deploy-production.outputs.deploy_blocked }}" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Health: ${{ needs.health-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Deployment Health: ${{ needs.health-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 Public Readiness: ${{ needs.public-readiness.result }}" >> $GITHUB_STEP_SUMMARY
