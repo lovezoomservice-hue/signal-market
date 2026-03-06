@@ -211,8 +211,18 @@ jobs:
       - name: Deploy to Vercel
         id: deploy
         run: |
-          URL=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} | tail -1)
-          echo "production_url=$URL" >> $GITHUB_OUTPUT
+          DEPLOY_OUTPUT=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} 2>&1)
+          echo "$DEPLOY_OUTPUT"
+
+          URL=$(printf '%s\n' "$DEPLOY_OUTPUT" | sed '/^[[:space:]]*$/d' | grep -Eo 'https://[^[:space:]]+' | tail -n 1)
+
+          if [ -z "$URL" ]; then
+            echo "❌ Failed to capture deployment URL from Vercel output"
+            exit 1
+          fi
+
+          echo "production_url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Captured production URL: $URL"
       
       - name: Verify Deployment
         run: |
