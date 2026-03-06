@@ -1,0 +1,64 @@
+name: Public API Monitor
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+env:
+  PUBLIC_BASE_URL: https://signal-market.vercel.app
+
+jobs:
+  monitor:
+    name: Monitor Public APIs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check /api/health
+        id: health
+        run: |
+          CODE=$(curl -s -o /tmp/health_body -w "%{http_code}" "$PUBLIC_BASE_URL/api/health")
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          if [ "$CODE" != "200" ]; then
+            echo "health_body<<EOF" >> "$GITHUB_OUTPUT"
+            head -c 500 /tmp/health_body >> "$GITHUB_OUTPUT"
+            echo >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check /api/signals
+        id: signals
+        run: |
+          CODE=$(curl -s -o /tmp/signals_body -w "%{http_code}" "$PUBLIC_BASE_URL/api/signals")
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          if [ "$CODE" != "200" ]; then
+            echo "signals_body<<EOF" >> "$GITHUB_OUTPUT"
+            head -c 500 /tmp/signals_body >> "$GITHUB_OUTPUT"
+            echo >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Check /api/events
+        id: events
+        run: |
+          CODE=$(curl -s -o /tmp/events_body -w "%{http_code}" "$PUBLIC_BASE_URL/api/events")
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          if [ "$CODE" != "200" ]; then
+            echo "events_body<<EOF" >> "$GITHUB_OUTPUT"
+            head -c 500 /tmp/events_body >> "$GITHUB_OUTPUT"
+            echo >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish monitor summary
+        run: |
+          echo "## Public API Monitor" >> $GITHUB_STEP_SUMMARY
+          echo "- Base URL: $PUBLIC_BASE_URL" >> $GITHUB_STEP_SUMMARY
+          echo "- /api/health: ${{ steps.health.outputs.code }}" >> $GITHUB_STEP_SUMMARY
+          echo "- /api/signals: ${{ steps.signals.outputs.code }}" >> $GITHUB_STEP_SUMMARY
+          echo "- /api/events: ${{ steps.events.outputs.code }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Enforce healthy status
+        run: |
+          test "${{ steps.health.outputs.code }}" = "200"
+          test "${{ steps.signals.outputs.code }}" = "200"
+          test "${{ steps.events.outputs.code }}" = "200"
