@@ -2,8 +2,6 @@
  * Signals API - Vercel Endpoint
  */
 
-const fs = require('fs');
-const path = require('path');
 
 const REAL_SIGNALS = [
   { topic: 'AI Agents', stage: 'emerging', confidence: 0.72, impact_score: 0.85, evidenceCount: 156, sources: ['github', 'hackernews', 'arxiv'] },
