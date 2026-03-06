@@ -11,3 +11,4 @@ data/
 output/
 # .github/ - kept for workflows
 .wrangler/
+.vercel
