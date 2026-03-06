@@ -1,5 +1,15 @@
 {
   "builds": [
     { "src": "api/*.js", "use": "@vercel/node" }
+  ],
+  "rewrites": [
+    { "source": "/api/signals", "destination": "/api/signals.js" },
+    { "source": "/api/events", "destination": "/api/events.js" },
+    { "source": "/api/health", "destination": "/api/health.js" },
+    { "source": "/api/trends", "destination": "/api/trends.js" },
+    { "source": "/api/future-trends", "destination": "/api/future-trends.js" },
+    { "source": "/api/watchlist", "destination": "/api/watchlist.js" },
+    { "source": "/api/alerts", "destination": "/api/alerts.js" },
+    { "source": "/api/(.*)", "destination": "/api/$1.js" }
   ]
 }
