@@ -1,40 +1,48 @@
-# 监控建议清单（signal-market）
+# signal-market 生产 API 监控建议清单
 
-## 一、核心接口监控（必须）
-1. `GET /api/health`
-   - 期望：200
-   - 周期：每 1 分钟
-   - 连续 3 次失败告警
+## 目标
+确保 future run 中，public production domain 的核心 API 故障能被第一时间发现。
 
-2. `GET /api/signals`
-   - 期望：200
-   - 周期：每 2~5 分钟
-   - 连续 2 次 5xx 告警
+---
 
-3. `GET /api/events`
-   - 期望：200
-   - 周期：每 2~5 分钟
-   - 连续 2 次 5xx 告警
+## 必须监控
 
-## 二、建议监控维度
-- 状态码分布（2xx/4xx/5xx）
-- 响应延迟 P50/P95
-- 错误体关键词：`NOT_FOUND` / `FUNCTION_INVOCATION_FAILED`
-- deployment URL 与 public domain 结果差异
+### 1) Health
+- URL: `https://signal-market.vercel.app/api/health`
+- 预期状态: `200`
+- 监控周期: `5 分钟`
 
-## 三、告警分级
-- P1：`/api/health` 非 200 持续 >3 分钟
-- P1：`/api/signals` 或 `/api/events` 持续 500
-- P2：仅 public domain 异常、deployment URL 正常（疑似 alias/binding 问题）
-- P3：单次抖动后自动恢复
+### 2) Signals
+- URL: `https://signal-market.vercel.app/api/signals`
+- 预期状态: `200`
+- 监控周期: `5 分钟`
 
-## 四、发布后自动验收（建议写入 CI）
-1. 检查 deployment URL：health/signals/events
-2. 检查 public domain：health/signals/events
-3. 两者对比：若 deployment 正常但 public 异常，自动标记 `PASS WITH RISK` 或 `FAIL`
+### 3) Events
+- URL: `https://signal-market.vercel.app/api/events`
+- 预期状态: `200`
+- 监控周期: `5 分钟`
 
-## 五、排障优先级
-1. 先看 public `/api/health`
-2. 再看 `/api/signals`
-3. 再看 `/api/events`
-4. 最后回溯 workflow deploy/health/public-readiness 日志
+---
+
+## 建议告警策略
+
+1. 连续 2 次失败告警（触发告警）
+2. 单次 500 记录 warning（不立即升级）
+3. 连续 404 / 500 升级 critical
+
+---
+
+## 建议监控维度
+
+- HTTP 状态码
+- 响应耗时（建议记录 p50/p95）
+- 最近一次 deploy run id
+- `public-readiness` job 是否通过
+
+---
+
+## 附加建议
+
+1. 每次 deploy 后自动跑一次 public readiness
+2. 监控结果写入统一 dashboard
+3. 失败时自动附带最近一次 workflow run 链接
