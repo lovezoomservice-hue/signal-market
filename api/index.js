@@ -2,8 +2,76 @@
  * Signal Market API - Vercel Deployment
  */
 
-// In-memory storage (persists on Vercel during runtime)
-const WATCHLIST = [];
+const fs = require('fs');
+const path = require('path');
+
+// Import L1 processing modules
+let processTrendGraph, predictTrends;
+try {
+  const topicDiscovery = require('../l1/topic_discovery');
+  const predictionEngine = require('../l1/prediction_engine');
+  processTrendGraph = topicDiscovery.processTrendGraph;
+  predictTrends = predictionEngine.predictTrends;
+} catch (err) {
+  console.error('Error loading L1 modules:', err.message);
+  // Fallback functions
+  processTrendGraph = (data) => ({ trends: [], summary: {} });
+  predictTrends = (data) => ({ predictions: [], summary: {} });
+}
+
+// Watchlist file storage
+const WATCHLIST_FILE = path.join(process.cwd(), 'data', 'watchlist.json');
+
+// Load watchlist from file
+function loadWatchlist() {
+  try {
+    if (fs.existsSync(WATCHLIST_FILE)) {
+      return JSON.parse(fs.readFileSync(WATCHLIST_FILE, 'utf8'));
+    }
+  } catch (err) {
+    console.error('Error loading watchlist:', err.message);
+  }
+  return [];
+}
+
+// Save watchlist to file
+function saveWatchlist(watchlist) {
+  try {
+    fs.writeFileSync(WATCHLIST_FILE, JSON.stringify(watchlist, null, 2));
+  } catch (err) {
+    console.error('Error saving watchlist:', err.message);
+  }
+}
+
+// In-memory cache (for Vercel serverless - reload on each request)
+function getWatchlist() {
+  return loadWatchlist();
+}
+
+// Load latest signals data
+function loadSignalsData() {
+  try {
+    const dataDir = path.join(process.cwd(), 'output', 'raw');
+    const files = fs.readdirSync(dataDir).filter(f => f.startsWith('signals_'));
+    
+    if (files.length === 0) {
+      console.log('No signals data files found');
+      return [];
+    }
+    
+    // Get most recent file
+    const latestFile = files.sort().pop();
+    const filePath = path.join(dataDir, latestFile);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const json = JSON.parse(content);
+    
+    console.log(`Loaded ${json.data?.length || 0} signals from ${latestFile}`);
+    return json.data || [];
+  } catch (err) {
+    console.error('Error loading signals data:', err.message);
+    return [];
+  }
+}
 
 const REAL_SIGNALS = [
   { topic: 'AI Agents', stage: 'emerging', confidence: 0.72, impact_score: 0.85, evidenceCount: 156, sources: ['github', 'hackernews', 'arxiv'] },
@@ -85,12 +153,14 @@ export default async function handler(req, res) {
 
     // GET /watchlist
     if (method === 'GET' && path === '/watchlist') {
-      return res.json({ watchlist: WATCHLIST, count: WATCHLIST.length });
+      const watchlist = getWatchlist();
+      return res.json({ watchlist, count: watchlist.length });
     }
 
     // POST /watchlist
     if (method === 'POST' && path === '/watchlist') {
       const data = req.body || {};
+      const watchlist = getWatchlist();
       const id = `watch_${Date.now()}`;
       const item = {
         id,
@@ -99,15 +169,20 @@ export default async function handler(req, res) {
         confidence: data.confidence || 0.5,
         created_at: new Date().toISOString()
       };
-      WATCHLIST.push(item);
+      watchlist.push(item);
+      saveWatchlist(watchlist);
       return res.json({ success: true, watch_id: id, item });
     }
 
     // DELETE /watchlist/:id
     if (method === 'DELETE' && path.startsWith('/watchlist/')) {
       const id = path.split('/')[2];
-      const idx = WATCHLIST.findIndex(w => w.id === id);
-      if (idx > -1) WATCHLIST.splice(idx, 1);
+      let watchlist = getWatchlist();
+      const idx = watchlist.findIndex(w => w.id === id);
+      if (idx > -1) {
+        watchlist.splice(idx, 1);
+        saveWatchlist(watchlist);
+      }
       return res.json({ success: true });
     }
 
@@ -149,22 +224,32 @@ export default async function handler(req, res) {
 
     // GET /trends
     if (method === 'GET' && path === '/trends') {
-      const trends = REAL_SIGNALS.map(s => ({
-        id: s.topic.toLowerCase().replace(/\s+/g, '-'),
-        topic: s.topic,
-        stage: s.stage,
-        trend_score: calculateFeedScore(s),
-        velocity: 0.3 + Math.random() * 0.5,
-        momentum: 0.5 + Math.random() * 0.5,
-        trend_break: 1 + Math.random() * 2,
-        impact_score: s.impact_score,
-        cross_source: s.sources.length / 6,
-        evidence_count: s.evidenceCount,
-        sources: s.sources,
-        connectivity: Math.floor(Math.random() * 3),
-        first_seen: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-        last_updated: new Date().toISOString()
-      })).sort((a, b) => b.trend_score - a.trend_score);
+      const rawData = loadSignalsData();
+      
+      let trends = [];
+      if (rawData.length > 0 && processTrendGraph) {
+        const result = processTrendGraph(rawData);
+        trends = result.trends || [];
+        console.log(`Processed ${trends.length} trends from real data`);
+      } else {
+        // Fallback to demo data
+        trends = REAL_SIGNALS.map(s => ({
+          id: s.topic.toLowerCase().replace(/\s+/g, '-'),
+          topic: s.topic,
+          stage: s.stage,
+          trend_score: calculateFeedScore(s),
+          velocity: 0.3 + Math.random() * 0.5,
+          momentum: 0.5 + Math.random() * 0.5,
+          trend_break: 1 + Math.random() * 2,
+          impact_score: s.impact_score,
+          cross_source: s.sources.length / 6,
+          evidence_count: s.evidenceCount,
+          sources: s.sources,
+          connectivity: Math.floor(Math.random() * 3),
+          first_seen: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+          last_updated: new Date().toISOString()
+        })).sort((a, b) => b.trend_score - a.trend_score);
+      }
       
       return res.json({
         trends,
@@ -175,43 +260,58 @@ export default async function handler(req, res) {
 
     // GET /future-trends
     if (method === 'GET' && path === '/future-trends') {
-      const predictions = REAL_SIGNALS.map(s => ({
-        id: s.topic.toLowerCase().replace(/\s+/g, '-'),
-        topic: s.topic,
-        prediction_score: 0.3 + Math.random() * 0.5,
-        growth_acceleration: 1 + Math.random() * 2,
-        cross_source_expansion: s.sources.length / 6,
-        developer_activity: 0.3 + Math.random() * 0.5,
-        research_activity: 0.3 + Math.random() * 0.4,
-        capital_signal: 0.2 + Math.random() * 0.5,
-        lifecycle: s.stage,
-        forecast: {
-          next_30_days: Math.random() > 0.5 ? 'likely_accelerate' : 'stable',
-          confidence: 0.5 + Math.random() * 0.3
-        },
-        evidence_count: s.evidenceCount,
-        sources: s.sources,
-        created_at: new Date().toISOString()
-      })).sort((a, b) => b.prediction_score - a.prediction_score);
+      const rawData = loadSignalsData();
       
-      return res.json({
-        predictions,
-        count: predictions.length,
-        summary: {
+      let predictions = [];
+      let summary = { total: 0, exploding: 0, accelerating: 0, forming: 0, emerging: 0, weak: 0 };
+      
+      if (rawData.length > 0 && predictTrends) {
+        const result = predictTrends(rawData);
+        predictions = result.predictions || [];
+        summary = result.summary || summary;
+        console.log(`Processed ${predictions.length} predictions from real data`);
+      } else {
+        // Fallback to demo data
+        predictions = REAL_SIGNALS.map(s => ({
+          id: s.topic.toLowerCase().replace(/\s+/g, '-'),
+          topic: s.topic,
+          prediction_score: 0.3 + Math.random() * 0.5,
+          growth_acceleration: 1 + Math.random() * 2,
+          cross_source_expansion: s.sources.length / 6,
+          developer_activity: 0.3 + Math.random() * 0.5,
+          research_activity: 0.3 + Math.random() * 0.4,
+          capital_signal: 0.2 + Math.random() * 0.5,
+          lifecycle: s.stage,
+          forecast: {
+            next_30_days: Math.random() > 0.5 ? 'likely_accelerate' : 'stable',
+            confidence: 0.5 + Math.random() * 0.3
+          },
+          evidence_count: s.evidenceCount,
+          sources: s.sources,
+          created_at: new Date().toISOString()
+        })).sort((a, b) => b.prediction_score - a.prediction_score);
+        
+        summary = {
           total: predictions.length,
           exploding: Math.floor(predictions.length * 0.1),
           accelerating: Math.floor(predictions.length * 0.2),
           forming: Math.floor(predictions.length * 0.25),
           emerging: Math.floor(predictions.length * 0.25),
           weak: Math.floor(predictions.length * 0.2)
-        },
+        };
+      }
+      
+      return res.json({
+        predictions,
+        count: predictions.length,
+        summary,
         timestamp: new Date().toISOString()
       });
     }
 
     // GET /health
     if (method === 'GET' && path === '/health') {
-      return res.json({ status: 'healthy', timestamp: new Date().toISOString(), watchlist_count: WATCHLIST.length });
+      return res.json({ status: 'healthy', timestamp: new Date().toISOString(), watchlist_count: getWatchlist().length });
     }
 
     return res.status(404).json({ error: 'Not found', path });
