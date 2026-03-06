@@ -1,4 +1,22 @@
-const WATCHLIST = [];
+/**
+ * Alerts API - Vercel Endpoint
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+const WATCHLIST_FILE = path.join(process.cwd(), 'data', 'watchlist.json');
+
+function loadWatchlist() {
+  try {
+    if (fs.existsSync(WATCHLIST_FILE)) {
+      return JSON.parse(fs.readFileSync(WATCHLIST_FILE, 'utf8'));
+    }
+  } catch (err) {
+    console.error('Error loading watchlist:', err.message);
+  }
+  return [];
+}
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,7 +26,8 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
   
-  const alerts = WATCHLIST.map(w => ({
+  const watchlist = loadWatchlist();
+  const alerts = watchlist.map(w => ({
     id: 'alert_' + Date.now() + '_' + w.id,
     topic: w.topic,
     type: 'stage_change',
