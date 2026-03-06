@@ -220,7 +220,10 @@ jobs:
 
           echo "$DEPLOY_OUTPUT"
 
-          URL=$(printf '%s\n' "$DEPLOY_OUTPUT" | sed '/^[[:space:]]*$/d' | grep -Eo 'https://[^[:space:]]+\.vercel\.app' | tail -n 1)
+          URL=$(printf '%s\n' "$DEPLOY_OUTPUT" | grep -Eo 'Production: https://[^[:space:]]+\.vercel\.app' | head -n 1 | sed 's/^Production: //')
+          if [ -z "$URL" ]; then
+            URL=$(printf '%s\n' "$DEPLOY_OUTPUT" | sed '/^[[:space:]]*$/d' | grep -Eo 'https://[^[:space:]]+\.vercel\.app' | head -n 1)
+          fi
 
           if [ $DEPLOY_EXIT -ne 0 ]; then
             if printf '%s' "$DEPLOY_OUTPUT" | grep -q 'api-deployments-young-hobby-team-24h'; then
