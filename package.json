@@ -1,6 +1,7 @@
 {
   "name": "signal-market",
   "version": "1.0.0",
+  "type": "module",
   "description": "Intelligence Layer for AI Agents",
   "main": "l4/api_server.js",
   "scripts": {
