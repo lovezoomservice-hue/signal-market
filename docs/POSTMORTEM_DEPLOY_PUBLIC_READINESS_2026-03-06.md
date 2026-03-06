@@ -1,5 +1,10 @@
 # signal-market 部署与 public readiness 故障复盘
 
+> 状态：deprecated
+> 过时原因：知识库已采用统一目录/命名/状态流转规范，此文档保留历史参考。
+> 替代文档：/home/nice005/.openclaw/workspace/knowledge-base/03_postmortems/2026-03-06_signal-market_public-readiness_postmortem.md
+
+
 ## 一、事故概述
 
 ### 1. 事故名称

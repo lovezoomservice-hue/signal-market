@@ -1,5 +1,10 @@
 # signal-market 类项目部署故障标准排查 SOP
 
+> 状态：deprecated
+> 过时原因：知识库已采用统一目录/命名/状态流转规范，此文档保留历史参考。
+> 替代文档：/home/nice005/.openclaw/workspace/knowledge-base/04_sops/2026-03-06_signal-market_deploy-troubleshooting_sop.md
+
+
 ## 一、排查入口
 
 当出现以下任一现象时，启动本 SOP：

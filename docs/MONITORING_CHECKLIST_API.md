@@ -1,5 +1,10 @@
 # signal-market 生产 API 监控建议清单
 
+> 状态：deprecated
+> 过时原因：知识库已采用统一目录/命名/状态流转规范，此文档保留历史参考。
+> 替代文档：/home/nice005/.openclaw/workspace/knowledge-base/08_monitoring/2026-03-06_signal-market_core-api_monitoring.md
+
+
 ## 目标
 确保 future run 中，public production domain 的核心 API 故障能被第一时间发现。
 
