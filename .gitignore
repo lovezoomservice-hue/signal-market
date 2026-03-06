@@ -9,5 +9,5 @@ tmp/
 config/
 data/
 output/
-.github/
+# .github/ - kept for workflows
 .wrangler/
