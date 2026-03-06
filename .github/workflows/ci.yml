@@ -189,6 +189,7 @@ jobs:
     environment: production
     outputs:
       production_url: ${{ steps.deploy.outputs.production_url }}
+      deploy_blocked: ${{ steps.deploy.outputs.deploy_blocked }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -222,6 +223,11 @@ jobs:
           URL=$(printf '%s\n' "$DEPLOY_OUTPUT" | sed '/^[[:space:]]*$/d' | grep -Eo 'https://[^[:space:]]+' | tail -n 1)
 
           if [ $DEPLOY_EXIT -ne 0 ]; then
+            if printf '%s' "$DEPLOY_OUTPUT" | grep -q 'api-deployments-young-hobby-team-24h'; then
+              echo "⚠️ Vercel deployment quota window reached, mark as blocked and continue workflow"
+              echo "deploy_blocked=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             echo "❌ Vercel deploy command failed"
             exit $DEPLOY_EXIT
           fi
@@ -231,11 +237,13 @@ jobs:
             exit 1
           fi
 
+          echo "deploy_blocked=false" >> "$GITHUB_OUTPUT"
           echo "production_url=$URL" >> "$GITHUB_OUTPUT"
           echo "Captured production URL: $URL"
       
       
       - name: Verify Deployment
+        if: steps.deploy.outputs.deploy_blocked != 'true'
         run: |
           echo "Waiting for deployment..."
           sleep 30
@@ -243,17 +251,23 @@ jobs:
           curl -sf "${{ steps.deploy.outputs.production_url }}/api/health" || exit 1
       
       - name: Report Success
+        if: steps.deploy.outputs.deploy_blocked != 'true'
         uses: actions/github-script@v7
         with:
           script: |
             console.log('✅ Deployed to production: ${{ steps.deploy.outputs.production_url }}');
+
+      - name: Report Quota Blocked
+        if: steps.deploy.outputs.deploy_blocked == 'true'
+        run: |
+          echo "⚠️ Deployment blocked by Vercel 24h quota window"
 
   # ==================== STAGE 8: HEALTH CHECK ====================
   health-check:
     name: Health Check
     runs-on: ubuntu-latest
     needs: [deploy-production]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && needs.deploy-production.outputs.deploy_blocked != 'true'
     steps:
       - name: Wait for deployment
         run: sleep 60
@@ -284,5 +298,6 @@ jobs:
       - name: Create deployment status
         run: |
           echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
-          echo "✅ Deploy: ${{ needs.deploy-production.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Deploy Job: ${{ needs.deploy-production.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "🚦 Deploy Blocked: ${{ needs.deploy-production.outputs.deploy_blocked }}" >> $GITHUB_STEP_SUMMARY
           echo "✅ Health: ${{ needs.health-check.result }}" >> $GITHUB_STEP_SUMMARY
