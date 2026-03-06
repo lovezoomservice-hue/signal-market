@@ -314,6 +314,11 @@ export default async function handler(req, res) {
       return res.json({ status: 'healthy', timestamp: new Date().toISOString(), watchlist_count: getWatchlist().length });
     }
 
+    // GET /api/health (for Vercel deployment verification)
+    if (method === 'GET' && path === '/api/health') {
+      return res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+    }
+
     return res.status(404).json({ error: 'Not found', path });
 
     // FOUNDER DASHBOARD ENDPOINTS
