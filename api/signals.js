@@ -1,4 +1,3 @@
-const fs = require('fs');
 /**
  * Signals API - Vercel Endpoint
  */
