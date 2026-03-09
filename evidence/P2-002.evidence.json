@@ -1,0 +1,17 @@
+{
+  "evidence_package_id": "EV-P2-002",
+  "project_id": "project_signal_market",
+  "status": "DONE",
+  "EVIDENCE_PATHS": [
+    "signal-market/tasks/P2-002.yaml",
+    "signal-market/tools/evidence_validator.js",
+    "signal-market/evidence/P2-002.sample.pass.json",
+    "signal-market/evidence/P2-002.sample.fail.json"
+  ],
+  "RUNTIME_EVIDENCE": ["signal-market/logs/P2-002.exec.log"],
+  "SUCCESS_CRITERIA_ATTAINMENT": {
+    "cli_added": "PASS",
+    "pass_case_validated": "PASS",
+    "fail_case_blocked": "PASS"
+  }
+}

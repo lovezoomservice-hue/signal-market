@@ -1,0 +1,13 @@
+project_id: project_signal_market
+task_name: "P2-002 add evidence package validator CLI"
+critical_or_noncritical: "critical"
+allowed_node: ["node-3"]
+node2_preemption_allowed_or_not: "NO"
+success_criteria:
+  - "新增可执行CLI校验证据包三件套"
+  - "对示例证据包返回PASS"
+  - "对缺字段证据包返回FAIL(非0退出)"
+evidence_package_requirements:
+  - "EVIDENCE_PATHS"
+  - "RUNTIME_EVIDENCE"
+  - "SUCCESS_CRITERIA_ATTAINMENT"

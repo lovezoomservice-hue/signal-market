@@ -1,0 +1,7 @@
+{
+  "evidence_package_id": "EV-P2-002-SAMPLE",
+  "project_id": "project_signal_market",
+  "EVIDENCE_PATHS": ["a"],
+  "RUNTIME_EVIDENCE": ["b"],
+  "SUCCESS_CRITERIA_ATTAINMENT": {"x":"PASS"}
+}
