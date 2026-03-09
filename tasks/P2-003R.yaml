@@ -1,0 +1,6 @@
+project_id: project_signal_market
+task_name: P2-003R physical-node-3 execution validation
+declared_node: node-3
+actual_hostname: nice004-data-B560M-AORUS-ELITE
+actual_machine_id: fc5299daf4d44072b072a2e610aedf74
+final_decision: DONE
