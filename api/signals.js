@@ -40,9 +40,13 @@ export default function handler(req, res) {
     return res.status(200).end();
   }
   
+  const signals = rankSignals(REAL_SIGNALS);
+  const inputs_hash = signals.map(s => s.proof_id||s.topic).join('|');
   return res.status(200).json({
-    signals: rankSignals(REAL_SIGNALS),
-    count: REAL_SIGNALS.length,
+    signals,
+    count: signals.length,
+    updated_at: REAL_SIGNALS[0]?.first_seen || new Date().toISOString().slice(0,10),
+    inputs_hash: inputs_hash.split('').reduce((a,c)=>((a<<5)-a+c.charCodeAt(0))|0,0).toString(16).padStart(8,'0'),
     timestamp: new Date().toISOString()
   });
 }
