@@ -42,8 +42,9 @@ export default function handler(req, res) {
     const signals = getSignals();
     return res.status(200).json({
       signals, count: signals.length,
-      updated_at: DATA_META.updated_at,
+      updated_at:  DATA_META.updated_at,
       inputs_hash: DATA_META.inputs_hash,
+      source:      DATA_META.source,
     });
   }
 
