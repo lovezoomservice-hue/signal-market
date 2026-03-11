@@ -55,15 +55,15 @@
   "rewrites": [
     {
       "src": "/api/signals/(.+)/evidence",
-      "dest": "/api/signals/index.js?id=$1&action=evidence"
+      "dest": "/api/signals?id=$1&action=evidence"
     },
     {
       "src": "/api/signals/(.+)/lifecycle",
-      "dest": "/api/signals/index.js?id=$1&action=lifecycle"
+      "dest": "/api/signals?id=$1&action=lifecycle"
     },
     {
       "src": "/api/signals/(.+)",
-      "dest": "/api/signals/index.js?id=$1"
+      "dest": "/api/signals?id=$1"
     },
     {
       "src": "/api/auth/(register|login|me|keys)",
