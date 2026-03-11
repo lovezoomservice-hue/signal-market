@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 MAIL_FROM  = os.environ.get("MAIL_FROM", "aimusk@nstar-live.com")
 SMTP_PASS  = os.environ.get("SMTP_PASS", "")
 MAIL_TO    = os.environ.get("MAIL_TO", MAIL_FROM)
-SMTP_HOST  = os.environ.get("SMTP_HOST", "mail.qiye.163.com")
+SMTP_HOST  = os.environ.get("SMTP_HOST", "smtp.qiye.163.com")  # verified working host
 SMTP_PORT  = int(os.environ.get("SMTP_PORT", "465"))
 API_BASE   = os.environ.get("API_BASE", "http://localhost:3001")
 DRY_RUN    = os.environ.get("DRY_RUN", "").lower() in ("1", "true", "yes")
