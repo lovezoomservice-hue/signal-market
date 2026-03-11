@@ -12,6 +12,18 @@
   ],
   "routes": [
     {
+      "src": "/api/graph/stats",
+      "dest": "/api/graph.js?id=stats"
+    },
+    {
+      "src": "/api/graph",
+      "dest": "/api/graph.js"
+    },
+    {
+      "src": "/api/events/(.+)/probability",
+      "dest": "/api/probability.js?id=$1"
+    },
+    {
       "src": "/api/signals/(.+)/feedback/(.+)/correct",
       "dest": "/api/signals.js?id=$1&action=correct&fid=$2"
     },

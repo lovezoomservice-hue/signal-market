@@ -8,7 +8,7 @@
  * Also provides: emitAudit(event) → append-only audit log
  */
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, renameSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
@@ -19,23 +19,54 @@ const RUNTIME_DIR = join(__dir, '..', 'data', 'runtime');
 // Ensure runtime dir exists
 try { mkdirSync(RUNTIME_DIR, { recursive: true }); } catch {}
 
+// In-memory cache: { name → { data, ts } }
+const _cache = {};
+const CACHE_TTL_MS = 5_000; // 5s — avoid re-reading on burst requests
+
 function storePath(name) {
   return join(RUNTIME_DIR, `${name}.json`);
 }
 
+function tmpPath(name) {
+  return join(RUNTIME_DIR, `.${name}.tmp.json`);
+}
+
 export function loadStore(name, defaultVal = {}) {
+  const now = Date.now();
+  if (_cache[name] && now - _cache[name].ts < CACHE_TTL_MS) {
+    return _cache[name].data;
+  }
   const p = storePath(name);
   try {
-    if (existsSync(p)) return JSON.parse(readFileSync(p, 'utf8'));
-  } catch {}
-  return typeof defaultVal === 'function' ? defaultVal() : JSON.parse(JSON.stringify(defaultVal));
+    if (existsSync(p)) {
+      const raw = readFileSync(p, 'utf8');
+      const data = JSON.parse(raw); // throws on corrupt JSON
+      _cache[name] = { data, ts: now };
+      return data;
+    }
+  } catch (e) {
+    console.error(`_store.loadStore(${name}) parse error — using default:`, e.message);
+  }
+  const def = typeof defaultVal === 'function' ? defaultVal() : JSON.parse(JSON.stringify(defaultVal));
+  return def;
 }
 
 export function saveStore(name, data) {
+  // Atomic write: write to .tmp then rename (prevents partial writes)
+  const tmp = tmpPath(name);
+  const dest = storePath(name);
   try {
-    writeFileSync(storePath(name), JSON.stringify(data, null, 2));
+    const serialized = JSON.stringify(data, null, 2);
+    // Validate: re-parse before committing
+    JSON.parse(serialized);
+    writeFileSync(tmp, serialized);
+    renameSync(tmp, dest);
+    // Invalidate cache on write
+    _cache[name] = { data, ts: Date.now() };
   } catch (e) {
     console.error(`_store.saveStore(${name}) error:`, e.message);
+    // Clean up temp file if rename failed
+    try { if (existsSync(tmp)) writeFileSync(tmp, ''); } catch {}
   }
 }
 

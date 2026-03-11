@@ -232,6 +232,25 @@ export function getEvent(id) {
 """)
     return "\n".join(lines)
 
+
+# ── Step 5b: Write data/signals_history.jsonl (P2-2 arXiv writeback) ─────────
+
+def write_signals_history(signals):
+    """Append-write current signals snapshot to signals_history.jsonl"""
+    import json, datetime
+    history_file = REPO / "data" / "signals_history.jsonl"
+    history_file.parent.mkdir(exist_ok=True)
+    ts = datetime.datetime.utcnow().isoformat()[:19] + "Z"
+    record = {
+        "synced_at": ts,
+        "date": TODAY,
+        "signal_count": len(signals),
+        "signals": signals,
+    }
+    with open(history_file, "a") as f:
+        f.write(json.dumps(record) + "\n")
+    print(f"[sync] Wrote signals_history.jsonl ({len(signals)} signals appended)")
+
 # ── Step 6: Git commit + push ────────────────────────────────────────────────
 
 def git_push(signal_count):
@@ -283,6 +302,7 @@ def main():
         return
 
     DATA_JS.write_text(js_content)
+    write_signals_history(signals)
     print(f"[sync] Wrote api/_data.js ({len(js_content)} bytes, {len(signals)} signals)")
 
     # 5. Git push → Vercel deploys
