@@ -1,5 +1,6 @@
 // deployed: 2026-03-11T12:20
-import { getTopics, REAL_SIGNALS, DATA_META } from './_data.js';
+import { getTopics, getLiveMeta } from './_live_data.js';
+import { REAL_SIGNALS, DATA_META } from './_data.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

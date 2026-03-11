@@ -1,4 +1,5 @@
-import { getEvents, getEvent, DATA_META } from './_data.js';
+import { getEvents, getEvent, getLiveMeta } from './_live_data.js';
+import { DATA_META } from './_data.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

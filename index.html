@@ -170,11 +170,27 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
 
     <!-- Trends -->
     <div>
-      <div class="section-title">Trend Graph</div>
+      <div class="section-title">Trend Signals</div>
       <div class="signal-list" id="trend-list">
         <div class="loading dot-anim">Fetching trends</div>
       </div>
     </div>
+  </div>
+
+  <!-- Signal Graph -->
+  <div class="section-title" style="margin-top:2rem">Signal Graph
+    <span style="font-size:.75rem;font-weight:400;opacity:.6;margin-left:.5rem">topic relationship network</span>
+  </div>
+  <div id="graph-container" style="background:#0d1117;border-radius:12px;border:1px solid #21262d;overflow:hidden;margin-bottom:2rem">
+    <div id="graph-toolbar" style="display:flex;gap:.5rem;padding:.75rem 1rem;border-bottom:1px solid #21262d;align-items:center;flex-wrap:wrap">
+      <span id="graph-stats" style="font-size:.75rem;opacity:.5">loading...</span>
+      <div style="margin-left:auto;display:flex;gap:.5rem">
+        <button class="btn btn-sm" onclick="resetGraph()" style="font-size:.7rem;padding:.2rem .6rem">Reset</button>
+        <button class="btn btn-sm" id="graph-filter-btn" onclick="clearGraphFilter()" style="font-size:.7rem;padding:.2rem .6rem;display:none">✕ Clear filter</button>
+      </div>
+    </div>
+    <svg id="signal-graph" width="100%" style="height:420px;cursor:grab"></svg>
+    <div id="graph-detail" style="padding:.75rem 1rem;font-size:.78rem;min-height:2.5rem;border-top:1px solid #21262d;opacity:.7"></div>
   </div>
 
   <!-- Watchlist -->
@@ -364,6 +380,7 @@ function openUrl(url) {
 
 // Init
 loadSignals();
+    loadGraph();
 loadTrends();
 loadWatchlist();
 // Refresh every 5 min
@@ -444,6 +461,201 @@ async function startCheckout(planId) {
 }
 
 loadPlans();
+
+
+// ── Signal Graph (P3-3) — pure SVG force-directed layout ──────────────────
+
+let graphData = null;
+let graphSim = null;
+let selectedNode = null;
+
+const STAGE_COLOR = {
+  accelerating: '#58a6ff', peak: '#3fb950', forming: '#d29922',
+  emerging: '#bc8cff', fading: '#8b949e', decaying: '#6e7681',
+  dead: '#484f58', unknown: '#8b949e',
+};
+
+function stageColor(stage) { return STAGE_COLOR[stage] || '#8b949e'; }
+
+async function loadGraph() {
+  try {
+    const r = await fetch(`${API}/api/graph`);
+    graphData = await r.json();
+    const stats = await (await fetch(`${API}/api/graph/stats`)).json();
+    document.getElementById('graph-stats').textContent =
+      `${graphData.node_count} topics · ${graphData.edge_count} edges · density ${stats.density?.toFixed(2)} · avg degree ${stats.avg_degree?.toFixed(1)}`;
+    renderGraph(graphData.nodes, graphData.edges);
+  } catch(e) {
+    document.getElementById('graph-stats').textContent = 'Failed to load graph';
+  }
+}
+
+function renderGraph(nodes, edges, highlightIds = null) {
+  const svg = document.getElementById('signal-graph');
+  const W = svg.clientWidth || svg.getBoundingClientRect().width || 700;
+  const H = 420;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.innerHTML = '';
+
+  if (!nodes || !nodes.length) {
+    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#8b949e">No graph data</text>`;
+    return;
+  }
+
+  // Force-directed layout (simple spring simulation)
+  const pos = {};
+  nodes.forEach((n, i) => {
+    const angle = (2 * Math.PI * i) / nodes.length;
+    const r = Math.min(W, H) * 0.35;
+    pos[n.id] = {
+      x: W / 2 + r * Math.cos(angle),
+      y: H / 2 + r * Math.sin(angle),
+      vx: 0, vy: 0,
+    };
+  });
+
+  const nodeById = {};
+  nodes.forEach(n => { nodeById[n.id] = n; });
+
+  // Run simulation
+  for (let iter = 0; iter < 200; iter++) {
+    // Repulsion
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = pos[nodes[i].id], b = pos[nodes[j].id];
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        const force = 2800 / (dist * dist);
+        a.vx -= force * dx / dist; a.vy -= force * dy / dist;
+        b.vx += force * dx / dist; b.vy += force * dy / dist;
+      }
+    }
+    // Attraction along edges
+    edges.forEach(e => {
+      const a = pos[e.source], b = pos[e.target];
+      if (!a || !b) return;
+      const dx = b.x - a.x, dy = b.y - a.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      const target_len = 120 + (1 - e.weight) * 80;
+      const force = (dist - target_len) * 0.04;
+      a.vx += force * dx / dist; a.vy += force * dy / dist;
+      b.vx -= force * dx / dist; b.vy -= force * dy / dist;
+    });
+    // Center gravity
+    nodes.forEach(n => {
+      const p = pos[n.id];
+      p.vx += (W / 2 - p.x) * 0.01;
+      p.vy += (H / 2 - p.y) * 0.01;
+    });
+    // Apply with damping
+    nodes.forEach(n => {
+      const p = pos[n.id];
+      p.x = Math.max(40, Math.min(W - 40, p.x + p.vx));
+      p.y = Math.max(30, Math.min(H - 30, p.y + p.vy));
+      p.vx *= 0.7; p.vy *= 0.7;
+    });
+  }
+
+  const ns = 'http://www.w3.org/2000/svg';
+  const g = document.createElementNS(ns, 'g');
+
+  // Edges
+  const edgeG = document.createElementNS(ns, 'g');
+  edges.forEach(e => {
+    const a = pos[e.source], b = pos[e.target];
+    if (!a || !b) return;
+    const line = document.createElementNS(ns, 'line');
+    const isHighlighted = highlightIds && (highlightIds.has(e.source) && highlightIds.has(e.target));
+    const isDimmed = highlightIds && !isHighlighted;
+    line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+    line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+    line.setAttribute('stroke', isDimmed ? '#21262d' : '#30363d');
+    line.setAttribute('stroke-width', isDimmed ? '0.5' : (e.weight * 2.5).toFixed(1));
+    line.setAttribute('opacity', isDimmed ? '0.2' : (0.3 + e.weight * 0.5).toFixed(2));
+    edgeG.appendChild(line);
+  });
+  g.appendChild(edgeG);
+
+  // Nodes
+  const nodeG = document.createElementNS(ns, 'g');
+  nodes.forEach(n => {
+    const p = pos[n.id];
+    const isSelected = n.id === selectedNode;
+    const isDimmed = highlightIds && !highlightIds.has(n.id);
+    const r = 14 + n.centrality * 12;
+    const color = stageColor(n.stage);
+
+    const circle = document.createElementNS(ns, 'circle');
+    circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); circle.setAttribute('r', r);
+    circle.setAttribute('fill', color); circle.setAttribute('fill-opacity', isDimmed ? '0.15' : '0.18');
+    circle.setAttribute('stroke', color); circle.setAttribute('stroke-width', isSelected ? '2.5' : '1.5');
+    circle.setAttribute('stroke-opacity', isDimmed ? '0.2' : '0.7');
+    circle.style.cursor = 'pointer';
+    circle.addEventListener('click', () => onNodeClick(n));
+    nodeG.appendChild(circle);
+
+    // Confidence ring
+    const conf = n.confidence || 0;
+    const circ = 2 * Math.PI * r;
+    const arc = document.createElementNS(ns, 'circle');
+    arc.setAttribute('cx', p.x); arc.setAttribute('cy', p.y); arc.setAttribute('r', r);
+    arc.setAttribute('fill', 'none'); arc.setAttribute('stroke', color);
+    arc.setAttribute('stroke-width', '2.5');
+    arc.setAttribute('stroke-dasharray', `${conf * circ} ${circ}`);
+    arc.setAttribute('stroke-opacity', isDimmed ? '0.1' : '0.9');
+    arc.setAttribute('transform', `rotate(-90 ${p.x} ${p.y})`);
+    nodeG.appendChild(arc);
+
+    // Label
+    const label = document.createElementNS(ns, 'text');
+    label.setAttribute('x', p.x); label.setAttribute('y', p.y + r + 13);
+    label.setAttribute('text-anchor', 'middle');
+    label.setAttribute('fill', isDimmed ? '#484f58' : '#c9d1d9');
+    label.setAttribute('font-size', '11');
+    label.setAttribute('font-family', 'system-ui,sans-serif');
+    label.setAttribute('pointer-events', 'none');
+    label.textContent = n.label.length > 14 ? n.label.slice(0, 13) + '…' : n.label;
+    nodeG.appendChild(label);
+  });
+  g.appendChild(nodeG);
+  svg.appendChild(g);
+}
+
+function onNodeClick(node) {
+  if (selectedNode === node.id) {
+    clearGraphFilter(); return;
+  }
+  selectedNode = node.id;
+  document.getElementById('graph-filter-btn').style.display = 'inline-block';
+
+  const connectedEdges = graphData.edges.filter(e => e.source === node.id || e.target === node.id);
+  const neighborIds = new Set([node.id]);
+  connectedEdges.forEach(e => { neighborIds.add(e.source); neighborIds.add(e.target); });
+
+  renderGraph(graphData.nodes, graphData.edges, neighborIds);
+
+  const rels = connectedEdges.map(e => {
+    const other = e.source === node.id ? e.target_label : e.source_label;
+    return `<span style="opacity:.7">${other}</span> <span style="opacity:.4">[${e.relationships.join('+')}]</span>`;
+  }).join(' &nbsp;·&nbsp; ');
+  document.getElementById('graph-detail').innerHTML =
+    `<b style="color:${stageColor(node.stage)}">${node.label}</b> &nbsp;·&nbsp; conf ${(node.confidence*100).toFixed(0)}% &nbsp;·&nbsp; ${node.stage} &nbsp;·&nbsp; ${connectedEdges.length} connections &nbsp;&nbsp; ${rels}`;
+}
+
+function clearGraphFilter() {
+  selectedNode = null;
+  document.getElementById('graph-filter-btn').style.display = 'none';
+  document.getElementById('graph-detail').textContent = '';
+  if (graphData) renderGraph(graphData.nodes, graphData.edges);
+}
+
+function resetGraph() {
+  clearGraphFilter();
+}
+
+window.addEventListener('resize', () => {
+  if (graphData) renderGraph(graphData.nodes, graphData.edges);
+});
 
 </script>
 </body>

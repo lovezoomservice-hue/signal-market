@@ -1,5 +1,6 @@
 // deployed: 2026-03-11T12:20
-import { getTrends, DATA_META } from './_data.js';
+import { getTrends, getLiveMeta } from './_live_data.js';
+import { DATA_META } from './_data.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,7 +15,7 @@ export default function handler(req, res) {
     trends,
     count:       trends.length,
     updated_at:  DATA_META.updated_at,
-    inputs_hash: DATA_META.inputs_hash,
+    inputs_hash: getLiveMeta().inputs_hash,
     source:      DATA_META.source,
   });
 }

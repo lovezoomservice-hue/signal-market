@@ -13,7 +13,7 @@
  */
 
 import crypto from 'crypto';
-import { getSignals, DATA_META } from './_data.js';
+import { getLiveSignals, getLiveMeta } from './_live_data.js';
 import {
   getEvidence, appendEvidence,
   getLifecycle, saveLifecycle,
@@ -23,7 +23,7 @@ import {
 } from './_store.js';
 
 function getSignalById(id) {
-  const signals = getSignals();
+  const signals = getLiveSignals();
   const idx = parseInt((id||'').replace('evt_',''), 10) - 1;
   if (idx >= 0 && idx < signals.length) return { ...signals[idx], signal_id: id };
   return signals.find(s => s.topic.toLowerCase().replace(/\s+/g,'-') === id) || null;
@@ -39,7 +39,7 @@ function seedLifecycle(id, signal) {
                      signal.stage === 'forming' ? 'pending_evidence' :
                      signal.stage === 'fading'  ? 'decaying' : 'new',
     evidence_count: signal.evidenceCount || 0,
-    last_updated:   DATA_META.updated_at,
+    last_updated:   getLiveMeta().updated_at,
     transitions:    [],
   };
   saveLifecycle(id, lc);
@@ -57,13 +57,26 @@ export default function handler(req, res) {
 
   // ── LIST /api/signals ────────────────────────────────────────────────────
   if (!id) {
-    const signals = getSignals();
+    const baseSignals = getLiveSignals();
+    const meta = getLiveMeta();
+    // P3-2: merge runtime evidence counts (authoritative over static evidenceCount)
+    const signals = baseSignals.map((s, i) => {
+      const sig_id = `evt_${String(i + 1).padStart(3, '0')}`;
+      const runtimeEvidence = getEvidence(sig_id);
+      const runtimeCount = runtimeEvidence?.length || 0;
+      return {
+        ...s,
+        evidenceCount: runtimeCount > 0 ? runtimeCount : (s.evidenceCount || 0),
+        evidence_source: runtimeCount > 0 ? 'runtime' : 'static',
+      };
+    });
     return res.status(200).json({
       signals,
       count:       signals.length,
-      updated_at:  DATA_META.updated_at,
-      inputs_hash: DATA_META.inputs_hash,
-      source:      DATA_META.source,
+      updated_at:  meta.updated_at,
+      inputs_hash: meta.inputs_hash,
+      source:      meta.source,
+      live_source: meta.live_source,
     });
   }
 
