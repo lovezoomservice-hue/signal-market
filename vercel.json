@@ -56,6 +56,18 @@
       "dest": "/api/signals.js?id=$1"
     },
     {
+      "src": "/api/candidates/(.+)/promote",
+      "dest": "/api/candidates.js?id=$1&action=promote"
+    },
+    {
+      "src": "/api/candidates/(.+)/reject",
+      "dest": "/api/candidates.js?id=$1&action=reject"
+    },
+    {
+      "src": "/api/candidates/(.+)",
+      "dest": "/api/candidates.js?id=$1"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
     },
