@@ -1,0 +1,36 @@
+name: Daily Research Signal Update
+
+on:
+  schedule:
+    - cron: '50 9 * * *'   # 17:50 UTC+8 = 09:50 UTC
+  workflow_dispatch:         # 允许手动触发
+
+jobs:
+  update-signals:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run research → signal pipeline
+        run: python3 scripts/research_to_signal.py
+
+      - name: Update api/signals.js with fresh data
+        run: python3 scripts/inject_signals.py
+
+      - name: Append to history
+        run: python3 scripts/append_history.py
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name  "signal-market-bot"
+          git config user.email "bot@signal.market"
+          git add api/signals.js data/signals_history.jsonl output/
+          git diff --staged --quiet || git commit -m "auto: daily signal update $(date +%Y-%m-%d)"
+          git push
