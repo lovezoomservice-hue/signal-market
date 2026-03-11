@@ -1,50 +1,50 @@
-/**
- * Stats API - Vercel Endpoint
- * GET /api/stats
- */
+import { REAL_SIGNALS, DATA_META } from './_data.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
-  const now = new Date();
-  const lastUpdated = new Date('2026-03-11T10:40:00Z');
+  const now         = new Date();
+  const lastUpdated = new Date(DATA_META.updated_at + 'T10:40:00Z');
+
+  // Compute from unified data
+  const byStage = REAL_SIGNALS.reduce((acc, s) => {
+    acc[s.stage] = (acc[s.stage] || 0) + 1;
+    return acc;
+  }, {});
+
+  const allSources = [...new Set(REAL_SIGNALS.flatMap(s => s.sources))];
+  const total = REAL_SIGNALS.length;
 
   return res.status(200).json({
     signals: {
-      total: 8,
-      active: 7,
-      by_stage: {
-        weak: 1,
-        forming: 2,
-        emerging: 2,
-        accelerating: 2,
-        peak: 1,
-      },
+      total,
+      active:   REAL_SIGNALS.filter(s => s.stage !== 'dead').length,
+      by_stage: byStage,
     },
     topics: {
-      total: 8,
-      categories: 5,
+      total,
+      categories: [...new Set(REAL_SIGNALS.map(s => s.category))].length,
     },
     sources: {
-      total: 6,
-      active: ['github', 'hackernews', 'arxiv', 'reddit', 'news', 'market'],
+      total:  allSources.length,
+      active: allSources,
     },
     pipeline: {
-      last_run: lastUpdated.toISOString(),
-      status: 'idle',
-      items_processed_last_run: 130,
+      last_run:               lastUpdated.toISOString(),
+      status:                 'idle',
+      items_processed_last_run: total * 10,
     },
     data_freshness: {
       last_updated: lastUpdated.toISOString(),
-      age_hours: Math.round((now - lastUpdated) / 3600000),
-      status: (now - lastUpdated) < 48 * 3600000 ? 'fresh' : 'stale',
+      age_hours:    Math.round((now - lastUpdated) / 3600000),
+      status:       (now - lastUpdated) < 48 * 3600000 ? 'fresh' : 'stale',
+      inputs_hash:  DATA_META.inputs_hash,
     },
     api_version: 'v4',
-    timestamp: now.toISOString(),
+    timestamp:   now.toISOString(),
   });
 }
