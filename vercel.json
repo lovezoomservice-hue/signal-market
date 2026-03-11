@@ -12,6 +12,22 @@
   ],
   "routes": [
     {
+      "src": "/api/auth/(register|login|me|keys)",
+      "dest": "/api/auth/index.js"
+    },
+    {
+      "src": "/api/auth",
+      "dest": "/api/auth/index.js"
+    },
+    {
+      "src": "/api/billing/(usage|checkout|webhook)",
+      "dest": "/api/billing.js"
+    },
+    {
+      "src": "/api/billing",
+      "dest": "/api/billing.js"
+    },
+    {
       "src": "/api/topics/(.+)/stage",
       "dest": "/api/topics/index.js?id=$1&action=stage"
     },
