@@ -44,58 +44,16 @@
       "dest": "/api/watchlist.js"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "rewrites": [
-    {
       "src": "/api/signals/(.+)/evidence",
-      "dest": "/api/signals?id=$1&action=evidence"
+      "dest": "/api/signals.js?id=$1&action=evidence"
     },
     {
       "src": "/api/signals/(.+)/lifecycle",
-      "dest": "/api/signals?id=$1&action=lifecycle"
+      "dest": "/api/signals.js?id=$1&action=lifecycle"
     },
     {
       "src": "/api/signals/(.+)",
-      "dest": "/api/signals?id=$1"
-    },
-    {
-      "src": "/api/auth/(register|login|me|keys)",
-      "dest": "/api/auth/index.js"
-    },
-    {
-      "src": "/api/auth",
-      "dest": "/api/auth/index.js"
-    },
-    {
-      "src": "/api/billing/(usage|checkout|webhook)",
-      "dest": "/api/billing.js"
-    },
-    {
-      "src": "/api/billing",
-      "dest": "/api/billing.js"
-    },
-    {
-      "src": "/api/topics/(.+)/stage",
-      "dest": "/api/topics/index.js?id=$1&action=stage"
-    },
-    {
-      "src": "/api/topics/(.+)",
-      "dest": "/api/topics/index.js?id=$1"
-    },
-    {
-      "src": "/api/events/(.+)",
-      "dest": "/api/events/index.js?id=$1"
-    },
-    {
-      "src": "/api/watchlist/triggers",
-      "dest": "/api/watchlist.js"
+      "dest": "/api/signals.js?id=$1"
     },
     {
       "src": "/api/(.*)",
