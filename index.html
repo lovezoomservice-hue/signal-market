@@ -104,6 +104,24 @@ nav { background: var(--surface); border-bottom: 1px solid var(--border); paddin
   display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; }
 .footer span { display: flex; gap: 1rem; }
 
+
+/* Mobile responsive */
+@media(max-width:640px) {
+  nav { padding: 0 1rem; }
+  .nav-links { display: none; }
+  .container { padding: 1rem; }
+  .header h1 { font-size: 1.5rem; }
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+  #plans-grid { grid-template-columns: 1fr; }
+  .score-bar-wrap { width: 50px; }
+  .footer { flex-direction: column; gap: .75rem; text-align: center; }
+}
+@media(max-width:400px) {
+  .stats-bar { grid-template-columns: 1fr; }
+  .watch-input-row { flex-direction: column; }
+}
+
 /* Loading */
 .loading { color: var(--muted); font-size: .85rem; padding: 2rem; text-align: center; }
 .dot-anim::after { content: '...'; animation: dots 1.2s steps(4,end) infinite; }
