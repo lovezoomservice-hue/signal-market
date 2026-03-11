@@ -71,8 +71,8 @@ export default function handler(req, res) {
   const fb_weight = fb_score != null ? (fb_score - 0.5) * 0.2 : 0; // ±10%
 
   // ── Factor 4: Lifecycle momentum ───────────────────────────────
-  const lc = getLifecycle(id);
-  const lc_state = lc?.lifecycle_state || stage;
+  // P5-1 fix: use pre-merged lifecycle_state from unified signal
+  const lc_state = signal.lifecycle_state || stage;
   const momentum_bonus = ['accelerating', 'peak', 'forming'].includes(lc_state) ? 0.05 : 0;
   const momentum_penalty = ['fading', 'decaying', 'dead'].includes(lc_state) ? -0.10 : 0;
 
