@@ -18,13 +18,13 @@ function buildGraph(signals, filter_topic = null) {
   // ── Build nodes ────────────────────────────────────────────────
   const nodes = signals.map((s, i) => {
     const sig_id = `evt_${String(i + 1).padStart(3, '0')}`;
-    const lc = getLifecycle(sig_id);
-    const ev = getEvidence(sig_id);
+        const ev = getEvidence(sig_id);
     return {
       id:             sig_id,
       label:          s.topic,
       category:       s.category || 'Unknown',
-      stage:          lc?.lifecycle_state || s.stage || 'unknown',
+      stage:          s.stage || 'unknown',
+      lifecycle_state: s.lifecycle_state || null,
       confidence:     s.confidence || 0,
       impact_score:   s.impact_score || 0,
       evidence_count: ev?.length || s.evidenceCount || 0,

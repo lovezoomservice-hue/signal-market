@@ -8,7 +8,7 @@
  */
 
 import { getUnifiedSignals } from './_unified.js';
-import { getEvidence, getFeedback, getLifecycle } from './_store.js';
+import { getEvidence, getFeedback } from './_store.js';
 
 const STAGE_PRIORS = {
   accelerating: 0.85,

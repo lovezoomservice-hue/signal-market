@@ -75,12 +75,16 @@ function buildUnifiedSignals() {
     const runtimeLC       = getLifecycle(s._sig_id);
     const evidenceCount   = runtimeEvidence.length > 0 ? runtimeEvidence.length : (s.evidenceCount || 0);
     const evidenceSource  = runtimeEvidence.length > 0 ? 'runtime' : (loadSnapshot() ? 'live_snapshot' : 'static');
-    const stage = runtimeLC?.lifecycle_state || s.stage || 'unknown';
+    // WS-P5-1: keep stage vocabulary (accelerating/forming/emerging/...) SEPARATE from
+    // lifecycle_state vocabulary (pending_evidence/active/decaying/...). Do NOT overwrite stage.
+    const stage           = s.stage || 'unknown';
+    const lifecycle_state = runtimeLC?.lifecycle_state || null;
     return {
       ...s,
       evidenceCount,
       evidence_source: evidenceSource,
-      stage,
+      stage,          // signal stage vocab: accelerating|forming|emerging|fading|peak|weak
+      lifecycle_state, // lifecycle vocab: pending_evidence|active|decaying|new (may be null)
       _runtime_evidence: runtimeEvidence,
       _lifecycle: runtimeLC || null,
     };
