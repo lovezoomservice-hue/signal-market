@@ -2,8 +2,11 @@
  * Trends API - Vercel Endpoint
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 let processTrendGraph;
 try {
