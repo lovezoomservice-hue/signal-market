@@ -12,3 +12,4 @@ output/
 # .github/ - kept for workflows
 .wrangler/
 .vercel
+!data/auth_store.json

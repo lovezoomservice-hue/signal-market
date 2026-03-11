@@ -1,0 +1,28 @@
+{
+  "_comment": "Persistent auth store — committed to git for Vercel deployment. New registrations go to /tmp (session-level); seed accounts here are always available.",
+  "_version": "1.0",
+  "_updated": "2026-03-11",
+  "users": {
+    "usr_founder_001": {
+      "userId": "usr_founder_001",
+      "email": "aimusk@nstar-live.com",
+      "name": "Founder",
+      "plan": "enterprise",
+      "createdAt": "2026-03-11T00:00:00.000Z",
+      "emailVerified": true,
+      "lastLogin": null
+    }
+  },
+  "api_keys": {
+    "sm_founder_95d12139a6c22bd5bdd33720462ad743": {
+      "key": "sm_founder_95d12139a6c22bd5bdd33720462ad743",
+      "userId": "usr_founder_001",
+      "plan": "enterprise",
+      "name": "Founder API Key",
+      "createdAt": "2026-03-11T00:00:00.000Z",
+      "lastUsedAt": null,
+      "requestsCount": 0,
+      "expiresAt": null
+    }
+  }
+}

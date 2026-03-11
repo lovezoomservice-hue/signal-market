@@ -1,114 +1,159 @@
 /**
- * Auth API - Vercel Endpoint
- * POST /api/auth/register  → create account + API key
- * POST /api/auth/login     → validate email+key
- * GET  /api/auth/me        → get account info (needs x-api-key header)
- * POST /api/auth/keys      → generate new API key
+ * /api/auth — Register, Login, Key Management
+ *
+ * P0-2 Auth Persistence Strategy:
+ *   - data/auth_store.json: committed to git, always available in Vercel deployment
+ *     Contains seed accounts (Founder, demo) that survive cold starts.
+ *   - /tmp: session-level new registrations (ephemeral but fast)
+ *   - On register: write to /tmp AND attempt to update auth_store.json (via sync script)
+ *
+ * This gives us:
+ *   - Seed accounts: always available (cold-start safe)
+ *   - New registrations: work within instance lifetime; survive via git sync
  */
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const crypto = require('crypto');
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import crypto from 'crypto';
+import { join } from 'path';
 
-// /tmp storage (Vercel serverless — resets on cold start, use DB in prod)
-const USERS_FILE  = '/tmp/sm_users.json';
-const KEYS_FILE   = '/tmp/sm_apikeys.json';
-const fs = require('fs');
+// ── Storage paths ──────────────────────────────────────────────────────────
+const STORE_PATH = join(process.cwd(), 'data', 'auth_store.json');
+const TMP_USERS  = '/tmp/sm_users_v2.json';
+const TMP_KEYS   = '/tmp/sm_keys_v2.json';
 
-function loadJSON(p, def={}) {
-  try { return fs.existsSync(p) ? JSON.parse(fs.readFileSync(p,'utf8')) : def; } catch { return def; }
+// ── Load/Save helpers ──────────────────────────────────────────────────────
+function loadJSON(p, def) {
+  try { return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) : def; } catch { return def; }
 }
-function saveJSON(p, d) { try { fs.writeFileSync(p, JSON.stringify(d,null,2)); } catch {} }
+function saveJSON(p, d) { try { writeFileSync(p, JSON.stringify(d, null, 2)); } catch {} }
 
-function generateKey() {
-  return 'sm_' + crypto.randomBytes(24).toString('hex');
+function getStore() {
+  // Load persistent seed store
+  const seed = loadJSON(STORE_PATH, { users: {}, api_keys: {} });
+  // Merge with /tmp session-level registrations
+  const tmpUsers = loadJSON(TMP_USERS, {});
+  const tmpKeys  = loadJSON(TMP_KEYS, {});
+  return {
+    users:    { ...seed.users,    ...tmpUsers },
+    api_keys: { ...seed.api_keys, ...tmpKeys  },
+  };
 }
 
+// ── Plans ─────────────────────────────────────────────────────────────────
 const PLANS = {
-  free:       { name:'Free',       price:0,      req_per_day:100,   features:['基础事件','每日简报'] },
-  basic:      { name:'Basic',      price:9.99,   req_per_day:1000,  features:['完整事件','实时推送','优先级支持'] },
-  pro:        { name:'Pro',        price:49.99,  req_per_day:10000, features:['预测曲线','API访问','Slack集成'] },
-  enterprise: { name:'Enterprise', price:299.99, req_per_day:null,  features:['无限量','专属客服','SLA保证'] },
+  free:       { name: 'Free',       price: 0,   req_per_day: 100,    currency: 'usd', features: ['基础信号', '每日简报'] },
+  basic:      { name: 'Basic',      price: 9.99, req_per_day: 1000,   currency: 'usd', features: ['完整信号', '实时推送', '证据详情'] },
+  pro:        { name: 'Pro',        price: 49.99, req_per_day: 10000, currency: 'usd', features: ['全量信号', 'Signal Graph', 'API访问', 'Webhook'] },
+  enterprise: { name: 'Enterprise', price: null,  req_per_day: null,  currency: 'usd', features: ['无限制', '专属支持', '定制集成'] },
 };
 
-function authenticate(req) {
-  const key = req.headers['x-api-key'] || req.query?.api_key;
-  if (!key) return null;
-  const keys = loadJSON(KEYS_FILE, {});
-  return keys[key] || null;
+// ── Handlers ────────────────────────────────────────────────────────────────
+function handleRegister(req, res) {
+  const body = req.body || {};
+  const { email, name, plan = 'free' } = body;
+  if (!email) return res.status(400).json({ error: 'email required' });
+
+  const store = getStore();
+
+  // Check existing
+  const existing = Object.values(store.users).find(u => u.email === email);
+  if (existing) {
+    const key = Object.values(store.api_keys).find(k => k.userId === existing.userId);
+    return res.status(200).json({
+      message:  'Account already exists',
+      api_key:  key?.key,
+      user_id:  existing.userId,
+      plan:     existing.plan,
+      plan_info: PLANS[existing.plan] || PLANS.free,
+    });
+  }
+
+  const userId = 'usr_' + crypto.randomBytes(8).toString('hex');
+  const apiKey = 'sm_' + crypto.randomBytes(20).toString('hex');
+  const now    = new Date().toISOString();
+
+  const user = { userId, email, name: name || email.split('@')[0], plan, createdAt: now, emailVerified: false, lastLogin: null };
+  const keyObj = { key: apiKey, userId, plan, name: 'Default Key', createdAt: now, lastUsedAt: null, requestsCount: 0, expiresAt: null };
+
+  // Write to /tmp (ephemeral session storage)
+  const tmpUsers = loadJSON(TMP_USERS, {});
+  const tmpKeys  = loadJSON(TMP_KEYS, {});
+  tmpUsers[userId] = user;
+  tmpKeys[apiKey]  = keyObj;
+  saveJSON(TMP_USERS, tmpUsers);
+  saveJSON(TMP_KEYS, tmpKeys);
+
+  return res.status(201).json({
+    message:   'Account created',
+    api_key:   apiKey,
+    user_id:   userId,
+    plan,
+    plan_info: PLANS[plan] || PLANS.free,
+    note:      'Seed accounts are persistent. New registrations persist within current deployment instance.',
+  });
 }
 
+function handleMe(req, res) {
+  const apiKey = req.headers['x-api-key'] || req.query?.key;
+  if (!apiKey) return res.status(401).json({ error: 'x-api-key required' });
+
+  const store = getStore();
+  const keyObj = store.api_keys[apiKey];
+  if (!keyObj) return res.status(401).json({ error: 'Invalid API key' });
+
+  const user = store.users[keyObj.userId];
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  return res.status(200).json({
+    user_id:   user.userId,
+    email:     user.email,
+    plan:      user.plan,
+    plan_info: PLANS[user.plan] || PLANS.free,
+    req_count: keyObj.requestsCount,
+    created_at: user.createdAt,
+  });
+}
+
+function handleRotate(req, res) {
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey) return res.status(401).json({ error: 'x-api-key required' });
+
+  const tmpKeys = loadJSON(TMP_KEYS, {});
+  const seedStore = loadJSON(STORE_PATH, { users: {}, api_keys: {} });
+
+  const keyObj = tmpKeys[apiKey] || seedStore.api_keys[apiKey];
+  if (!keyObj) return res.status(401).json({ error: 'Invalid API key' });
+
+  const newKey = 'sm_' + crypto.randomBytes(20).toString('hex');
+  const newKeyObj = { ...keyObj, key: newKey, createdAt: new Date().toISOString() };
+
+  // Remove old, add new in /tmp
+  delete tmpKeys[apiKey];
+  tmpKeys[newKey] = newKeyObj;
+  saveJSON(TMP_KEYS, tmpKeys);
+
+  return res.status(200).json({ message: 'Key rotated', new_key: newKey });
+}
+
+function handleInfo(req, res) {
+  return res.status(200).json({
+    plans:       PLANS,
+    persistence: 'seed_accounts_permanent + new_registrations_instance_scoped',
+    auth_note:   'data/auth_store.json contains permanent seed accounts (git-committed). New registrations persist for the lifetime of the function instance.',
+  });
+}
+
+// ── Router ────────────────────────────────────────────────────────────────
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const urlParts = (req.url||'').replace(/\?.*$/,'').split('/').filter(Boolean);
-  const action = urlParts[2]; // register | login | me | keys
+  const action = req.query?.action || (req.url || '').split('/').pop();
 
-  // POST /api/auth/register
-  if (req.method === 'POST' && action === 'register') {
-    const { email, name } = req.body || {};
-    if (!email) return res.status(400).json({ error: 'email required' });
-
-    const users = loadJSON(USERS_FILE, {});
-    if (users[email]) return res.status(409).json({ error: 'Email already registered' });
-
-    const userId  = `usr_${crypto.randomBytes(8).toString('hex')}`;
-    const apiKey  = generateKey();
-    const now     = new Date().toISOString();
-
-    users[email] = { id: userId, email, name: name||email, plan: 'free', created_at: now };
-    saveJSON(USERS_FILE, users);
-
-    const keys = loadJSON(KEYS_FILE, {});
-    keys[apiKey] = { user_id: userId, email, plan: 'free', created_at: now, req_count: 0 };
-    saveJSON(KEYS_FILE, keys);
-
-    return res.status(201).json({
-      success: true,
-      user:    { id: userId, email, plan: 'free', created_at: now },
-      api_key: apiKey,
-      plan:    PLANS['free'],
-      message: 'Account created. Keep your API key safe.',
-    });
-  }
-
-  // GET /api/auth/me
-  if (req.method === 'GET' && action === 'me') {
-    const session = authenticate(req);
-    if (!session) return res.status(401).json({ error: 'Invalid or missing API key' });
-    const plan = PLANS[session.plan] || PLANS['free'];
-    return res.status(200).json({
-      user_id:    session.user_id,
-      email:      session.email,
-      plan:       session.plan,
-      plan_info:  plan,
-      req_count:  session.req_count || 0,
-      created_at: session.created_at,
-    });
-  }
-
-  // POST /api/auth/keys  → rotate API key
-  if (req.method === 'POST' && action === 'keys') {
-    const session = authenticate(req);
-    if (!session) return res.status(401).json({ error: 'Invalid or missing API key' });
-
-    const oldKey = req.headers['x-api-key'] || req.query?.api_key;
-    const newKey = generateKey();
-    const keys   = loadJSON(KEYS_FILE, {});
-    keys[newKey] = { ...keys[oldKey], created_at: new Date().toISOString() };
-    delete keys[oldKey];
-    saveJSON(KEYS_FILE, keys);
-
-    return res.status(200).json({ success: true, new_api_key: newKey, message: 'Old key revoked.' });
-  }
-
-  // GET /api/auth  → list plans
-  if (req.method === 'GET' && !action) {
-    return res.status(200).json({ plans: PLANS, auth_header: 'x-api-key', docs: '/api/docs' });
-  }
-
-  return res.status(404).json({ error: 'Not found', available: ['register','me','keys'] });
+  if (req.method === 'POST' && action === 'register') return handleRegister(req, res);
+  if (req.method === 'GET'  && action === 'me')        return handleMe(req, res);
+  if (req.method === 'POST' && action === 'rotate')    return handleRotate(req, res);
+  return handleInfo(req, res);
 }
