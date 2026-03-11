@@ -10,7 +10,7 @@
 
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import crypto from 'crypto';
-import { getSignals, DATA_META } from '../_data.js';
+import { getSignals, DATA_META } from './_data.js';
 
 // Evidence store: /tmp for P0 (see P1 for KV/DB migration)
 const EVIDENCE_STORE = '/tmp/sm_evidence.json';
