@@ -1,3 +1,4 @@
+// deployed: 2026-03-11T12:20
 import { getTopics, REAL_SIGNALS, DATA_META } from './_data.js';
 
 export default function handler(req, res) {

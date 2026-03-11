@@ -1,3 +1,4 @@
+// deployed: 2026-03-11T12:20
 /**
  * /api/alerts — alert feed based on unified signal data
  * FIX: pure ESM, no require(), no unused imports
