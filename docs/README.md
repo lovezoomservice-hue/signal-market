@@ -1,228 +1,160 @@
-# Signal Market - 产品文档
+# Signal Market — AI Frontier Intelligence Platform
 
-## 产品定位
-
-**Signal Market = AI智能体的世界认知层**
-
-> 不是新闻App。是"事件→概率→影响→行动"的情报层。
+> **产品定位（2026-03-11 重基线版）**  
+> 不是新闻 App，不是 GitHub Stars 排行榜。  
+> 是 AI 创始人、研究者和投资人的**早期信号雷达**。
 
 ---
 
-## 4个核心输出
+## 产品定义（v1.1 — 正式 Pivot 后）
 
-| 输出 | 描述 | 示例 |
+### 核心用户
+
+| 用户类型 | 核心需求 |
+|---------|---------|
+| AI 创业公司创始人 | 了解哪些 AI 方向正在加速，避免押错赛道 |
+| AI 领域投资人 | 早期发现高置信度技术趋势 |
+| 技术架构师 | 追踪 AI 技术栈演进方向 |
+| AI 研究团队 | 论文方向跟踪，avoid duplication |
+
+### 核心输出（4 类）
+
+| 输出 | 来源 | 说明 |
 |------|------|------|
-| **Event** | 从噪声中识别主线事件 | "商业航天板块启动" |
-| **Probability** | 可解释的概率曲线 | P(7天)=43%，较昨日+5% |
-| **Impact** | 事件→资产/板块映射 | NVDA↑, TSMC↑ |
-| **Action** | 个性化提醒 | "08:30 开盘前提醒" |
+| **Research Signal** | arXiv RSS + GitHub Trending | 技术方向信号，含 proof_id/source_url |
+| **Daily Brief** | Research Intake pipeline | 每日 AI 前沿摘要 email，含原文链接 |
+| **Trend Graph** | L0→L3 pipeline | 技术趋势演变（stage lifecycle） |
+| **Watchlist Alert** | Watchlist engine | 订阅主题状态变化时告警 |
 
 ---
 
-## 6个极简API
+## API 文档（6 个核心端点）
 
-### 1. 获取事件列表
+**Base URL:** `https://signal-market-z14d.vercel.app`
+
+### 1. AI 研究信号列表
+
 ```bash
-GET /events
+GET /api/signals
 ```
+
+参数: `?stage=accelerating` / `?limit=5`
+
 响应:
 ```json
 {
-  "events": [
+  "signals": [
     {
-      "event_id": "evt_xxx",
-      "topic": "商业航天",
+      "topic": "AI Agents",
       "stage": "accelerating",
-      "evidence_refs": ["fact_xxx", "fact_yyy"]
+      "confidence": 0.97,
+      "evidenceCount": 9,
+      "proof_id": "research-2026-03-11-2603.08835",
+      "source_url": "https://arxiv.org/abs/2603.08835"
     }
   ],
-  "count": 4,
-  "timestamp": "2026-03-05T03:00:00Z"
+  "count": 7,
+  "updated_at": "2026-03-11",
+  "inputs_hash": "abc123"
 }
 ```
 
-### 2. 获取概率曲线
-```bash
-GET /events/{id}/probability
-```
-响应:
-```json
-{
-  "event_id": "evt_xxx",
-  "probabilities": {
-    "P_24h": 0.15,
-    "P_7d": 0.43,
-    "P_30d": 0.71
-  },
-  "explanation": {
-    "current_probability": 0.43,
-    "previous_probability": 0.38,
-    "change": "+0.05",
-    "drivers": [
-      {"factor": "政策利好", "impact": "+0.1"}
-    ]
-  }
-}
-```
+### 2. 技术趋势评分
 
-### 3. 获取用户简报
 ```bash
-GET /lenses/{user}/daily-brief
+GET /api/trends
 ```
-示例用户:
-- `lens_a_stock` - A股板块玩家
-- `lens_us_macro` - 美股宏观交易员
-- `lens_crypto_event` - 币圈事件交易员
 
 响应:
 ```json
 {
-  "lens_id": "lens_a_stock",
-  "stage_summary": [
+  "trends": [
     {
-      "topic": "商业航天",
-      "current_stage": "主升",
-      "probability": 0.71
+      "topic": "AI Agents",
+      "stage": "accelerating",
+      "trend_score": 0.97,
+      "velocity": 0.9,
+      "proof_id": "research-2026-03-11-2603.08835",
+      "source_url": "https://arxiv.org/abs/2603.08835"
     }
   ],
-  "top_opportunities": [...],
-  "risk_alerts": [...],
-  "evidence_refs": ["fact_xxx"]
+  "count": 7
 }
 ```
 
-### 4. 创建监控
+### 3. 技术主题列表
+
 ```bash
-POST /watch
+GET /api/topics
+GET /api/topics/:id/stage
 ```
-请求:
+
+响应 `/stage`:
 ```json
 {
-  "topic": "商业航天",
-  "market": "A-share",
-  "delivery": "08:30",
-  "objective": "机会"
+  "id": "ai-agents",
+  "topic": "AI Agents",
+  "stage": "accelerating",
+  "confidence": 0.97,
+  "proof_id": "research-2026-03-11-2603.08835",
+  "source_url": "https://arxiv.org/abs/2603.08835"
 }
 ```
 
-### 5. 健康检查
+### 4. 事件流
+
 ```bash
-GET /signals/health
+GET /api/events
+GET /api/events/:id
+GET /api/events?topic=AI+Agents
 ```
-响应:
-```json
+
+### 5. 监控订阅
+
+```bash
+POST /api/watchlist
 {
-  "status": "healthy",
-  "updates_today": 4,
-  "checks": {
-    "raw": true,
-    "clean": true,
-    "events": true,
-    "probability": true
-  }
+  "topic": "AI Agents",
+  "threshold": 0.8
 }
 ```
 
-### 6. 获取证据
+### 6. 健康检查
+
 ```bash
-GET /evidence/{event_id}
+GET /api/health
 ```
 
 ---
 
-## 预测市场API
+## 数据来源
 
-### 获取所有预测
-```bash
-GET /predictions
-```
-
-### 获取单事件概率曲线
-```bash
-GET /predictions/{event_id}
-```
+| 来源 | 类型 | 采集频率 |
+|------|------|---------|
+| arXiv RSS (cs.AI/cs.LG/cs.CL) | 学术论文 | 每日 17:50 |
+| GitHub Trending | 开源项目 | 每日 17:50 |
+| HackerNews | 讨论热度 | 每日 08:30 |
+| Research Intake pipeline | 汇总 | 每日 17:50 + 18:00 |
 
 ---
 
-## 用户透镜
+## 部署
 
-### lens_a_stock - A股板块玩家
-- 关注: 商业航天、AI算力、机器人
-- 输出: 板块阶段 + 概率 + 驱动因子
-- 推送: 08:30 (开盘前)
-
-### lens_us_macro - 美股宏观交易员
-- 关注: 美联储利率、通胀、地缘政治
-- 输出: 事件概率 + 风险预警
-- 推送: 16:00 (收盘后)
-
-### lens_crypto_event - 币圈事件交易员
-- 关注: 政策监管、技术升级、社区情绪
-- 输出: 事件概率 + 影响币种
-- 推送: trigger (触发式)
+| 组件 | URL |
+|------|-----|
+| 前端 Dashboard | https://signal-market.pages.dev |
+| API | https://signal-market-z14d.vercel.app |
+| GitHub | https://github.com/lovezoomservice-hue/signal-market |
 
 ---
 
-## SDK使用
+## 历史文档
 
-### Python
-```python
-from signal_market import create_client
-
-client = create_client(api_key="your-key")
-
-# 获取简报
-brief = client.get_lens_brief("lens_a_stock")
-print(brief)
-
-# 获取预测
-pred = client.get_prediction("evt_iran_conflict")
-print(pred)
-
-# 健康检查
-health = client.health_check()
-print(health)
-```
-
-### JavaScript
-```javascript
-const { SignalMarket } = require('signal-market');
-
-const client = new SignalMarket({ apiKey: 'your-key' });
-
-const brief = await client.getLensBrief('lens_a_stock');
-console.log(brief);
-
-const health = await client.healthCheck();
-console.log(health);
-```
+> **原始金融市场 PRD（v0）已存档**  
+> 原始版本定义了金融市场情报产品（A股/美股/crypto/probability curve/lens），  
+> 已降级为 `docs/ARCHIVED_v0_financial_market_prd.md` 保存。  
+> 未来如有金融市场情报需求可重启该方向。
 
 ---
 
-## 阶段判定
-
-| 阶段 | 描述 | 特征 |
-|------|------|------|
-| 启动 | 早期迹象出现 | 价格开始上涨，成交量放大 |
-| 主升 | 趋势确认，加速 | 快速上涨，成交量显著放大 |
-| 震荡 | 趋势放缓 | 波动加大，出现分歧 |
-| 退潮 | 趋势结束 | 价格下跌，成交量萎缩 |
-
----
-
-## 成功指标
-
-| 指标 | 目标 |
-|------|------|
-| 接入时间 | < 5分钟 |
-| AI Agents | 1000 |
-| Brier Score | < 0.25 |
-| 延迟 | < 2秒 |
-
----
-
-## 禁止事项
-
-- ❌ 新闻摘要
-- ❌ 信息汇总
-- ❌ 复杂仪表盘
+*Last updated: 2026-03-11 | Version: 1.1 | Pivot: Financial Market → AI Frontier Intelligence*
