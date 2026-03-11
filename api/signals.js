@@ -4,14 +4,16 @@
 
 
 const REAL_SIGNALS = [
-  { topic: 'AI Agents', stage: 'emerging', confidence: 0.72, impact_score: 0.85, evidenceCount: 156, sources: ['github', 'hackernews', 'arxiv'] },
+  { topic: 'AI Agents', stage: 'accelerating', confidence: 0.90, impact_score: 0.90, evidenceCount: 160, sources: ['github', 'hackernews', 'arxiv'], proof_id: 'research-2026-03-11-gh-langflow-ai-langf', source_url: 'https://github.com/langflow-ai/langflow', category: 'AI Research' },
   { topic: 'Claude API', stage: 'accelerating', confidence: 0.89, impact_score: 0.92, evidenceCount: 89, sources: ['github', 'reddit'] },
   { topic: 'GPT-5 Rumors', stage: 'forming', confidence: 0.65, impact_score: 0.78, evidenceCount: 45, sources: ['twitter', 'news'] },
   { topic: 'GPU Shortage', stage: 'peak', confidence: 0.94, impact_score: 0.88, evidenceCount: 234, sources: ['news', 'market'] },
+  { topic: 'Diffusion Models', stage: 'accelerating', confidence: 0.77, impact_score: 0.81, evidenceCount: 2, sources: ['github'], proof_id: 'research-2026-03-11-gh-AUTOMATIC1111-sta', source_url: 'https://github.com/AUTOMATIC1111/stable-diffusion-webui', category: 'AI Research' },
   { topic: 'LangChain Alternatives', stage: 'emerging', confidence: 0.58, impact_score: 0.65, evidenceCount: 34, sources: ['github', 'reddit'] },
   { topic: 'Quantum Computing', stage: 'weak', confidence: 0.35, impact_score: 0.95, evidenceCount: 12, sources: ['arxiv'] },
   { topic: 'OpenSource AI', stage: 'accelerating', confidence: 0.81, impact_score: 0.82, evidenceCount: 167, sources: ['github', 'news'] },
-  { topic: 'Devin AI', stage: 'forming', confidence: 0.67, impact_score: 0.75, evidenceCount: 56, sources: ['twitter', 'news'] }
+  { topic: 'Devin AI', stage: 'forming', confidence: 0.67, impact_score: 0.75, evidenceCount: 56, sources: ['twitter', 'news'] },
+  { topic: 'AI Coding', stage: 'accelerating', confidence: 0.88, impact_score: 0.93, evidenceCount: 3, sources: ['github'], proof_id: 'research-2026-03-11-gh-trending-ai-code', source_url: 'https://github.com/trending?l=python', category: 'AI Research' },
 ];
 
 function calculateFeedScore(signal) {

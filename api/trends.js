@@ -74,6 +74,8 @@ export default function handler(req, res) {
       impact_score: s.impact_score,
       cross_source: s.sources.length / 6,
       evidence_count: s.evidenceCount,
+      proof_id: s.proof_id || `trend-${s.topic.toLowerCase().replace(/\s+/g,'-')}`,
+      source_url: s.source_url || null,
       sources: s.sources,
       connectivity: Math.floor(Math.random() * 3),
       first_seen: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
