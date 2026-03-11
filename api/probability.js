@@ -7,7 +7,7 @@
  *   GET /api/events/:id/probability   → probability breakdown
  */
 
-import { getSignals } from './_data.js';
+import { getUnifiedSignals } from './_unified.js';
 import { getEvidence, getFeedback, getLifecycle } from './_store.js';
 
 const STAGE_PRIORS = {
@@ -46,7 +46,7 @@ export default function handler(req, res) {
   const { id } = req.query || {};
   if (!id) return res.status(400).json({ error: 'event id required' });
 
-  const signals = getSignals();
+  const signals = getUnifiedSignals();
   const idx = parseInt((id || '').replace('evt_', ''), 10) - 1;
   if (idx < 0 || idx >= signals.length) {
     return res.status(404).json({ error: 'Event not found', id });

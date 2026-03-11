@@ -1,4 +1,4 @@
-import { REAL_SIGNALS, DATA_META } from './_data.js';
+import { getUnifiedSignals, getUnifiedMeta } from './_unified.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,26 +8,26 @@ export default function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const now         = new Date();
-  const lastUpdated = new Date(DATA_META.updated_at + 'T10:40:00Z');
+  const lastUpdated = new Date(getUnifiedMeta().updated_at + 'T10:40:00Z');
 
   // Compute from unified data
-  const byStage = REAL_SIGNALS.reduce((acc, s) => {
+  const byStage = getUnifiedSignals().reduce((acc, s) => {
     acc[s.stage] = (acc[s.stage] || 0) + 1;
     return acc;
   }, {});
 
-  const allSources = [...new Set(REAL_SIGNALS.flatMap(s => s.sources))];
-  const total = REAL_SIGNALS.length;
+  const allSources = [...new Set(getUnifiedSignals().flatMap(s => s.sources))];
+  const total = getUnifiedSignals().length;
 
   return res.status(200).json({
     signals: {
       total,
-      active:   REAL_SIGNALS.filter(s => s.stage !== 'dead').length,
+      active:   getUnifiedSignals().filter(s => s.stage !== 'dead').length,
       by_stage: byStage,
     },
     topics: {
       total,
-      categories: [...new Set(REAL_SIGNALS.map(s => s.category))].length,
+      categories: [...new Set(getUnifiedSignals().map(s => s.category))].length,
     },
     sources: {
       total:  allSources.length,
@@ -42,7 +42,7 @@ export default function handler(req, res) {
       last_updated: lastUpdated.toISOString(),
       age_hours:    Math.round((now - lastUpdated) / 3600000),
       status:       (now - lastUpdated) < 48 * 3600000 ? 'fresh' : 'stale',
-      inputs_hash:  DATA_META.inputs_hash,
+      inputs_hash:  getUnifiedMeta().inputs_hash,
     },
     api_version: 'v4',
     timestamp:   now.toISOString(),

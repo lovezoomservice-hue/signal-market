@@ -9,7 +9,7 @@
  */
 
 import crypto from 'crypto';
-import { getSignals } from './_data.js';
+import { getUnifiedSignals } from './_unified.js';
 import {
   getEvaluations, saveEvaluation,
   getFeedback, getEvidence, getLifecycle,
@@ -20,7 +20,7 @@ import {
 const EVAL_TYPES = ['signal_quality', 'candidate_readiness', 'data_freshness', 'coverage'];
 
 function runEvalLogic(eval_type, signal_id, dataset_snapshot) {
-  const signals = getSignals();
+  const signals = getUnifiedSignals();
   const signal  = signal_id ? signals.find((s,i) => `evt_${String(i+1).padStart(3,'0')}` === signal_id) : null;
 
   const checks = [];
@@ -51,7 +51,7 @@ function runEvalLogic(eval_type, signal_id, dataset_snapshot) {
 
   } else if (eval_type === 'data_freshness') {
     const today = new Date().toISOString().split('T')[0];
-    const allSigs = getSignals();
+    const allSigs = getUnifiedSignals();
     const fresh = allSigs.filter(s => s.first_seen >= today.substring(0, 7)); // same month
     checks.push({ check: 'has_fresh_signals', result: fresh.length >= 1, weight: 1.0 });
     checks.push({ check: 'signal_count>=5',   result: allSigs.length >= 5, weight: 0.8 });
@@ -59,7 +59,7 @@ function runEvalLogic(eval_type, signal_id, dataset_snapshot) {
 
   } else {
     // coverage
-    const allSigs = getSignals();
+    const allSigs = getUnifiedSignals();
     checks.push({ check: 'coverage>=5', result: allSigs.length >= 5, weight: 1.0 });
     pass_gate = allSigs.length >= 5;
   }

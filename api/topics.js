@@ -1,6 +1,5 @@
 // deployed: 2026-03-11T12:20
-import { getTopics, getLiveMeta } from './_live_data.js';
-import { REAL_SIGNALS, DATA_META } from './_data.js';
+import { getUnifiedTopics, getUnifiedSignals, getUnifiedMeta } from './_unified.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,14 +7,14 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const topics = getTopics();
-  const stages = [...new Set(REAL_SIGNALS.map(s => s.stage))];
+  const topics = getUnifiedTopics();
+  const stages = [...new Set(getUnifiedSignals().map(s => s.stage))];
 
   return res.status(200).json({
     topics,
     count:       topics.length,
     stages,
-    updated_at:  DATA_META.updated_at,
-    inputs_hash: DATA_META.inputs_hash,
+    updated_at:  getUnifiedMeta().updated_at,
+    inputs_hash: getUnifiedMeta().inputs_hash,
   });
 }

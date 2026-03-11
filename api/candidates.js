@@ -16,7 +16,7 @@
  */
 
 import crypto from 'crypto';
-import { getSignals, DATA_META } from './_data.js';
+import { getUnifiedSignals, getUnifiedMeta } from './_unified.js';
 import { getCandidates, saveCandidate, loadStore, saveStore, emitAudit } from './_store.js';
 
 function loadPool() {
@@ -70,7 +70,7 @@ export default function handler(req, res) {
       candidates,
       summary,
       pool_updated_at: pool.created_at,
-      data_updated_at: DATA_META.updated_at,
+      data_updated_at: getUnifiedMeta().updated_at,
     });
   }
 
@@ -80,7 +80,7 @@ export default function handler(req, res) {
     const { signal_topic, signal_id, nominator = 'system', reason = '' } = body;
 
     // Find signal by topic or id
-    const signals = getSignals();
+    const signals = getUnifiedSignals();
     const signal = signal_topic
       ? signals.find(s => s.topic.toLowerCase() === signal_topic.toLowerCase())
       : signals.find((s, i) => `evt_${String(i+1).padStart(3,'0')}` === signal_id);

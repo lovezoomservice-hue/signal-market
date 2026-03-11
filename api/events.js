@@ -1,5 +1,4 @@
-import { getEvents, getEvent, getLiveMeta } from './_live_data.js';
-import { DATA_META } from './_data.js';
+import { getUnifiedEvents, getUnifiedEvent, getUnifiedMeta } from './_unified.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,16 +10,16 @@ export default function handler(req, res) {
   const { id, topic, limit } = req.query || {};
 
   if (id) {
-    const event = getEvent(id);
+    const event = getUnifiedEvent(id);
     if (!event) return res.status(404).json({ error: 'Event not found', event_id: id });
     return res.status(200).json(event);
   }
 
-  const events = getEvents({ topic, limit });
+  const events = getUnifiedEvents({ topic, limit });
   return res.status(200).json({
     events,
     count:      events.length,
-    updated_at: DATA_META.updated_at,
-    inputs_hash: DATA_META.inputs_hash,
+    updated_at: getUnifiedMeta().updated_at,
+    inputs_hash: getUnifiedMeta().inputs_hash,
   });
 }

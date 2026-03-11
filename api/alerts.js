@@ -4,7 +4,7 @@
  * FIX: pure ESM, no require(), no unused imports
  */
 
-import { getSignals, DATA_META } from './_data.js';
+import { getUnifiedSignals, getUnifiedMeta } from './_unified.js';
 
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -12,7 +12,7 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const signals = getSignals();
+  const signals = getUnifiedSignals();
 
   // Auto-alerts: accelerating signals confidence > 0.9
   const alerts = signals
@@ -31,7 +31,7 @@ export default function handler(req, res) {
   return res.status(200).json({
     alerts,
     count:      alerts.length,
-    updated_at: DATA_META.updated_at,
-    inputs_hash: DATA_META.inputs_hash,
+    updated_at: getUnifiedMeta().updated_at,
+    inputs_hash: getUnifiedMeta().inputs_hash,
   });
 }

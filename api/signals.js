@@ -13,7 +13,7 @@
  */
 
 import crypto from 'crypto';
-import { getLiveSignals, getLiveMeta } from './_live_data.js';
+import { getUnifiedSignals, getUnifiedSignal, getUnifiedMeta } from './_unified.js';
 import {
   getEvidence, appendEvidence,
   getLifecycle, saveLifecycle,
@@ -23,10 +23,7 @@ import {
 } from './_store.js';
 
 function getSignalById(id) {
-  const signals = getLiveSignals();
-  const idx = parseInt((id||'').replace('evt_',''), 10) - 1;
-  if (idx >= 0 && idx < signals.length) return { ...signals[idx], signal_id: id };
-  return signals.find(s => s.topic.toLowerCase().replace(/\s+/g,'-') === id) || null;
+  return getUnifiedSignal(id);
 }
 
 // Compute/seed lifecycle state
@@ -39,7 +36,7 @@ function seedLifecycle(id, signal) {
                      signal.stage === 'forming' ? 'pending_evidence' :
                      signal.stage === 'fading'  ? 'decaying' : 'new',
     evidence_count: signal.evidenceCount || 0,
-    last_updated:   getLiveMeta().updated_at,
+    last_updated:   getUnifiedMeta().updated_at,
     transitions:    [],
   };
   saveLifecycle(id, lc);
@@ -57,19 +54,9 @@ export default function handler(req, res) {
 
   // ── LIST /api/signals ────────────────────────────────────────────────────
   if (!id) {
-    const baseSignals = getLiveSignals();
-    const meta = getLiveMeta();
-    // P3-2: merge runtime evidence counts (authoritative over static evidenceCount)
-    const signals = baseSignals.map((s, i) => {
-      const sig_id = `evt_${String(i + 1).padStart(3, '0')}`;
-      const runtimeEvidence = getEvidence(sig_id);
-      const runtimeCount = runtimeEvidence?.length || 0;
-      return {
-        ...s,
-        evidenceCount: runtimeCount > 0 ? runtimeCount : (s.evidenceCount || 0),
-        evidence_source: runtimeCount > 0 ? 'runtime' : 'static',
-      };
-    });
+    const baseSignals = getUnifiedSignals();
+    const meta = getUnifiedMeta();
+    const signals = baseSignals; // P4: evidence already merged in _unified.js
     return res.status(200).json({
       signals,
       count:       signals.length,
@@ -280,6 +267,6 @@ export default function handler(req, res) {
     last_evidence_at:  lc?.last_evidence_at || null,
     feedback_count:    feedbacks.length,
     quality_score:     qs,
-    updated_at:        DATA_META.updated_at,
+    updated_at:        getUnifiedMeta().updated_at,
   });
 }

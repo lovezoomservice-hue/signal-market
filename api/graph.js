@@ -11,7 +11,7 @@
  *   GET /api/graph/stats          → graph statistics
  */
 
-import { getSignals } from './_data.js';
+import { getUnifiedSignals } from './_unified.js';
 import { getEvidence, getLifecycle } from './_store.js';
 
 function buildGraph(signals, filter_topic = null) {
@@ -133,7 +133,7 @@ export default function handler(req, res) {
 
   const { id, topic } = req.query || {};
 
-  const signals = getSignals();
+  const signals = getUnifiedSignals();
 
   // ── GET /api/graph/stats ─────────────────────────────────────
   if (id === 'stats') {
