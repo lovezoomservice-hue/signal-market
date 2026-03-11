@@ -12,6 +12,22 @@
   ],
   "routes": [
     {
+      "src": "/api/topics/(.+)/stage",
+      "dest": "/api/topics/index.js?id=$1&action=stage"
+    },
+    {
+      "src": "/api/topics/(.+)",
+      "dest": "/api/topics/index.js?id=$1"
+    },
+    {
+      "src": "/api/events/(.+)",
+      "dest": "/api/events/index.js?id=$1"
+    },
+    {
+      "src": "/api/watchlist/triggers",
+      "dest": "/api/watchlist.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
     },
