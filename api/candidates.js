@@ -15,20 +15,17 @@
  *   POST /api/candidates/:id/reject   → reject candidate
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
 import crypto from 'crypto';
 import { getSignals, DATA_META } from './_data.js';
-
-const POOL_FILE = '/tmp/sm_candidate_pool.json';
+import { getCandidates, saveCandidate, loadStore, saveStore, emitAudit } from './_store.js';
 
 function loadPool() {
-  try {
-    if (existsSync(POOL_FILE)) return JSON.parse(readFileSync(POOL_FILE, 'utf8'));
-  } catch {}
-  return { candidates: {}, created_at: new Date().toISOString() };
+  const cands = getCandidates();
+  return { candidates: cands, created_at: new Date().toISOString() };
 }
 function savePool(pool) {
-  try { writeFileSync(POOL_FILE, JSON.stringify(pool, null, 2)); } catch {}
+  // Persist each candidate individually via _store
+  Object.entries(pool.candidates || {}).forEach(([id, cand]) => saveCandidate(id, cand));
 }
 
 // Minimum quality check
@@ -116,6 +113,10 @@ export default function handler(req, res) {
     pool.candidates[candidate_id] = candidate;
     savePool(pool);
 
+    const trace_id = 'tr_' + crypto.randomBytes(8).toString('hex');
+    emitAudit({ trace_id, action: 'candidate_nominated', signal_id: null, actor: nominator,
+      payload: { candidate_id, signal_topic: signal.topic, gate: qc.gate, score: qc.score } });
+
     return res.status(201).json({
       candidate_id,
       signal_topic:  signal.topic,
@@ -143,11 +144,18 @@ export default function handler(req, res) {
     pool.candidates[id].status = 'promoted';
     pool.candidates[id].promoted_at = new Date().toISOString();
     savePool(pool);
+
+    const trace_id_p = 'tr_' + crypto.randomBytes(8).toString('hex');
+    emitAudit({ trace_id: trace_id_p, action: 'candidate_promoted', signal_id: null,
+      actor: req.body?.actor || 'system',
+      payload: { candidate_id: id, signal_topic: candidate.signal_topic } });
+
     return res.status(200).json({
       candidate_id: id,
       status: 'promoted',
       signal_topic: candidate.signal_topic,
       promoted_at: pool.candidates[id].promoted_at,
+      trace_id: trace_id_p,
     });
   }
 

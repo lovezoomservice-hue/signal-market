@@ -12,6 +12,102 @@
   ],
   "routes": [
     {
+      "src": "/api/signals/(.+)/feedback/(.+)/correct",
+      "dest": "/api/signals.js?id=$1&action=correct&fid=$2"
+    },
+    {
+      "src": "/api/signals/(.+)/feedback",
+      "dest": "/api/signals.js?id=$1&action=feedback"
+    },
+    {
+      "src": "/api/signals/(.+)/evidence",
+      "dest": "/api/signals.js?id=$1&action=evidence"
+    },
+    {
+      "src": "/api/signals/(.+)/lifecycle",
+      "dest": "/api/signals.js?id=$1&action=lifecycle"
+    },
+    {
+      "src": "/api/signals/(.+)",
+      "dest": "/api/signals.js?id=$1"
+    },
+    {
+      "src": "/api/signals",
+      "dest": "/api/signals.js"
+    },
+    {
+      "src": "/api/eval/run",
+      "dest": "/api/eval.js?id=run"
+    },
+    {
+      "src": "/api/eval/(.+)/approve",
+      "dest": "/api/eval.js?id=$1&action=approve"
+    },
+    {
+      "src": "/api/eval/(.+)",
+      "dest": "/api/eval.js?id=$1"
+    },
+    {
+      "src": "/api/eval",
+      "dest": "/api/eval.js"
+    },
+    {
+      "src": "/api/releases/(.+)/rollback",
+      "dest": "/api/releases.js?id=$1&action=rollback"
+    },
+    {
+      "src": "/api/releases/(.+)/activate",
+      "dest": "/api/releases.js?id=$1&action=activate"
+    },
+    {
+      "src": "/api/releases/(.+)/rollbacks",
+      "dest": "/api/releases.js?id=$1&action=rollbacks"
+    },
+    {
+      "src": "/api/releases/(.+)",
+      "dest": "/api/releases.js?id=$1"
+    },
+    {
+      "src": "/api/releases",
+      "dest": "/api/releases.js"
+    },
+    {
+      "src": "/api/audit/trace/(.+)",
+      "dest": "/api/audit.js?id=trace&action=$1"
+    },
+    {
+      "src": "/api/audit/signal/(.+)",
+      "dest": "/api/audit.js?id=signal&action=$1"
+    },
+    {
+      "src": "/api/audit",
+      "dest": "/api/audit.js"
+    },
+    {
+      "src": "/api/approvals/(.+)",
+      "dest": "/api/approvals.js?id=$1"
+    },
+    {
+      "src": "/api/approvals",
+      "dest": "/api/approvals.js"
+    },
+    {
+      "src": "/api/candidates/(.+)/promote",
+      "dest": "/api/candidates.js?id=$1&action=promote"
+    },
+    {
+      "src": "/api/candidates/(.+)/reject",
+      "dest": "/api/candidates.js?id=$1&action=reject"
+    },
+    {
+      "src": "/api/candidates/(.+)",
+      "dest": "/api/candidates.js?id=$1"
+    },
+    {
+      "src": "/api/candidates",
+      "dest": "/api/candidates.js"
+    },
+    {
       "src": "/api/auth/(register|login|me|keys)",
       "dest": "/api/auth/index.js"
     },
@@ -42,30 +138,6 @@
     {
       "src": "/api/watchlist/triggers",
       "dest": "/api/watchlist.js"
-    },
-    {
-      "src": "/api/signals/(.+)/evidence",
-      "dest": "/api/signals.js?id=$1&action=evidence"
-    },
-    {
-      "src": "/api/signals/(.+)/lifecycle",
-      "dest": "/api/signals.js?id=$1&action=lifecycle"
-    },
-    {
-      "src": "/api/signals/(.+)",
-      "dest": "/api/signals.js?id=$1"
-    },
-    {
-      "src": "/api/candidates/(.+)/promote",
-      "dest": "/api/candidates.js?id=$1&action=promote"
-    },
-    {
-      "src": "/api/candidates/(.+)/reject",
-      "dest": "/api/candidates.js?id=$1&action=reject"
-    },
-    {
-      "src": "/api/candidates/(.+)",
-      "dest": "/api/candidates.js?id=$1"
     },
     {
       "src": "/api/(.*)",

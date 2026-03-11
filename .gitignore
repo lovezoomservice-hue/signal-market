@@ -7,9 +7,8 @@ dist/
 tmp/
 .DS_Store
 config/
-data/
 output/
 # .github/ - kept for workflows
 .wrangler/
 .vercel
-!data/auth_store.json
+data/runtime/*.json

@@ -1,0 +1,44 @@
+{
+  "free": {
+    "name": "Free",
+    "price": 0,
+    "requestsPerDay": 100,
+    "features": [
+      "基础事件",
+      "每日简报",
+      "Email支持"
+    ]
+  },
+  "basic": {
+    "name": "Basic",
+    "price": 9.99,
+    "requestsPerDay": 1000,
+    "features": [
+      "完整事件",
+      "实时推送",
+      "优先级支持"
+    ]
+  },
+  "pro": {
+    "name": "Pro",
+    "price": 49.99,
+    "requestsPerDay": 10000,
+    "features": [
+      "预测曲线",
+      "自定义透镜",
+      "API访问",
+      "Slack集成"
+    ]
+  },
+  "enterprise": {
+    "name": "Enterprise",
+    "price": 299.99,
+    "requestsPerDay": null,
+    "features": [
+      "无限量",
+      "专属客服",
+      "SLA保证",
+      "定制开发"
+    ]
+  }
+}
