@@ -40,6 +40,18 @@
     {
       "src": "status.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "signup.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "signin.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "dashboard.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -226,6 +238,18 @@
     {
       "src": "/status",
       "dest": "/status.html"
+    },
+    {
+      "src": "/dashboard",
+      "dest": "/dashboard.html"
+    },
+    {
+      "src": "/signin",
+      "dest": "/signin.html"
+    },
+    {
+      "src": "/signup",
+      "dest": "/signup.html"
     },
     {
       "src": "/api/(.*)",

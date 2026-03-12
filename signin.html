@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--space-6); }
+    .auth-wrap { width: 100%; max-width: 420px; }
+    .auth-logo { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-8); text-decoration: none; }
+    .auth-logo-dot { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,var(--brand),#1a5fa8); display: flex; align-items: center; justify-content: center; }
+    .auth-logo-name { font-weight: 700; font-size: var(--text-base); }
+    .auth-card { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); padding: var(--space-8); }
+    .auth-title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-1); }
+    .auth-sub { font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .tabs { display: flex; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 3px; margin-bottom: var(--space-6); gap: 3px; }
+    .tab { flex: 1; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); border: none; background: transparent; color: var(--text-secondary); font-size: var(--text-sm); cursor: pointer; transition: all .15s; font-family: inherit; }
+    .tab.active { background: rgba(255,255,255,0.08); color: var(--text-primary); font-weight: 500; }
+    .field { margin-bottom: var(--space-4); }
+    .field label { display: block; font-size: var(--text-xs); font-weight: 500; color: var(--text-secondary); margin-bottom: var(--space-2); text-transform: uppercase; letter-spacing: 0.06em; }
+    .field input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); color: var(--text-primary); font-family: inherit; transition: border-color .15s; box-sizing: border-box; }
+    .field input:focus { outline: none; border-color: var(--brand); }
+    .field input::placeholder { color: var(--text-tertiary); }
+    .submit-btn { width: 100%; padding: var(--space-3) var(--space-4); background: var(--brand); color: white; border: none; border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: opacity .15s; margin-top: var(--space-2); }
+    .submit-btn:hover:not(:disabled) { opacity: 0.88; }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .msg-box { display: none; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+    .msg-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; display: block; }
+    .msg-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #4ade80; display: block; }
+    .auth-footer { margin-top: var(--space-5); text-align: center; font-size: var(--text-xs); color: var(--text-tertiary); }
+    .auth-footer a { color: var(--brand); text-decoration: none; }
+    .divider { height: 1px; background: var(--border-subtle); margin: var(--space-4) 0; }
+  </style>
+</head>
+<body>
+<div class="auth-wrap">
+  <a href="/" class="auth-logo">
+    <div class="auth-logo-dot">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="auth-logo-name">Signal Market</span>
+  </a>
+
+  <div class="auth-card">
+    <div class="auth-title">Sign in</div>
+    <div class="auth-sub">Access your API key and account dashboard.</div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-email" onclick="switchTab('email')">Email</button>
+      <button class="tab" id="tab-key" onclick="switchTab('key')">API Key</button>
+    </div>
+
+    <div id="msg" class="msg-box"></div>
+
+    <!-- Email tab -->
+    <div id="pane-email">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="signin-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <button class="submit-btn" id="email-btn" onclick="signinEmail()">Send access link →</button>
+      <div style="margin-top:var(--space-3);font-size:var(--text-xs);color:var(--text-tertiary)">
+        We'll look up your API key by email and show it to you.
+      </div>
+    </div>
+
+    <!-- API Key tab -->
+    <div id="pane-key" style="display:none">
+      <div class="field">
+        <label>API Key</label>
+        <input type="text" id="signin-key" placeholder="sm_xxxxxxxxxx" autocomplete="off" style="font-family:var(--font-mono)">
+      </div>
+      <button class="submit-btn" id="key-btn" onclick="signinKey()">Sign in with key →</button>
+    </div>
+
+    <div class="divider"></div>
+    <div class="auth-footer">
+      No account? <a href="/signup">Get free API key →</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab) {
+  document.getElementById('tab-email').classList.toggle('active', tab === 'email');
+  document.getElementById('tab-key').classList.toggle('active', tab === 'key');
+  document.getElementById('pane-email').style.display = tab === 'email' ? '' : 'none';
+  document.getElementById('pane-key').style.display = tab === 'key' ? '' : 'none';
+  clearMsg();
+}
+
+function clearMsg() {
+  const el = document.getElementById('msg');
+  el.className = 'msg-box';
+  el.textContent = '';
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.className = 'msg-box msg-' + type;
+  el.textContent = text;
+}
+
+async function signinEmail() {
+  const email = document.getElementById('signin-email').value.trim();
+  if (!email) { showMsg('Email is required.', 'error'); return; }
+
+  const btn = document.getElementById('email-btn');
+  btn.disabled = true; btn.textContent = 'Looking up...';
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showMsg(data.error || 'Account not found. Did you register?', 'error');
+    } else if (data.api_key) {
+      localStorage.setItem('sm_api_key', data.api_key);
+      localStorage.setItem('sm_email', email);
+      showMsg('Found your account! Redirecting to dashboard...', 'success');
+      setTimeout(() => window.location.href = '/dashboard', 1200);
+    } else {
+      // Login found user but key not in response — check plans
+      showMsg(data.message || 'Check your email for your access key.', 'success');
+    }
+  } catch (e) {
+    showMsg('Network error. Please try again.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send access link →';
+  }
+}
+
+async function signinKey() {
+  const key = document.getElementById('signin-key').value.trim();
+  if (!key) { showMsg('API key is required.', 'error'); return; }
+  if (!key.startsWith('sm_')) { showMsg('API keys start with sm_', 'error'); return; }
+
+  const btn = document.getElementById('key-btn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+
+  try {
+    const res = await fetch('/api/auth/me', { headers: { 'x-api-key': key } });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showMsg(data.error || 'Invalid API key.', 'error');
+    } else {
+      localStorage.setItem('sm_api_key', key);
+      localStorage.setItem('sm_email', data.email || '');
+      showMsg('Key verified! Redirecting...', 'success');
+      setTimeout(() => window.location.href = '/dashboard', 1000);
+    }
+  } catch (e) {
+    showMsg('Network error. Please try again.', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Sign in with key →';
+  }
+}
+
+// If already signed in
+const storedKey = localStorage.getItem('sm_api_key');
+if (storedKey) {
+  fetch('/api/auth/me', { headers: { 'x-api-key': storedKey } })
+    .then(r => r.ok ? window.location.href = '/dashboard' : null)
+    .catch(() => {});
+}
+</script>
+</body>
+</html>

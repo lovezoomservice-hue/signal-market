@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Get Started — Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    body { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--space-6); }
+    .auth-wrap { width: 100%; max-width: 440px; }
+    .auth-logo { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-8); text-decoration: none; }
+    .auth-logo-dot { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg,var(--brand),#1a5fa8); display: flex; align-items: center; justify-content: center; }
+    .auth-logo-name { font-weight: 700; font-size: var(--text-base); }
+    .auth-card { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-2xl); padding: var(--space-8); }
+    .auth-title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-1); }
+    .auth-sub { font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-6); }
+    .plan-pills { display: flex; gap: var(--space-2); margin-bottom: var(--space-6); }
+    .plan-pill { flex: 1; padding: var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); cursor: pointer; text-align: center; transition: all .15s; background: transparent; color: var(--text-primary); }
+    .plan-pill:hover { border-color: rgba(255,255,255,0.15); }
+    .plan-pill.active { border-color: var(--brand); background: rgba(45,125,210,0.1); }
+    .plan-pill-name { font-size: var(--text-sm); font-weight: 600; margin-bottom: 2px; }
+    .plan-pill-price { font-family: var(--font-mono); font-size: 10px; color: var(--text-tertiary); }
+    .field { margin-bottom: var(--space-4); }
+    .field label { display: block; font-size: var(--text-xs); font-weight: 500; color: var(--text-secondary); margin-bottom: var(--space-2); text-transform: uppercase; letter-spacing: 0.06em; }
+    .field input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); color: var(--text-primary); font-family: inherit; transition: border-color .15s; box-sizing: border-box; }
+    .field input:focus { outline: none; border-color: var(--brand); }
+    .field input::placeholder { color: var(--text-tertiary); }
+    .submit-btn { width: 100%; padding: var(--space-3) var(--space-4); background: var(--brand); color: white; border: none; border-radius: var(--radius-md); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: opacity .15s; margin-top: var(--space-2); }
+    .submit-btn:hover:not(:disabled) { opacity: 0.88; }
+    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .auth-footer { margin-top: var(--space-5); text-align: center; font-size: var(--text-xs); color: var(--text-tertiary); }
+    .auth-footer a { color: var(--brand); text-decoration: none; }
+    .msg-box { display: none; padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+    .msg-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: #f87171; display: block; }
+    .msg-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #4ade80; display: block; }
+    .key-reveal { display: none; }
+    .key-reveal.show { display: block; }
+    .key-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(34,197,94,0.3); border-radius: var(--radius-md); padding: var(--space-4); margin: var(--space-4) 0; }
+    .key-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-2); }
+    .key-value { font-family: var(--font-mono); font-size: var(--text-xs); color: #4ade80; word-break: break-all; line-height: 1.6; }
+    .key-warn { font-size: 10px; color: var(--text-tertiary); margin-top: var(--space-2); }
+    .copy-btn { width: 100%; padding: var(--space-2); background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2); border-radius: var(--radius-md); color: #4ade80; font-size: var(--text-xs); cursor: pointer; margin-top: var(--space-3); font-family: var(--font-mono); transition: background .15s; }
+    .copy-btn:hover { background: rgba(34,197,94,0.18); }
+    .divider { height: 1px; background: var(--border-subtle); margin: var(--space-4) 0; }
+  </style>
+</head>
+<body>
+<div class="auth-wrap">
+  <a href="/" class="auth-logo">
+    <div class="auth-logo-dot">
+      <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span class="auth-logo-name">Signal Market</span>
+  </a>
+
+  <div class="auth-card">
+    <!-- Registration form -->
+    <div id="reg-form">
+      <div class="auth-title">Get your API key</div>
+      <div class="auth-sub">Start detecting emerging technology signals. Free tier, no credit card needed.</div>
+
+      <div class="plan-pills" id="plan-pills">
+        <button class="plan-pill active" data-plan="free" onclick="selectPlan('free',this)">
+          <div class="plan-pill-name">Free</div>
+          <div class="plan-pill-price">100 req/day</div>
+        </button>
+        <button class="plan-pill" data-plan="basic" onclick="selectPlan('basic',this)">
+          <div class="plan-pill-name">Basic</div>
+          <div class="plan-pill-price">$9.99/mo</div>
+        </button>
+        <button class="plan-pill" data-plan="pro" onclick="selectPlan('pro',this)">
+          <div class="plan-pill-name">Pro</div>
+          <div class="plan-pill-price">$49.99/mo</div>
+        </button>
+      </div>
+
+      <div id="msg" class="msg-box"></div>
+
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Name <span style="color:var(--text-tertiary);font-weight:400">(optional)</span></label>
+        <input type="text" id="name" placeholder="Your name">
+      </div>
+
+      <button class="submit-btn" id="submit-btn" onclick="register()">Create free account →</button>
+
+      <div class="divider"></div>
+      <div class="auth-footer">
+        Already have a key? <a href="/signin">Sign in</a> · 
+        <a href="/pricing">View pricing</a>
+      </div>
+    </div>
+
+    <!-- Key reveal (shown after registration) -->
+    <div class="key-reveal" id="key-reveal">
+      <div class="auth-title" style="color:#4ade80">✓ Account created</div>
+      <div class="auth-sub">Your API key is ready. Save it somewhere safe — it won't be shown again.</div>
+
+      <div class="key-box">
+        <div class="key-label">Your API key</div>
+        <div class="key-value" id="key-display"></div>
+        <div class="key-warn">Copy this key now. For security it won't be shown again.</div>
+      </div>
+
+      <button class="copy-btn" id="copy-btn" onclick="copyKey()">Copy key to clipboard</button>
+
+      <div style="margin-top:var(--space-5)">
+        <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-3)">Use it in API calls:</div>
+        <div style="background:rgba(0,0,0,0.3);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);font-family:var(--font-mono);font-size:10px;color:#a3e635;line-height:1.8">
+          curl https://api.signal-market.com/api/signals \<br>
+          &nbsp;&nbsp;-H "x-api-key: <span id="key-inline"></span>"
+        </div>
+      </div>
+
+      <div style="margin-top:var(--space-5);display:flex;gap:var(--space-3)">
+        <a href="/signals" style="flex:1;text-align:center;padding:var(--space-3);background:var(--brand);color:white;border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-sm);font-weight:600">Explore signals →</a>
+        <a href="/api" style="flex:1;text-align:center;padding:var(--space-3);background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border-subtle);border-radius:var(--radius-md);text-decoration:none;font-size:var(--text-sm)">API docs</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedPlan = 'free';
+let generatedKey = '';
+
+function selectPlan(plan, el) {
+  selectedPlan = plan;
+  document.querySelectorAll('.plan-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const btn = document.getElementById('submit-btn');
+  btn.textContent = plan === 'free' ? 'Create free account →' : `Start ${plan} plan →`;
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  el.className = 'msg-box msg-' + type;
+  el.textContent = text;
+}
+
+async function register() {
+  const email = document.getElementById('email').value.trim();
+  const name = document.getElementById('name').value.trim();
+  if (!email) { showMsg('Email is required.', 'error'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Creating account...';
+
+  try {
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name, plan: selectedPlan }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      showMsg(data.error || 'Registration failed. Please try again.', 'error');
+      btn.disabled = false;
+      btn.textContent = 'Create free account →';
+      return;
+    }
+
+    // Success — show key
+    generatedKey = data.api_key;
+    localStorage.setItem('sm_api_key', generatedKey);
+    localStorage.setItem('sm_email', email);
+    document.getElementById('key-display').textContent = generatedKey;
+    document.getElementById('key-inline').textContent = generatedKey;
+    document.getElementById('reg-form').style.display = 'none';
+    document.getElementById('key-reveal').classList.add('show');
+
+  } catch (e) {
+    showMsg('Network error. Is the server running?', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Create free account →';
+  }
+}
+
+function copyKey() {
+  navigator.clipboard.writeText(generatedKey).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => { btn.textContent = 'Copy key to clipboard'; }, 2000);
+  });
+}
+
+// If already signed in, go to dashboard
+if (localStorage.getItem('sm_api_key')) {
+  // Check if it's valid
+  fetch('/api/auth/me', { headers: { 'x-api-key': localStorage.getItem('sm_api_key') } })
+    .then(r => r.ok ? window.location.href = '/dashboard' : null)
+    .catch(() => {});
+}
+
+// Plan from URL param
+const urlPlan = new URLSearchParams(location.search).get('plan');
+if (urlPlan && ['basic','pro'].includes(urlPlan)) {
+  selectPlan(urlPlan, document.querySelector(`[data-plan="${urlPlan}"]`));
+}
+</script>
+</body>
+</html>

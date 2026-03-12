@@ -114,6 +114,26 @@ function handleMe(req, res) {
   });
 }
 
+function handleLogin(req, res) {
+  const body = req.body || {};
+  const { email } = body;
+  if (!email) return res.status(400).json({ error: 'email required' });
+
+  const store = getStore();
+  const user = Object.values(store.users).find(u => u.email === email);
+  if (!user) return res.status(404).json({ error: 'No account found for this email. Did you register?' });
+
+  const keyObj = Object.values(store.api_keys).find(k => k.userId === user.userId);
+  return res.status(200).json({
+    message:   'Welcome back',
+    api_key:   keyObj?.key,
+    user_id:   user.userId,
+    email:     user.email,
+    plan:      user.plan,
+    plan_info: PLANS[user.plan] || PLANS.free,
+  });
+}
+
 function handleRotate(req, res) {
   const apiKey = req.headers['x-api-key'];
   if (!apiKey) return res.status(401).json({ error: 'x-api-key required' });
@@ -153,6 +173,7 @@ export default function handler(req, res) {
   const action = req.query?.action || (req.url || '').split('/').pop();
 
   if (req.method === 'POST' && action === 'register') return handleRegister(req, res);
+  if (req.method === 'POST' && action === 'login')    return handleLogin(req, res);
   if (req.method === 'GET'  && action === 'me')        return handleMe(req, res);
   if (req.method === 'POST' && action === 'rotate')    return handleRotate(req, res);
   return handleInfo(req, res);

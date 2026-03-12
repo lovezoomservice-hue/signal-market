@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .dash-layout { max-width: 960px; margin: 0 auto; padding: 0 var(--space-8) var(--space-16); }
+    .dash-header { padding: var(--space-10) 0 var(--space-6); display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .dash-title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; }
+    .dash-sub { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-1); }
+
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); margin-bottom: var(--space-6); }
+    .dash-card { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-5); }
+    .dc-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-2); }
+    .dc-value { font-size: var(--text-2xl); font-weight: 700; font-family: var(--font-mono); margin-bottom: var(--space-1); }
+    .dc-note { font-size: var(--text-xs); color: var(--text-tertiary); }
+
+    .section-title { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-4); }
+
+    /* API Key block */
+    .key-block { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-6); }
+    .key-row { display: flex; align-items: center; gap: var(--space-3); }
+    .key-val { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-primary); flex: 1; word-break: break-all; }
+    .key-val.masked { color: var(--text-tertiary); letter-spacing: 0.1em; }
+    .key-actions { display: flex; gap: var(--space-2); flex-shrink: 0; }
+    .key-btn { padding: var(--space-2) var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); font-size: var(--text-xs); cursor: pointer; transition: all .15s; font-family: inherit; white-space: nowrap; }
+    .key-btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
+
+    /* Quick start */
+    .quickstart { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-6); }
+    .qs-tabs { display: flex; gap: var(--space-2); margin-bottom: var(--space-4); }
+    .qs-tab { padding: var(--space-1) var(--space-3); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); background: transparent; color: var(--text-secondary); font-size: var(--text-xs); cursor: pointer; font-family: var(--font-mono); transition: all .15s; }
+    .qs-tab.active { background: rgba(45,125,210,0.1); border-color: rgba(45,125,210,0.3); color: var(--brand); }
+    .code-block { background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-4); font-family: var(--font-mono); font-size: 11px; color: #e2e8f0; line-height: 1.8; overflow-x: auto; white-space: pre; }
+    .code-comment { color: #64748b; }
+    .code-string { color: #a3e635; }
+    .code-key { color: #60a5fa; }
+
+    /* Plan card */
+    .plan-card { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-6); display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .plan-info { display: flex; align-items: center; gap: var(--space-4); }
+    .plan-badge { padding: var(--space-1) var(--space-3); background: rgba(45,125,210,0.12); border: 1px solid rgba(45,125,210,0.25); border-radius: 99px; font-size: var(--text-xs); font-family: var(--font-mono); color: var(--brand); font-weight: 600; text-transform: uppercase; }
+    .plan-name { font-weight: 600; }
+    .plan-limit { font-size: var(--text-xs); color: var(--text-secondary); }
+
+    /* Logout */
+    .logout-btn { background: transparent; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); font-size: var(--text-sm); color: var(--text-tertiary); cursor: pointer; transition: all .15s; font-family: inherit; }
+    .logout-btn:hover { color: #f87171; border-color: rgba(239,68,68,0.3); }
+
+    @media (max-width: 640px) {
+      .dash-grid { grid-template-columns: 1fr; }
+      .key-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);">Signal Market</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:var(--space-4);">
+      <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Signals</a>
+      <a href="/api" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">API Docs</a>
+      <span id="user-email" style="font-size:var(--text-xs);color:var(--text-tertiary);font-family:var(--font-mono);"></span>
+      <button class="logout-btn" onclick="signout()">Sign out</button>
+    </div>
+  </div>
+</nav>
+
+<div class="dash-layout" id="dash-root">
+  <div style="padding:var(--space-10);text-align:center;color:var(--text-tertiary)">Loading your dashboard...</div>
+</div>
+
+<script>
+const API_KEY = localStorage.getItem('sm_api_key');
+if (!API_KEY) { window.location.href = '/signin'; }
+
+const SNIPPETS = {
+  curl: (key) => `<span class="code-comment"># Get all signals</span>
+curl https://api.signal-market.com/api/signals \\
+  -H <span class="code-string">"x-api-key: ${key}"</span>
+
+<span class="code-comment"># Get WorldState for a specific signal</span>
+curl https://api.signal-market.com/api/v2/world-state/evt_001 \\
+  -H <span class="code-string">"x-api-key: ${key}"</span>`,
+
+  python: (key) => `<span class="code-key">import</span> requests
+
+headers = {<span class="code-string">"x-api-key"</span>: <span class="code-string">"${key}"</span>}
+
+<span class="code-comment"># Fetch all signals</span>
+r = requests.get(
+    <span class="code-string">"https://api.signal-market.com/api/signals"</span>,
+    headers=headers
+)
+signals = r.json()[<span class="code-string">"signals"</span>]
+<span class="code-key">for</span> s <span class="code-key">in</span> signals:
+    <span class="code-key">print</span>(s[<span class="code-string">"topic"</span>], s[<span class="code-string">"confidence"</span>], s[<span class="code-string">"stage"</span>])`,
+
+  js: (key) => `<span class="code-comment">// Fetch signals with your API key</span>
+<span class="code-key">const</span> res = <span class="code-key">await</span> fetch(
+  <span class="code-string">"https://api.signal-market.com/api/signals"</span>,
+  { headers: { <span class="code-string">"x-api-key"</span>: <span class="code-string">"${key}"</span> } }
+);
+<span class="code-key">const</span> { signals } = <span class="code-key">await</span> res.json();
+console.log(signals);`,
+};
+
+let masked = true;
+let activeTab = 'curl';
+let user = null;
+
+function signout() {
+  localStorage.removeItem('sm_api_key');
+  localStorage.removeItem('sm_email');
+  window.location.href = '/';
+}
+
+function toggleKeyVisibility() {
+  masked = !masked;
+  renderKey();
+}
+
+function renderKey() {
+  const kv = document.getElementById('key-val');
+  const btn = document.getElementById('toggle-btn');
+  if (!kv) return;
+  kv.className = 'key-val' + (masked ? ' masked' : '');
+  kv.textContent = masked ? '•'.repeat(20) + API_KEY.slice(-6) : API_KEY;
+  btn.textContent = masked ? 'Reveal' : 'Hide';
+}
+
+async function copyKey() {
+  await navigator.clipboard.writeText(API_KEY);
+  const btn = document.getElementById('copy-key-btn');
+  btn.textContent = '✓ Copied';
+  setTimeout(() => btn.textContent = 'Copy', 1800);
+}
+
+function switchSnippet(lang) {
+  activeTab = lang;
+  document.querySelectorAll('.qs-tab').forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
+  document.getElementById('code-content').innerHTML = SNIPPETS[lang](API_KEY);
+}
+
+async function loadDashboard() {
+  try {
+    const res = await fetch('/api/auth/me', { headers: { 'x-api-key': API_KEY } });
+    if (!res.ok) { localStorage.removeItem('sm_api_key'); window.location.href = '/signin'; return; }
+    user = await res.json();
+  } catch (e) {
+    user = { email: localStorage.getItem('sm_email') || '', plan: 'free', req_count: 0, plan_info: { name: 'Free', req_per_day: 100 } };
+  }
+
+  const email = user.email || localStorage.getItem('sm_email') || '';
+  document.getElementById('user-email').textContent = email;
+
+  const reqUsed = user.req_count || 0;
+  const reqLimit = user.plan_info?.req_per_day || 100;
+  const usagePct = Math.min(Math.round((reqUsed / reqLimit) * 100), 100);
+
+  document.getElementById('dash-root').innerHTML = `
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">Dashboard</div>
+        <div class="dash-sub">${email}</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dc-label">Today's usage</div>
+        <div class="dc-value">${reqUsed} <span style="font-size:var(--text-base);color:var(--text-tertiary)">/ ${reqLimit === null ? '∞' : reqLimit}</span></div>
+        <div class="dc-note">requests today</div>
+        <div style="margin-top:var(--space-3);height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${usagePct}%;background:${usagePct>80?'#ef4444':usagePct>50?'#f59e0b':'#22c55e'};border-radius:2px"></div>
+        </div>
+      </div>
+      <div class="dash-card">
+        <div class="dc-label">Plan</div>
+        <div class="dc-value" style="font-size:var(--text-xl)">${user.plan_info?.name || 'Free'}</div>
+        <div class="dc-note">${reqLimit === null ? 'Unlimited requests' : reqLimit + ' req/day'} · <a href="/pricing" style="color:var(--brand);text-decoration:none">Upgrade →</a></div>
+      </div>
+    </div>
+
+    <div class="key-block">
+      <div class="section-title">Your API key</div>
+      <div class="key-row">
+        <div class="key-val masked" id="key-val">•••••••••••••••••••••${API_KEY.slice(-6)}</div>
+        <div class="key-actions">
+          <button class="key-btn" id="toggle-btn" onclick="toggleKeyVisibility()">Reveal</button>
+          <button class="key-btn" id="copy-key-btn" onclick="copyKey()">Copy</button>
+        </div>
+      </div>
+      <div style="margin-top:var(--space-3);font-size:var(--text-xs);color:var(--text-tertiary)">
+        Include this key in all API requests as <code style="font-family:var(--font-mono);color:var(--text-secondary)">x-api-key</code> header.
+      </div>
+    </div>
+
+    <div class="quickstart">
+      <div class="section-title">Quick start</div>
+      <div class="qs-tabs">
+        <button class="qs-tab active" data-lang="curl" onclick="switchSnippet('curl')">curl</button>
+        <button class="qs-tab" data-lang="python" onclick="switchSnippet('python')">Python</button>
+        <button class="qs-tab" data-lang="js" onclick="switchSnippet('js')">JavaScript</button>
+      </div>
+      <div class="code-block" id="code-content"></div>
+    </div>
+
+    <div style="display:flex;gap:var(--space-4);flex-wrap:wrap">
+      <a href="/signals" style="flex:1;min-width:160px;padding:var(--space-4);background:var(--surface-low);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);text-decoration:none;display:flex;align-items:center;gap:var(--space-3)">
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(45,125,210,0.1);display:flex;align-items:center;justify-content:center;font-size:16px">📡</div>
+        <div><div style="font-size:var(--text-sm);font-weight:600">Signal Feed</div><div style="font-size:var(--text-xs);color:var(--text-tertiary)">Browse live signals</div></div>
+      </a>
+      <a href="/graph" style="flex:1;min-width:160px;padding:var(--space-4);background:var(--surface-low);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);text-decoration:none;display:flex;align-items:center;gap:var(--space-3)">
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(45,125,210,0.1);display:flex;align-items:center;justify-content:center;font-size:16px">🕸️</div>
+        <div><div style="font-size:var(--text-sm);font-weight:600">Signal Graph</div><div style="font-size:var(--text-xs);color:var(--text-tertiary)">Explore relationships</div></div>
+      </a>
+      <a href="/api" style="flex:1;min-width:160px;padding:var(--space-4);background:var(--surface-low);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);text-decoration:none;display:flex;align-items:center;gap:var(--space-3)">
+        <div style="width:36px;height:36px;border-radius:8px;background:rgba(45,125,210,0.1);display:flex;align-items:center;justify-content:center;font-size:16px">⚡</div>
+        <div><div style="font-size:var(--text-sm);font-weight:600">API Docs</div><div style="font-size:var(--text-xs);color:var(--text-tertiary)">Full reference</div></div>
+      </a>
+    </div>
+  `;
+
+  // Init code snippet
+  switchSnippet('curl');
+}
+
+loadDashboard();
+</script>
+</body>
+</html>
