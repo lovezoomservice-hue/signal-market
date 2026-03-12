@@ -232,6 +232,8 @@ export default function handler(req, res) {
           monitoring_points: [`Monitor ${signal.topic} velocity over next 30 days`],
           invalidation_conditions: [`${signal.topic} confidence drops below 0.5 for 2 consecutive weeks`],
           urgency: signalUrgency,
+          escalation: `${signal.topic} reaches mainstream enterprise adoption`,
+          downgrade: `${signal.topic} momentum stalls for 3+ consecutive months`,
         };
 
         const agentScore = computeScore(signal);
@@ -251,6 +253,8 @@ export default function handler(req, res) {
           agent_action: actionFields.agent_action,
           monitoring_points: actionFields.monitoring_points || [],
           invalidation_conditions: actionFields.invalidation_conditions || [],
+          escalation: actionFields.escalation,
+          downgrade: actionFields.downgrade,
           // Evidence summary
           evidence_summary: generateEvidenceSummary(signal),
           sources: extractSourceNames(signal),
@@ -275,6 +279,7 @@ export default function handler(req, res) {
         urgency: s.urgency,
         decision_question: s.decision_question,
         next_best_action: s.next_best_action,
+        agent_action: s.agent_action,
       }));
       return res.status(200).json({
         generated_at: new Date().toISOString(),

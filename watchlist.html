@@ -84,6 +84,10 @@
       <div class="stat-value" id="stat-watching">—</div>
     </div>
     <div class="stat-card">
+      <div class="stat-label">Monitoring Points</div>
+      <div class="stat-value" id="stat-monitors">—</div>
+    </div>
+    <div class="stat-card">
       <div class="stat-label">Triggers (30d)</div>
       <div class="stat-value" id="stat-triggers">—</div>
     </div>
@@ -91,16 +95,18 @@
       <div class="stat-label">Last Alert</div>
       <div class="stat-value" style="font-size:var(--text-lg)" id="stat-last-alert">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-label">Active Signals</div>
-      <div class="stat-value" id="stat-active">—</div>
-    </div>
   </div>
 
   <!-- Active watches table -->
-  <div class="section-title">Active Watches</div>
+  <div class="section-title">Watched Signals</div>
   <div class="wl-block" id="watch-list-block">
     <div class="empty-state" id="watch-list-loading">Loading watches…</div>
+  </div>
+
+  <!-- Monitoring Points (from localStorage) -->
+  <div class="section-title">Monitoring Points</div>
+  <div class="wl-block" id="monitors-block">
+    <div class="empty-state" id="monitors-loading">Loading monitoring points…</div>
   </div>
 
   <!-- Add watch form -->
@@ -186,10 +192,13 @@ async function loadAll() {
   const triggers = triggersData.triggers || [];
   const signals = sigData.signals || [];
 
+  // Load monitoring points from localStorage
+  const monitors = getMonitoringPoints();
+
   // Stats
   document.getElementById('stat-watching').textContent = watches.length;
+  document.getElementById('stat-monitors').textContent = monitors.length;
   document.getElementById('stat-triggers').textContent = triggers.length;
-  document.getElementById('stat-active').textContent = signals.length;
   const lastTrigger = triggers[0]?.triggered_at;
   document.getElementById('stat-last-alert').textContent = lastTrigger ? formatRelTime(lastTrigger) : 'Never';
 
@@ -202,10 +211,19 @@ async function loadAll() {
     topicSel.appendChild(opt);
   });
 
-  // Render watches
+  // Render watches, monitors, and triggers
   renderWatches(watches, signals);
+  renderMonitors(monitors, signals);
   renderTriggers(triggers);
   renderAllSignals(signals, watches);
+}
+
+function getMonitoringPoints() {
+  try {
+    return JSON.parse(localStorage.getItem('watchlist_monitors') || '[]');
+  } catch {
+    return [];
+  }
 }
 
 function renderWatches(watches, signals) {
@@ -236,6 +254,42 @@ function renderWatches(watches, signals) {
         }).join('')}
       </tbody>
     </table>`;
+}
+
+function renderMonitors(monitors, signals) {
+  const block = document.getElementById('monitors-block');
+  if (monitors.length === 0) {
+    block.innerHTML = `<div class="empty-state">No monitoring points yet. Click "+ Watch" on monitoring points in signal pages to track them here. <a href="/signals">Browse signals →</a></div>`;
+    return;
+  }
+  const sigMap = Object.fromEntries((signals).map(s => [s.topic, s]));
+  block.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+      ${monitors.map(m => {
+        const sig = sigMap[m.topic] || {};
+        return `<div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);background:var(--surface-mid);border:1px solid var(--border-subtle);border-radius:var(--radius-lg)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.point}</div>
+            <div style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)">
+              from <a href="/signal?id=${m.signal_id||''}" style="color:var(--brand);text-decoration:none">${m.topic}</a> · added ${formatRelTime(m.added_at)}
+            </div>
+          </div>
+          <button class="remove-btn" onclick="removeMonitor('${m.point.replace(/'/g, "\\'")}', '${m.signal_id||''}')">Remove</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function removeMonitor(point, signalId) {
+  try {
+    const monitors = getMonitoringPoints();
+    const updated = monitors.filter(m => !(m.point === point && m.signal_id === signalId));
+    localStorage.setItem('watchlist_monitors', JSON.stringify(updated));
+    showToast('Removed monitoring point');
+    setTimeout(() => loadAll(), 300);
+  } catch (e) {
+    showToast('Failed to remove');
+  }
 }
 
 function renderTriggers(triggers) {

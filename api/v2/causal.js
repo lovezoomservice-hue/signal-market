@@ -343,6 +343,8 @@ function buildCausalObject(signal) {
       window: signal.stage === 'accelerating' ? '3–12 months' : '6–18 months',
       next_best_action: `Set a weekly monitoring cadence for ${signal.topic}.`,
       decision_question: `What will determine the trajectory of ${signal.topic} in the next 12 months?`,
+      escalation: `${signal.topic} reaches mainstream enterprise adoption`,
+      downgrade: `${signal.topic} momentum stalls for 3+ consecutive months`,
     }),
 
     meta: {
@@ -364,6 +366,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '3–12 months',
     next_best_action: 'Monitor top 5 agent framework GitHub stars weekly. Set alert for any LLM provider API deprecation announcement.',
     decision_question: 'Which agent frameworks will become the production standard in 12 months?',
+    escalation: 'Major enterprise announces production agent deployment replacing human workflow',
+    downgrade: 'Agent framework consolidation reduces active projects by >50%',
   },
   'LLM Infrastructure': {
     monitoring_points: ['vLLM / TGI GitHub activity', 'Inference benchmark leaderboard updates', 'Cloud provider inference pricing trends', 'NVIDIA H100/H200 allocation & pricing'],
@@ -372,6 +376,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '3–12 months',
     next_best_action: 'Track monthly cost-per-token from top 5 inference providers. Watch for vLLM vs TGI convergence.',
     decision_question: 'Which inference stack will dominate enterprise LLM serving in 2026?',
+    escalation: 'Top 3 hyperscalers announce custom inference chip production',
+    downgrade: 'Inference cost per token drops below $0.01 for all major providers',
   },
   'Diffusion Models': {
     monitoring_points: ['Video generation quality benchmarks', 'Copyright litigation outcomes (US + EU)', 'Adobe/Getty integration announcements', 'Sora / Runway / Kling release cadence'],
@@ -380,6 +386,8 @@ const ACTION_LAYER = {
     urgency: 'medium', window: '6–18 months',
     next_best_action: 'Monitor Sora / Kling / Runway new release announcements. Track EU AI Act image generation provisions.',
     decision_question: 'Will video generation reach commercial viability before copyright law catches up?',
+    escalation: 'Major studio announces AI-generated film using diffusion pipeline',
+    downgrade: 'Copyright settlement restricts training on creative works',
   },
   'AI Coding': {
     monitoring_points: ['SWE-bench leaderboard monthly', 'GitHub Copilot enterprise adoption rate', 'Job posting demand for AI coding tools', 'Agentic coding autonomous task completion %'],
@@ -388,6 +396,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '3–12 months',
     next_best_action: 'Track SWE-bench top 5 models monthly. Monitor GitHub Copilot enterprise seat count announcements.',
     decision_question: 'When will AI coding reach autonomous completion of real-world software tasks?',
+    escalation: 'Major tech company announces AI-authored code in production without human review',
+    downgrade: 'Enterprise security policies block AI coding tools across Fortune 500',
   },
   'Efficient AI': {
     monitoring_points: ['MMLU/HellaSwag scores for sub-7B models', 'On-device AI hardware announcements (Apple, Qualcomm)', 'Edge inference benchmark releases', 'Hugging Face small model download trends'],
@@ -396,6 +406,8 @@ const ACTION_LAYER = {
     urgency: 'medium', window: '6–18 months',
     next_best_action: 'Monitor Phi-3/Gemma monthly benchmark updates. Track Apple Silicon Neural Engine utilization announcements.',
     decision_question: 'Which small model will become the dominant on-device AI in 2026?',
+    escalation: 'Apple/Qualcomm announce on-device LLM runs at full phone battery for 8+ hours',
+    downgrade: 'Cloud inference costs drop 10x making edge optimization unnecessary',
   },
   'AI Reasoning': {
     monitoring_points: ['MATH and GPQA benchmark leaderboard weekly', 'DeepSeek-R1 replication papers', 'o1/o3 API availability and pricing', 'Process reward model paper velocity'],
@@ -404,6 +416,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '3–12 months',
     next_best_action: 'Monitor MATH benchmark top-5 monthly. Track o3 API pricing and availability.',
     decision_question: 'Will inference-time compute scaling unlock AGI-level reasoning or hit a ceiling?',
+    escalation: 'OpenAI/Anthropic announce o3-class model passes PhD-level reasoning benchmarks',
+    downgrade: 'Reasoning improvements fail to transfer beyond benchmark tasks',
   },
   'Multimodal AI': {
     monitoring_points: ['Multimodal benchmark releases (MMBench, MMMU)', 'Enterprise adoption in medical imaging / design', 'Video understanding model releases', 'GPT-5 / Gemini Ultra multimodal capability announcements'],
@@ -412,6 +426,8 @@ const ACTION_LAYER = {
     urgency: 'medium', window: '6–18 months',
     next_best_action: 'Track MMBench top-5 monthly. Monitor Adobe / Figma AI multimodal integration announcements.',
     decision_question: 'Which multimodal model will dominate enterprise visual tasks in 2026?',
+    escalation: 'Fortune 500 design team announces full transition to AI multimodal workflow',
+    downgrade: 'Medical/regulatory approval blocks multimodal deployment in high-value verticals',
   },
   'Robotics & Embodied AI': {
     monitoring_points: ['Humanoid robot production unit announcements', 'RT-2/π0 model benchmark improvements', 'Manufacturing deployment contracts', 'Figure / 1X / Unitree monthly update releases'],
@@ -420,6 +436,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '12–36 months',
     next_best_action: 'Monitor Figure AI and 1X robot production announcements monthly. Track dexterous manipulation arXiv paper count.',
     decision_question: 'Which humanoid robot company will reach 1,000 production units first?',
+    escalation: 'Tesla Optimus or Figure 01 announces 10k+ unit production order',
+    downgrade: 'Key humanoid robot company shuts down or pivots away from general-purpose',
   },
   'Brain-Computer Interface': {
     monitoring_points: ['Neuralink patient count milestones', 'Non-invasive EEG accuracy benchmarks', 'FDA approval pipeline for BCI devices', 'Synchron clinical trial results'],
@@ -428,6 +446,8 @@ const ACTION_LAYER = {
     urgency: 'medium', window: '12–48 months',
     next_best_action: 'Track Neuralink patient count and Synchron FDA approval timeline quarterly.',
     decision_question: 'Will non-invasive BCI achieve commercial viability before implanted BCIs scale?',
+    escalation: 'Neuralink announces first commercial application with healthy consumer users',
+    downgrade: 'FDA places clinical hold on all implanted BCI trials',
   },
   'Commercial Space & AI': {
     monitoring_points: ['Starship launch cadence and reuse count', 'Satellite constellation AI processing announcements', 'Launch cost per kg trajectory', 'Competing launch vehicle milestones (Blue Origin, RocketLab)'],
@@ -436,6 +456,8 @@ const ACTION_LAYER = {
     urgency: 'medium', window: '24–60 months',
     next_best_action: 'Monitor SpaceX Starship launch cadence monthly. Track $/kg cost reduction trajectory.',
     decision_question: 'When will Starship achieve full reusability and collapse launch costs by 10x?',
+    escalation: 'Starship achieves full reusability with <48 hour turnaround',
+    downgrade: 'FAA grounding extends beyond 6 months or Starship suffers catastrophic failure',
   },
   'AI Chips & Custom Silicon': {
     monitoring_points: ['Groq/Cerebras inference $/token vs NVIDIA', 'Hyperscaler custom silicon production ramp', 'AMD MI300X deployment velocity', 'NVIDIA H200/Blackwell allocation & ASP'],
@@ -444,6 +466,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '6–24 months',
     next_best_action: 'Track monthly $/token benchmarks for Groq vs Cerebras vs NVIDIA. Monitor AMD MI300X deployment announcements.',
     decision_question: 'Will alternative AI accelerators capture >20% market share from NVIDIA by 2027?',
+    escalation: 'Hyperscaler announces custom chip handles >50% of internal inference load',
+    downgrade: 'NVIDIA Blackwell pricing drops 40%+ eliminating alternative chip economics',
   },
   'Autonomous Vehicles': {
     monitoring_points: ['Waymo weekly ride volume quarterly', 'Tesla FSD miles per disengagement', 'Robotaxi expansion city announcements', 'Apollo / WeRide China fleet size'],
@@ -452,6 +476,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '12–36 months',
     next_best_action: 'Track Waymo weekly ride count quarterly reports. Monitor Tesla FSD release notes for disengagement improvements.',
     decision_question: 'Will Waymo or Tesla FSD reach commercial scale in 10+ cities by end of 2026?',
+    escalation: 'Waymo/Tesla announces robotaxi service in 5+ major cities simultaneously',
+    downgrade: 'Federal regulator imposes moratorium on autonomous vehicle expansion',
   },
   'AI Policy & Governance': {
     monitoring_points: ['EU AI Act high-risk system compliance deadlines', 'US NIST AI RMF adoption by federal contractors', 'Frontier model reporting requirements', 'China AI governance new regulations'],
@@ -460,6 +486,8 @@ const ACTION_LAYER = {
     urgency: 'medium', window: '6–24 months',
     next_best_action: 'Monitor EU AI Act implementation dates monthly. Track US congressional AI legislation votes.',
     decision_question: 'Will EU AI Act enforcement reshape AI product development more than GDPR did?',
+    escalation: 'First major AI company fined under EU AI Act at GDPR-scale penalties',
+    downgrade: 'Key EU AI Act provisions delayed or weakened through industry pressure',
   },
   'AI Investment & Capital': {
     monitoring_points: ['Monthly AI funding announcements >$100M', 'Hyperscaler AI capex guidance', 'AI startup acquisition activity', 'AI company IPO pipeline'],
@@ -468,6 +496,8 @@ const ACTION_LAYER = {
     urgency: 'high', window: '6–18 months',
     next_best_action: 'Monitor weekly AI funding rounds >$50M. Track MSFT/GOOG/META quarterly capex guidance.',
     decision_question: 'Is AI investment in a sustainable growth phase or approaching a peak valuation cycle?',
+    escalation: 'Hyperscaler AI capex guidance increases 50%+ quarter-over-quarter',
+    downgrade: 'Major AI startup down round or acquisition below 5x ARR',
   },
 };
 

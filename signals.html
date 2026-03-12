@@ -180,6 +180,30 @@
       gap: var(--space-4);
     }
 
+    /* Subscribe banner */
+    .subscribe-banner {
+      max-width: 1200px; margin: var(--space-8) auto var(--space-6); padding: var(--space-6) var(--space-8);
+      background: linear-gradient(135deg, rgba(45,125,210,0.08) 0%, rgba(45,125,210,0.02) 100%);
+      border: 1px solid rgba(45,125,210,0.2); border-radius: var(--radius-xl);
+      display: flex; align-items: center; justify-content: space-between; gap: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .sb-content { flex: 1; min-width: 280px; }
+    .sb-title { font-size: var(--text-base); font-weight: 600; margin-bottom: 4px; }
+    .sb-desc { font-size: var(--text-sm); color: var(--text-secondary); }
+    .sb-form { display: flex; gap: var(--space-2); align-items: center; }
+    .sb-input { padding: var(--space-2) var(--space-3); background: var(--surface-mid); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-size: var(--text-sm); color: var(--text-primary); min-width: 220px; }
+    .sb-input:focus { outline: none; border-color: var(--brand); }
+    .sb-btn { background: var(--brand); color: white; border: none; border-radius: var(--radius-md); padding: var(--space-2) var(--space-4); font-size: var(--text-sm); font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .sb-btn:hover { background: #1e6bbf; }
+    .sb-success { display: flex; align-items: center; gap: var(--space-2); color: #22c55e; font-size: var(--text-sm); padding: var(--space-3); background: rgba(34,197,94,0.08); border-radius: var(--radius-md); }
+    @media (max-width: 640px) {
+      .subscribe-banner { flex-direction: column; text-align: center; }
+      .sb-form { width: 100%; flex-direction: column; }
+      .sb-input { width: 100%; min-width: auto; box-sizing: border-box; }
+      .sb-btn { width: 100%; }
+    }
+
     /* ── Signal card ─────────────────────────────────────────── */
     .sig-card {
       background: var(--surface-low);
@@ -1068,6 +1092,79 @@ async function addToWatchlist() {
     btn.disabled = false;
   }
 }
+
+<!-- Subscribe banner -->
+<div id="subscribe-banner" style="max-width:1200px;margin:0 auto;padding:0 var(--space-8) var(--space-12);">
+  <div id="sub-banner-form" style="background:linear-gradient(135deg, rgba(45,125,210,0.08) 0%, rgba(45,125,210,0.02) 100%);border:1px solid rgba(45,125,210,0.2);border-radius:var(--radius-xl);padding:var(--space-5);display:flex;align-items:center;gap:var(--space-4);flex-wrap:wrap;">
+    <span style="font-size:var(--text-lg);">📬</span>
+    <div style="flex:1;min-width:200px;">
+      <div style="font-size:var(--text-sm);font-weight:600;color:var(--text-primary);margin-bottom:2px;">Get the Daily Intelligence Brief in your inbox</div>
+      <div style="font-size:var(--text-xs);color:var(--text-tertiary);">Free · No spam · Unsubscribe anytime</div>
+    </div>
+    <input type="email" id="sub-banner-email" placeholder="your@email.com" style="flex:1;min-width:180px;max-width:280px;background:var(--surface-mid);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-2) var(--space-3);font-size:var(--text-sm);color:var(--text-primary);outline:none;">
+    <button id="sub-banner-btn" onclick="subscribeToBrief()" style="background:var(--brand);color:white;border:none;border-radius:var(--radius-md);padding:var(--space-2) var(--space-4);font-size:var(--text-sm);font-weight:600;cursor:pointer;white-space:nowrap;">Subscribe →</button>
+  </div>
+  <div id="sub-banner-success" hidden style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:var(--radius-xl);padding:var(--space-5);text-align:center;color:#22c55e;font-size:var(--text-sm);">
+    ✓ Subscribed! Check your inbox for the daily brief.
+  </div>
+</div>
+
+<script>
+// Subscribe banner logic
+function checkSubscribedState() {
+  try {
+    const subs = localStorage.getItem('sm_subscriptions');
+    if (subs) {
+      const arr = JSON.parse(subs);
+      const alreadySubbed = arr.some(s => s.topic === 'all' || s.email);
+      if (alreadySubbed) {
+        showSubscribedState();
+      }
+    }
+  } catch (e) {}
+}
+function showSubscribedState() {
+  const form = document.getElementById('sub-banner-form');
+  const success = document.getElementById('sub-banner-success');
+  if (form) form.hidden = true;
+  if (success) success.hidden = false;
+}
+async function subscribeToBrief() {
+  const emailInput = document.getElementById('sub-banner-email');
+  const btn = document.getElementById('sub-banner-btn');
+  const email = emailInput.value.trim();
+  if (!email || !email.includes('@')) {
+    alert('Please enter a valid email address');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const res = await fetch('/api/v2/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: 'all', urgency_threshold: 'high', email }),
+    });
+    if (res.ok) {
+      // Store in localStorage
+      const subs = JSON.parse(localStorage.getItem('sm_subscriptions') || '[]');
+      subs.push({ topic: 'all', email, subscribed_at: new Date().toISOString() });
+      localStorage.setItem('sm_subscriptions', JSON.stringify(subs));
+      showSubscribedState();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error || 'Subscribe failed — try again');
+      btn.disabled = false;
+      btn.textContent = 'Subscribe →';
+    }
+  } catch (e) {
+    alert('Network error — try again');
+    btn.disabled = false;
+    btn.textContent = 'Subscribe →';
+  }
+}
+checkSubscribedState();
+</script>
 
 fetchSignals();
 setInterval(fetchSignals, 60000);
