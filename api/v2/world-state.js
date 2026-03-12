@@ -125,6 +125,24 @@ function eventType(s) {
   if (srcs.some(x => x === 'hn:frontpage' || x.startsWith('reddit'))) return 'adoption_signal';
   return EVENT_TYPE_MAP[s.category] || 'technology_acceleration';
 }
+// Rule-based actors — F-2 decision: method=rule-based (2026-03-12)
+const ACTORS_KB = {
+  'AI Agents':             { dominant: 'OpenAI / Anthropic', challengers: ['Google DeepMind', 'Microsoft'], category: 'big-tech + research' },
+  'LLM Infrastructure':   { dominant: 'NVIDIA', challengers: ['AMD', 'Google TPU', 'Cerebras'], category: 'hardware + cloud' },
+  'Diffusion Models':      { dominant: 'Stability AI / Midjourney', challengers: ['Adobe', 'Runway', 'OpenAI DALL-E'], category: 'startup + big-tech' },
+  'Efficient AI':          { dominant: 'Meta AI / Mistral', challengers: ['Microsoft', 'Google', 'Hugging Face'], category: 'open-source + big-tech' },
+  'AI Coding':             { dominant: 'GitHub Copilot (Microsoft)', challengers: ['Cursor', 'Replit', 'Anthropic'], category: 'developer tools' },
+  'AI Infrastructure':     { dominant: 'AWS / Google Cloud', challengers: ['Azure', 'CoreWeave', 'Lambda Labs'], category: 'cloud providers' },
+  'Reinforcement Learning':{ dominant: 'DeepMind / OpenAI', challengers: ['Meta AI', 'CMU', 'Stanford'], category: 'research labs' },
+  'Transformer Architecture':{ dominant: 'Google Brain (origin)', challengers: ['Meta', 'EleutherAI', 'Hugging Face'], category: 'research + open-source' },
+  'AI Reasoning':          { dominant: 'OpenAI o-series', challengers: ['Anthropic Claude', 'Google Gemini'], category: 'frontier labs' },
+  'Multimodal AI':         { dominant: 'OpenAI GPT-4o', challengers: ['Google Gemini', 'Anthropic', 'Meta'], category: 'big-tech' },
+};
+function ruleBasedActors(signal) {
+  const kb = ACTORS_KB[signal.topic];
+  if (!kb) return null;
+  return { dominant: kb.dominant, challengers: kb.challengers, category: kb.category, method: 'rule-based' };
+}
 function sourceQuality(s) {
   const ev = s.evidenceCount||0, src=(s.sources||[]).length;
   if (ev>=4&&src>=3) return 'high'; if (ev>=2&&src>=2) return 'medium'; if (ev>=1) return 'low'; return 'speculative';
@@ -344,7 +362,7 @@ function buildWSO(signal, graphEdges=[]) {
       event_id:            signal.signal_id,
       event_type:          eventType(signal),
       entities:            [signal.topic],
-      actors:              null,
+      actors:              ruleBasedActors(signal),
       time: { onset: signal.first_seen||null, peak_estimated:null, decay_window: DECAY_WINDOWS[signal.stage]||'90d' },
       related_domains:     relatedDomains.length ? relatedDomains : null,
       impacted_domains:    null,
@@ -363,7 +381,7 @@ function buildWSO(signal, graphEdges=[]) {
       secondary_drivers:      null,
       disagreement_points:    null,
       invalidation_conditions:CAUSAL_KB[signal.topic]?.invalidation_conditions || null,
-      dominant_actor:         null,
+      dominant_actor:         ruleBasedActors(signal)?.dominant || null,
       current_phase:          PHASE_MAP[signal.stage]||'growing',
       monitoring_points:      CAUSAL_KB[signal.topic]?.monitoring_points || null,
       causal_engine:          CAUSAL_KB[signal.topic] ? 'P0-B' : null,
