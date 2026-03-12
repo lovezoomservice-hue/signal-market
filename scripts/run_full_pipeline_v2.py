@@ -267,8 +267,34 @@ def deduplicate_and_crossvalidate(signals):
     merged.sort(key=lambda x: x.get("confidence", 0), reverse=True)
     return merged
 
+# Canonical topic normalization map — near-duplicate topic names → canonical name
+TOPIC_ALIASES = {
+    "Transformer Arch": "Transformer Architecture",
+    "LLM Infra":        "LLM Infrastructure",
+    "AI Infra":         "AI Infrastructure",
+    "Diffusion":        "Diffusion Models",
+    "Efficient AI Training": "Efficient AI",
+}
+
+def normalize_topics(signals):
+    """Merge near-duplicate topics (e.g. 'Transformer Arch' → 'Transformer Architecture').
+    After normalization, re-run dedup so merged records combine properly."""
+    changed = False
+    normalized = []
+    for s in signals:
+        topic = s.get("topic", "")
+        canonical = TOPIC_ALIASES.get(topic)
+        if canonical:
+            s = {**s, "topic": canonical, "original_topic": topic}
+            changed = True
+        normalized.append(s)
+    if changed:
+        normalized = deduplicate_and_crossvalidate(normalized)
+    return normalized
+
 def write_snapshot(signals):
     """Overwrite JSONL with fresh deduplicated snapshot (bulk write)"""
+    signals = normalize_topics(signals)
     with open(HISTORY, "w") as f:
         for s in signals:
             f.write(json.dumps(s) + "\n")

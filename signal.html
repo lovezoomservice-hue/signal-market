@@ -448,6 +448,19 @@ function renderDetail(signal, wso, allSignals, causal) {
         <div style="font-size:10px;color:#f59e0b;font-style:italic"><span style="color:var(--text-tertiary)">Key lesson: </span>${a.key_lesson}</div>
       </div>`).join('')}
     </div>` : ''}
+
+    <!-- Second-order effects — live from WorldState -->
+    ${(wso.event?.second_order_effects || []).length ? `
+    <div class="intel-section">
+      <div class="intel-section-title">Second-order effects <span style="font-family:var(--font-mono);font-size:9px;color:var(--brand);text-transform:none;letter-spacing:0;margin-left:8px">live</span></div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        ${(wso.event.second_order_effects || []).map((e, i) => `
+        <div style="display:flex;align-items:flex-start;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:var(--radius-md)">
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-tertiary);margin-top:2px;flex-shrink:0">0${i+1}</span>
+          <span style="font-size:var(--text-xs);color:var(--text-secondary);line-height:1.6">${e}</span>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
   </div>`;
 
   const sidebarHtml = `
