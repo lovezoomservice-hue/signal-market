@@ -1,7 +1,7 @@
 {
-  "_comment": "Persistent auth store — committed to git for Vercel deployment. New registrations go to /tmp (session-level); seed accounts here are always available.",
+  "_comment": "Persistent auth store \u2014 committed to git for Vercel deployment. New registrations go to /tmp (session-level); seed accounts here are always available.",
   "_version": "1.0",
-  "_updated": "2026-03-11",
+  "_updated": "2026-03-12",
   "users": {
     "usr_founder_001": {
       "userId": "usr_founder_001",
@@ -9,6 +9,24 @@
       "name": "Founder",
       "plan": "enterprise",
       "createdAt": "2026-03-11T00:00:00.000Z",
+      "emailVerified": true,
+      "lastLogin": null
+    },
+    "usr_demo_pro_001": {
+      "userId": "usr_demo_pro_001",
+      "email": "demo-pro@signal-market.ai",
+      "name": "Demo Pro",
+      "plan": "pro",
+      "createdAt": "2026-03-12T00:00:00.000Z",
+      "emailVerified": true,
+      "lastLogin": null
+    },
+    "usr_demo_free_001": {
+      "userId": "usr_demo_free_001",
+      "email": "demo@signal-market.ai",
+      "name": "Demo",
+      "plan": "free",
+      "createdAt": "2026-03-12T00:00:00.000Z",
       "emailVerified": true,
       "lastLogin": null
     }
@@ -20,6 +38,26 @@
       "plan": "enterprise",
       "name": "Founder API Key",
       "createdAt": "2026-03-11T00:00:00.000Z",
+      "lastUsedAt": null,
+      "requestsCount": 0,
+      "expiresAt": null
+    },
+    "sm_demo_pro_dc2cd7644c5c638271ab280818dfe87f": {
+      "key": "sm_demo_pro_dc2cd7644c5c638271ab280818dfe87f",
+      "userId": "usr_demo_pro_001",
+      "plan": "pro",
+      "name": "Default",
+      "createdAt": "2026-03-12T00:00:00.000Z",
+      "lastUsedAt": null,
+      "requestsCount": 0,
+      "expiresAt": null
+    },
+    "sm_demo_free_8db2cc6944040b05d21e87ab1204816a": {
+      "key": "sm_demo_free_8db2cc6944040b05d21e87ab1204816a",
+      "userId": "usr_demo_free_001",
+      "plan": "free",
+      "name": "Default",
+      "createdAt": "2026-03-12T00:00:00.000Z",
       "lastUsedAt": null,
       "requestsCount": 0,
       "expiresAt": null

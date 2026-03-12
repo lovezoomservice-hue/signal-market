@@ -110,6 +110,123 @@ const CAUSAL_MODELS = {
     causal_confidence: 0.90,
   },
 
+  'AI Coding': {
+    primary_cause: 'LLMs trained on code corpora achieved human-competitive performance on software engineering benchmarks, triggering rapid tool adoption',
+    mechanism: 'GitHub Copilot demonstrated that transformer models fine-tuned on code can meaningfully accelerate developer workflows. Subsequent models (Codex, Claude, Gemini) extended this to full repo understanding and autonomous editing.',
+    enabling_factors: [
+      'Massive publicly available code training data (GitHub, HuggingFace)',
+      'IDE integration APIs mature enough for seamless tool embedding',
+      'Developer openness to AI assistance higher than other knowledge workers',
+      'SWE-bench and similar benchmarks creating measurable quality bar',
+    ],
+    accelerants: [
+      'Agentic coding tools (Devin, Cursor, Claude Code) showing autonomous task completion',
+      'SWE-bench scores improving rapidly across frontier model generations',
+      'Enterprise software teams under productivity pressure adopting AI tooling',
+      'Open-source coding models (DeepSeek Coder, Code Llama) commoditizing base capability',
+    ],
+    inhibitors: [
+      'Security and IP concerns around AI-generated code in production',
+      'Model hallucination rates still non-trivial for complex debugging tasks',
+      'Developer trust gap for fully autonomous code deployment',
+    ],
+    causal_chain: [
+      { step: 1, label: 'Code LLM breakthrough', description: 'Codex/Copilot demonstrates LLMs can generate useful production code' },
+      { step: 2, label: 'IDE integration', description: 'GitHub Copilot, Cursor normalize AI assistance in developer workflow' },
+      { step: 3, label: 'Agentic leap', description: 'Tools advance from completion to autonomous editing and task execution' },
+      { step: 4, label: 'Enterprise adoption', description: 'Software orgs adopt AI coding tools as productivity infrastructure' },
+    ],
+    causal_confidence: 0.86,
+  },
+
+  'Reinforcement Learning': {
+    primary_cause: 'RLHF (Reinforcement Learning from Human Feedback) became the primary alignment technique for LLMs, reigniting RL research at scale',
+    mechanism: 'InstructGPT and ChatGPT demonstrated that RLHF dramatically improves LLM helpfulness and safety. This created a feedback loop: RL researchers pivoted to LLM alignment, LLM labs hired RL researchers, producing a research burst.',
+    enabling_factors: [
+      'LLM scale providing sufficiently capable policy models for RL fine-tuning',
+      'PPO and related algorithms proving sufficient for RLHF at scale',
+      'Constitutional AI and DPO as alternatives to PPO lowering compute requirements',
+      'Open-source RLHF implementations enabling academic research',
+    ],
+    accelerants: [
+      'Every major LLM provider using RL for alignment — creates research competition',
+      'Reasoning models (o1, DeepSeek-R1) using RL for chain-of-thought improvement',
+      'Academic community reconnecting RL theory with practical LLM applications',
+      'Process reward models enabling dense reward in mathematical reasoning',
+    ],
+    inhibitors: [
+      'Reward hacking remains unsolved — optimizing proxy rewards diverges from intent',
+      'Compute cost of RLHF significantly higher than supervised fine-tuning',
+      'Human labeler fatigue and quality limits scalability',
+    ],
+    causal_chain: [
+      { step: 1, label: 'RLHF proves alignment value', description: 'InstructGPT/ChatGPT shows RL dramatically improves LLM behavior' },
+      { step: 2, label: 'Research convergence', description: 'RL and NLP communities merge around LLM alignment problems' },
+      { step: 3, label: 'Reasoning RL wave', description: 'RL applied to chain-of-thought reasoning — o1, DeepSeek-R1 demonstrate results' },
+      { step: 4, label: 'Sustained academic activity', description: 'arXiv RL papers proliferate; new RL variants (DPO, GRPO) published rapidly' },
+    ],
+    causal_confidence: 0.80,
+  },
+
+  'Transformer Architecture': {
+    primary_cause: 'Transformer architecture\'s scalability properties have not yet been exhausted — ongoing architectural research extends capabilities while addressing known limitations',
+    mechanism: 'The original "Attention is All You Need" transformer has dominated NLP and vision for 7+ years. Continued research is driven by two forces: extending the architecture (longer context, efficiency) and finding successors (SSMs, MoE, hybrid).',
+    enabling_factors: [
+      'Massive industry investment in making transformers more efficient at scale',
+      'Flash Attention and memory-efficient variants enabling 100K+ context windows',
+      'Mixture-of-Experts (MoE) proving sparse transformers match dense quality at lower cost',
+      'Academic freedom to explore architectural alternatives funded by foundation model labs',
+    ],
+    accelerants: [
+      'State space models (Mamba) providing serious architectural alternative',
+      'Long-context applications (legal, codebase, scientific) demanding architectural improvements',
+      'Multi-modal models requiring architectural adaptation beyond pure text',
+      'Inference cost pressure driving exploration of more efficient architectures',
+    ],
+    inhibitors: [
+      'Quadratic attention complexity partially addressed but not eliminated',
+      'New architectures require retraining — enormous switching cost',
+      'Entrenched infrastructure investment in transformer-optimized hardware',
+    ],
+    causal_chain: [
+      { step: 1, label: 'Architecture dominance locked in', description: 'Transformer becomes universal architecture across modalities' },
+      { step: 2, label: 'Scaling limit pressure', description: 'Context length, compute cost, and capability limits drive architectural research' },
+      { step: 3, label: 'Variants and alternatives', description: 'MoE, SSM, linear attention variants compete with and extend original architecture' },
+      { step: 4, label: 'Sustained research publication', description: 'arXiv architecture papers continue at high velocity as field seeks next breakthrough' },
+    ],
+    causal_confidence: 0.75,
+  },
+
+  'AI Reasoning': {
+
+    primary_cause: 'Chain-of-thought prompting and process reward models revealed that LLMs can improve reasoning accuracy through extended computation at inference time',
+    mechanism: 'Wei et al. (2022) showed that prompting LLMs to "think step by step" dramatically improved math and logic task performance. OpenAI o1 then demonstrated that scaling inference-time compute (rather than just training compute) improves reasoning — opening a new scaling dimension.',
+    enabling_factors: [
+      'LLMs at sufficient scale to produce coherent multi-step reasoning chains',
+      'MATH and GSM8K benchmarks creating measurable targets for reasoning research',
+      'Process reward models enabling fine-grained step-level feedback',
+      'Open-source reasoning datasets enabling academic reproduction',
+    ],
+    accelerants: [
+      'OpenAI o1 public release demonstrates inference-time scaling as viable path',
+      'DeepSeek-R1 open-sources a competitive reasoning model — triggers research wave',
+      'Mathematical reasoning demand in science, finance, coding driving commercial investment',
+      'Chain-of-thought techniques generalizing to code, planning, multi-step tasks',
+    ],
+    inhibitors: [
+      'Longer reasoning chains significantly increase inference latency and cost',
+      'Benchmark saturation creating "reasoning capability illusion" concerns',
+      'Adversarial prompts can derail even strong reasoning chains',
+    ],
+    causal_chain: [
+      { step: 1, label: 'Chain-of-thought discovery', description: 'Step-by-step prompting proves LLMs can reason better with explicit intermediate steps' },
+      { step: 2, label: 'Inference-time scaling', description: 'o1 demonstrates scaling test-time compute improves reasoning — new scaling axis found' },
+      { step: 3, label: 'Open replication', description: 'DeepSeek-R1 and academic replications open the research to the broader community' },
+      { step: 4, label: 'Application demand', description: 'Math, code, scientific reasoning applications drive sustained commercial and academic investment' },
+    ],
+    causal_confidence: 0.83,
+  },
+
   'Efficient AI': {
     primary_cause: 'The cost-to-capability ratio of large models is unsustainable at scale — compression, pruning, and distillation become economically mandatory',
     mechanism: 'As LLM deployment costs grow, the industry is forced to invest in techniques that maintain capability while reducing compute. This creates a sustained research and engineering push on efficiency.',
@@ -136,6 +253,22 @@ const CAUSAL_MODELS = {
     ],
     causal_confidence: 0.82,
   },
+};
+
+// Topic name aliases (short names that appear in signal data map to full names)
+CAUSAL_MODELS['Transformer Arch'] = CAUSAL_MODELS['Transformer Architecture'];
+CAUSAL_MODELS['AI Infrastructure'] = {
+  primary_cause: 'Enterprise AI workloads scaling to production are creating a new infrastructure investment cycle — compute, storage, networking, and cooling all require AI-specific upgrades',
+  mechanism: 'As LLMs move from experimentation to mission-critical applications, the infrastructure supporting them (GPU clusters, vector databases, low-latency networking) becomes a capital expenditure priority. This creates a sustained investment signal detectable via financial news.',
+  enabling_factors: ['Cloud providers adding AI-specific instance types and regions', 'On-premise GPU deployment for privacy-sensitive workloads', 'Vector database infrastructure maturing (Pinecone, Weaviate, pgvector)'],
+  accelerants: ['Hyperscaler capex guidance increasing AI infrastructure spend', 'AI energy consumption driving data center construction', 'Sovereign AI initiatives requiring domestic infrastructure'],
+  inhibitors: ['GPU supply constraints limiting deployment velocity', 'Energy grid constraints in high-density compute regions', 'Economic slowdown reducing enterprise AI capex'],
+  causal_chain: [
+    { step: 1, label: 'Production AI adoption', description: 'LLMs and AI systems become business-critical requiring reliable infrastructure' },
+    { step: 2, label: 'Infrastructure investment surge', description: 'Data centers, GPU clusters, networking upgraded for AI workloads' },
+    { step: 3, label: 'Financial signal', description: 'Hyperscaler earnings calls, data center REITs, GPU vendors reflect AI infra spend' },
+  ],
+  causal_confidence: 0.73,
 };
 
 // Default causal template for unknown topics

@@ -209,13 +209,21 @@ function getConfidenceFactors(signal) {
   ];
 }
 
-function renderDetail(signal, wso, allSignals) {
+function renderDetail(signal, wso, allSignals, causal) {
   const color = STAGE_COLORS[signal.stage] || '#6b7280';
   const conf = Math.round((signal.confidence || 0) * 100);
   const impact = Math.round((signal.impact_score || 0) * 100);
   const crossVal = signal.cross_validated || (signal.sources||[]).length >= 2;
   const intel = WHY_IT_MATTERS[signal.topic] || {};
+  // Merge causal data into intel (live data takes priority over static)
+  const c = causal || {};
   const confFactors = getConfidenceFactors(signal);
+  const causalConf = c.causal_confidence ? Math.round(c.causal_confidence * 100) : null;
+  const causalChain = c.causal_chain || [];
+  const accelerants = c.accelerants || [];
+  const inhibitors = c.inhibitors || [];
+  const whyNow = c.why_now || {};
+  const hasCausal = !!c.primary_cause;
 
   // Related signals from graph
   const related = (allSignals || []).filter(s => s.signal_id !== signal.signal_id).slice(0, 5);
@@ -230,7 +238,7 @@ function renderDetail(signal, wso, allSignals) {
         ${crossVal ? '<span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.3)">✓ Cross-validated</span>' : ''}
       </div>
       <h1 class="signal-title">${signal.topic}</h1>
-      <p class="signal-subtitle">${intel.why || `Active ${signal.stage} signal in ${signal.category || 'AI'}. Confidence score ${conf}% derived from ${(signal.sources||[]).length} independent sources.`}</p>
+      <p class="signal-subtitle">${c.mechanism || intel.why || `Active ${signal.stage} signal in ${signal.category || 'AI'}. Confidence score ${conf}% derived from ${(signal.sources||[]).length} independent sources.`}</p>
       <div class="header-scores">
         <div class="score-item"><span class="score-num" style="color:${color}">${conf}%</span><span class="score-label">Confidence</span></div>
         <div class="score-item"><span class="score-num">${impact}%</span><span class="score-label">Impact score</span></div>
@@ -240,18 +248,45 @@ function renderDetail(signal, wso, allSignals) {
       </div>
     </div>
 
-    <!-- Why it matters -->
+    <!-- Causal / Why it matters -->
     <div class="intel-section">
-      <div class="intel-section-title">Why it matters</div>
+      <div class="intel-section-title">Why it's happening${hasCausal ? ` <span style="font-size:9px;color:#22c55e;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:3px;padding:1px 6px;margin-left:4px;font-family:var(--font-mono)">causal engine P0-B</span>` : ''}</div>
       <div class="intel-block">
-        <div class="ib-label">Signal context</div>
-        <div class="ib-content">${intel.why || `A ${signal.stage} signal in the ${signal.category || 'AI'} domain. Current confidence at ${conf}% with ${signal.evidenceCount || 0} evidence items confirming the trend.`}</div>
+        <div class="ib-label">Primary cause</div>
+        <div class="ib-content">${c.primary_cause || intel.why || `A ${signal.stage} signal in the ${signal.category || 'AI'} domain.`}</div>
       </div>
+      ${hasCausal ? `
       <div class="intel-block">
+        <div class="ib-label">Mechanism</div>
+        <div class="ib-content">${c.mechanism}</div>
+      </div>
+      ${accelerants.length ? `<div class="intel-block">
+        <div class="ib-label">Accelerants (${accelerants.length})</div>
+        <div class="ib-content">${accelerants.map(a => `<div style="display:flex;gap:6px;margin-bottom:4px"><span style="color:#22c55e;flex-shrink:0">↑</span>${a}</div>`).join('')}</div>
+      </div>` : ''}
+      ${causalConf ? `<div style="margin-top:var(--space-2);padding:var(--space-2) var(--space-3);background:rgba(255,255,255,0.02);border-radius:var(--radius-md);font-size:10px;color:var(--text-tertiary);font-family:var(--font-mono)">Causal confidence: ${causalConf}% · model: domain_knowledge</div>` : ''}
+      ` : ''}
+      <div class="intel-block" style="margin-top:var(--space-3)">
         <div class="ib-label">Why now</div>
-        <div class="ib-content">${intel.why_now || `Evidence convergence from ${(signal.sources||[]).join(', ')}. ${crossVal ? 'Cross-source validation confirmed — independent data streams agree.' : 'Currently single-source — awaiting cross-source confirmation.'}`}</div>
+        <div class="ib-content">${
+          whyNow.timing_factors ? whyNow.timing_factors.map(f=>`<div style="margin-bottom:4px">→ ${f}</div>`).join('')
+          : intel.why_now || `Evidence from ${(signal.sources||[]).join(', ')}. ${crossVal ? 'Cross-source validation confirmed.' : 'Single-source — confirmation pending.'}`
+        }${whyNow.urgency ? `<div style="margin-top:var(--space-2);font-family:var(--font-mono);font-size:10px;color:${whyNow.urgency==='high'?'#f59e0b':'var(--text-tertiary)'}">Urgency: ${whyNow.urgency} · Decision window: ${whyNow.window}</div>` : ''}</div>
       </div>
     </div>
+
+    <!-- Causal chain -->
+    ${causalChain.length ? `
+    <div class="intel-section">
+      <div class="intel-section-title">Causal chain</div>
+      <div style="display:flex;flex-direction:column;gap:var(--space-2)">
+        ${causalChain.map(step => `
+        <div style="display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-3);background:var(--surface-low);border:1px solid var(--border-subtle);border-radius:var(--radius-md)">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--brand);background:rgba(45,125,210,0.1);border:1px solid rgba(45,125,210,0.2);border-radius:4px;padding:2px 6px;flex-shrink:0;min-width:20px;text-align:center">${step.step}</div>
+          <div><div style="font-size:var(--text-xs);font-weight:600;margin-bottom:2px">${step.label}</div><div style="font-size:var(--text-xs);color:var(--text-secondary)">${step.description}</div></div>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
 
     <!-- Evidence chain -->
     <div class="intel-section">
@@ -288,12 +323,12 @@ function renderDetail(signal, wso, allSignals) {
       </div>
     </div>
 
-    <!-- Invalidation conditions -->
+    <!-- Inhibitors / Invalidation -->
     <div class="intel-section">
-      <div class="intel-section-title">Invalidation conditions</div>
+      <div class="intel-section-title">Inhibitors & invalidation conditions</div>
       <div class="invalidation-list">
-        ${(intel.invalidation || INVALIDATION_DEFAULTS).map(c => `
-        <div class="inv-item"><span class="inv-icon">⚠</span>${c}</div>`).join('')}
+        ${(inhibitors.length ? inhibitors : intel.invalidation || INVALIDATION_DEFAULTS).map(item => `
+        <div class="inv-item"><span class="inv-icon">⚠</span>${item}</div>`).join('')}
       </div>
     </div>
 
@@ -320,6 +355,8 @@ function renderDetail(signal, wso, allSignals) {
       <div class="sc-row"><span class="sc-key">Evidence</span><span class="sc-val">${signal.evidenceCount || 0} items</span></div>
       <div class="sc-row"><span class="sc-key">Sources</span><span class="sc-val ${crossVal ? 'green' : ''}">${crossVal ? '✓ Multi-source' : 'Single source'}</span></div>
       <div class="sc-row"><span class="sc-key">Lifecycle</span><span class="sc-val">${signal.lifecycle_state || '—'}</span></div>
+      ${causalConf ? `<div class="sc-row"><span class="sc-key">Causal conf.</span><span class="sc-val ${causalConf>=80?'green':''}">${causalConf}%</span></div>` : ''}
+      ${whyNow.urgency ? `<div class="sc-row"><span class="sc-key">Urgency</span><span class="sc-val" style="color:${whyNow.urgency==='high'?'#f59e0b':'var(--text-secondary)'}">${whyNow.urgency}</span></div>` : ''}
     </div>
 
     <div class="sidebar-card">
@@ -365,16 +402,18 @@ async function loadSignal() {
   }
 
   try {
-    const [sigRes, wsoRes, allRes] = await Promise.all([
+    const [sigRes, wsoRes, causalRes, allRes] = await Promise.all([
       fetch(`/api/signals/${id}`),
       fetch(`/api/v2/world-state/${id}`),
+      fetch(`/api/v2/causal/${id}`),
       fetch('/api/signals'),
     ]);
     const signal = await sigRes.json();
     const wso = wsoRes.ok ? await wsoRes.json() : {};
+    const causal = causalRes.ok ? await causalRes.json() : null;
     const allData = await allRes.json();
     const allSignals = (Array.isArray(allData) ? allData : allData.signals || []).filter(s => s.signal_id !== id);
-    renderDetail(signal, wso, allSignals);
+    renderDetail(signal, wso, allSignals, causal);
   } catch (e) {
     document.getElementById('detail-root').innerHTML = `<div style="padding:var(--space-10);color:var(--text-tertiary)">Signal not found. <a href="/signals" style="color:var(--brand)">← Back to signals</a></div>`;
   }

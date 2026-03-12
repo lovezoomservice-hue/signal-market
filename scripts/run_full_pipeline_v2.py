@@ -28,9 +28,12 @@ RUNTIME.mkdir(parents=True, exist_ok=True)
 FETCHERS = [
     ("research_to_signal.py",  "arXiv+GitHub",     "Tier0"),
     ("fetch_huggingface.py",   "HuggingFace",      "Tier0"),
-    ("fetch_alphavantage.py",  "AlphaVantage",     "Tier0"),
+    ("fetch_hackernews.py",    "HackerNews",       "Tier0"),
+    ("fetch_npm_pypi.py",      "npm+PyPI",         "Tier0"),
+    ("fetch_alphavantage.py",  "AlphaVantage",     "Tier1"),
     ("fetch_cryptopanic.py",   "CryptoPanic",      "Tier1"),
     ("fetch_serpapi.py",       "SerpAPI",          "Tier1"),
+    ("fetch_fred.py",          "FRED",             "Tier1"),
 ]
 
 def run_fetcher(script, label, tier):
