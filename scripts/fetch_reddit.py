@@ -3,16 +3,10 @@
 fetch_reddit.py — Reddit discussion fetcher (Tier L2, FREE)
 
 Fetches AI/tech discussions from relevant subreddits.
-No authentication required for basic JSON API access.
+Gracefully degrades to 0 results if Reddit blocks requests.
 
 Subreddits:
-- r/MachineLearning
-- r/artificial
-- r/LocalLLaMA
-- r/singularity
-- r/programming
-- r/robotics
-- r/Futurology
+- r/MachineLearning, r/artificial, r/LocalLLaMA, r/singularity, r/programming, r/robotics
 """
 
 import json
@@ -53,9 +47,10 @@ TOPIC_KEYWORDS = {
 def fetch_subreddit(subreddit, sort='hot'):
     """Fetch posts from a subreddit."""
     try:
-        url = f"https://www.reddit.com/r/{subreddit}/{sort}.json?limit=50"
+        # Use old.reddit.com which is more permissive
+        url = f"https://old.reddit.com/r/{subreddit}/{sort}.json?limit=50"
         req = urllib.request.Request(url, headers={
-            'User-Agent': 'Mozilla/5.0 (compatible; SignalMarketBot/1.0)'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         })
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read())

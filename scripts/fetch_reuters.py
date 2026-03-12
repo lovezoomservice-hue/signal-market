@@ -1,19 +1,18 @@
 #!/usr/bin/env python3
 """
-fetch_reuters.py — Reuters technology & business news fetcher (Tier L1, FREE)
+fetch_reuters.py — Tech news RSS fetcher (Tier L1, FREE)
 
-Parses Reuters RSS feeds for AI/tech news.
+Parses technology RSS feeds for AI/tech news.
+Uses Techmeme as primary source (aggregates Reuters, TechCrunch, etc.)
 No API key required — uses public RSS feeds.
 
 Feeds:
-- Technology: https://www.reuters.com/rssfeed/technology-news
-- Business: https://www.reuters.com/rssfeed/business
+- Techmeme: https://www.techmeme.com/feed.xml (aggregates major tech news)
 """
 
 import json
 import sys
 import urllib.request
-import re
 from datetime import datetime
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -21,23 +20,23 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).parent.parent
 OUTPUT = ROOT / "output"
 
-# Reuters RSS feeds
-REUTERS_FEEDS = {
-    'technology': 'https://www.reuters.com/rssfeed/technology-news',
-    'business': 'https://www.reuters.com/rssfeed/business',
+# Tech news RSS feeds (Techmeme aggregates Reuters, TechCrunch, etc.)
+TECH_FEEDS = {
+    'techmeme': 'https://www.techmeme.com/feed.xml',
 }
 
 # Topic keyword mapping
 TOPIC_KEYWORDS = {
-    'AI Agents': ['ai agents', 'autonomous agents', 'intelligent agents', 'software agents'],
-    'AI Coding': ['copilot', 'code generation', 'ai coding', 'github copilot', 'cursor'],
-    'AI Chips & Hardware': ['ai chip', 'nvidia', 'amd', 'intel', 'semiconductor', 'gpu', 'tpu'],
+    'AI Agents': ['ai agents', 'autonomous agents', 'intelligent agents', 'agentic'],
+    'AI Coding': ['copilot', 'code generation', 'ai coding', 'github copilot', 'cursor', 'aider'],
+    'AI Chips & Hardware': ['ai chip', 'nvidia', 'amd', 'intel', 'semiconductor', 'gpu', 'tpu', 'groq'],
     'Autonomous Vehicles': ['autonomous vehicle', 'self-driving', 'waymo', 'tesla fsd', 'robotaxi'],
     'AI Regulation': ['ai regulation', 'ai safety', 'ai policy', 'eu ai act', 'ai governance'],
     'LLM Infrastructure': ['llm', 'large language model', 'transformer', 'inference', 'vllm'],
     'AI Ethics': ['ai ethics', 'ai bias', 'ai fairness', 'algorithmic bias'],
-    'Robotics & Embodied AI': ['robotics', 'embodied ai', 'humanoid robot', 'boston dynamics'],
+    'Robotics & Embodied AI': ['robotics', 'embodied ai', 'humanoid robot', 'boston dynamics', 'figure'],
     'Brain-Computer Interface': ['brain computer', 'neuralink', 'bci', 'neural interface'],
+    'Multimodal AI': ['multimodal', 'image generation', 'video generation', 'stable diffusion'],
 }
 
 def fetch_feed(url):
@@ -90,10 +89,10 @@ def run():
 
     all_signals = []
 
-    for feed_name, feed_url in REUTERS_FEEDS.items():
-        print(f"  Fetching Reuters {feed_name} feed...", file=sys.stderr)
+    for feed_name, feed_url in TECH_FEEDS.items():
+        print(f"  Fetching {feed_name} feed...", file=sys.stderr)
         items = fetch_feed(feed_url)
-        print(f"  Found {len(items)} items in {feed_name}", file=sys.stderr)
+        print(f"  Found {len(items)} items from {feed_name}", file=sys.stderr)
 
         for item in items:
             # Find best matching topic
@@ -114,8 +113,8 @@ def run():
                     'topic': best_topic,
                     'confidence': confidence,
                     'stage': 'emerging' if confidence < 0.5 else 'forming',
-                    'sources': [f'reuters:{feed_name}'],
-                    'proof_id': f'reuters-{feed_name}-{hash(item["link"]) % 10000:04d}',
+                    'sources': [f'techmeme:{feed_name}'],
+                    'proof_id': f'techmeme-{hash(item["link"]) % 10000:04d}',
                     'source_url': item['link'],
                     'title': item['title'],
                     'category': 'News',
@@ -131,11 +130,11 @@ def run():
             seen_urls.add(sig['source_url'])
             unique_signals.append(sig)
 
-    output_path = OUTPUT / f"reuters_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+    output_path = OUTPUT / f"techmeme_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
     with open(output_path, 'w') as f:
-        json.dump({'count': len(unique_signals), 'signals': unique_signals, 'source': 'reuters'}, f, indent=2)
+        json.dump({'count': len(unique_signals), 'signals': unique_signals, 'source': 'techmeme'}, f, indent=2)
 
-    print(json.dumps({'count': len(unique_signals), 'source': 'reuters'}))
+    print(json.dumps({'count': len(unique_signals), 'source': 'techmeme'}))
 
 if __name__ == '__main__':
     run()

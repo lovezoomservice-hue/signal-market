@@ -161,7 +161,7 @@ FETCHERS = [
     ("fetch_fred.py",          "FRED",             "Tier1"),
     # Tier L1-L3: New source expanders (TASK-CEO-001 Track B)
     ("fetch_twitter_trends.py", "Twitter/X",       "TierL1"),
-    ("fetch_reuters.py",        "Reuters RSS",     "TierL1"),
+    ("fetch_reuters.py",        "Techmeme RSS",    "TierL1"),
     ("fetch_polymarket.py",     "Polymarket",      "TierL3"),
     ("fetch_reddit.py",         "Reddit",          "TierL2"),
 ]

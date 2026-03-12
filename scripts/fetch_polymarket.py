@@ -30,14 +30,14 @@ CATEGORIES = [
 
 # Topic keyword mapping for market titles
 TOPIC_KEYWORDS = {
-    'AI Agents': ['ai agents', 'autonomous', 'agi', 'artificial general intelligence'],
-    'AI Coding': ['copilot', 'code', 'programming', 'software development'],
-    'AI Chips & Hardware': ['ai chip', 'nvidia', 'gpu', 'semiconductor', 'hardware'],
-    'AI Regulation': ['ai regulation', 'ai policy', 'ai governance', 'ai safety'],
-    'LLM Infrastructure': ['llm', 'language model', 'transformer', 'inference'],
-    'Crypto & AI': ['crypto', 'blockchain', 'defi', 'token'],
-    'Tech Companies': ['openai', 'google', 'microsoft', 'meta', 'anthropic'],
-    'AI Applications': ['ai application', 'ai product', 'ai startup'],
+    'Crypto & AI': ['crypto', 'blockchain', 'defi', 'token', 'ethereum', 'bitcoin'],
+    'Tech Companies': ['openai', 'google', 'microsoft', 'meta', 'anthropic', 'apple', 'amazon', 'tesla'],
+    'AI Regulation': ['regulation', 'policy', 'governance', 'sec', 'ftc', 'lawsuit', 'ban'],
+    'AI Chips & Hardware': ['nvidia', 'amd', 'intel', 'semiconductor', 'chip', 'gpu'],
+    'AI Coding': ['code', 'programming', 'software', 'developer', 'github'],
+    'AI Agents': ['autonomous', 'agi', 'artificial intelligence', 'robot'],
+    'LLM Infrastructure': ['llm', 'language model', 'transformer', 'ai model'],
+    'AI Applications': ['ai', 'machine learning', 'neural', 'deep learning'],
 }
 
 def fetch_markets(category=None):
@@ -47,7 +47,13 @@ def fetch_markets(category=None):
         req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read())
-        return data.get('markets', [])
+
+        # Handle both dict and list responses
+        if isinstance(data, list):
+            return data
+        elif isinstance(data, dict):
+            return data.get('markets', [])
+        return []
     except Exception as e:
         print(f"  Polymarket API failed for {category}: {e}", file=sys.stderr)
         return []
@@ -84,10 +90,15 @@ def run():
     seen_titles = set()
 
     for market in all_markets:
-        title = market.get('title', '')
-        subtitle = market.get('subtitle', '')
+        # Handle both dict and list items
+        if isinstance(market, dict):
+            # Polymarket uses 'question' field, not 'title'
+            title = market.get('question') or market.get('title', '')
+            subtitle = market.get('description') or market.get('subtitle', '')
+        else:
+            continue
 
-        if title in seen_titles:
+        if not title or title in seen_titles:
             continue
         seen_titles.add(title)
 
@@ -101,10 +112,18 @@ def run():
                 best_score = score
                 best_topic = topic
 
-        if best_score >= 2:
+        if best_score >= 1:
             # Calculate confidence based on market volume and interest
             volume = market.get('volume', 0)
             liquidity = market.get('liquidity', 0)
+
+            # Convert to numeric if string
+            try:
+                volume = float(volume) if volume else 0
+                liquidity = float(liquidity) if liquidity else 0
+            except (ValueError, TypeError):
+                volume = 0
+                liquidity = 0
 
             # Higher volume = more confidence in the signal
             volume_factor = min(volume / 100000, 0.3)  # Cap at 0.3
