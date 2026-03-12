@@ -30,6 +30,7 @@ FETCHERS = [
     ("fetch_huggingface.py",   "HuggingFace",      "Tier0"),
     ("fetch_hackernews.py",    "HackerNews",       "Tier0"),
     ("fetch_npm_pypi.py",      "npm+PyPI",         "Tier0"),
+    ("fetch_producthunt.py",   "ProductHunt",      "Tier1"),
     ("fetch_alphavantage.py",  "AlphaVantage",     "Tier1"),
     ("fetch_cryptopanic.py",   "CryptoPanic",      "Tier1"),
     ("fetch_serpapi.py",       "SerpAPI",          "Tier1"),

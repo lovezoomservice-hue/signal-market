@@ -65,7 +65,8 @@
     }
     .se-body { min-width: 0; }
     .se-topic { font-size: var(--text-base); font-weight: 600; margin-bottom: var(--space-1); }
-    .se-context { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; margin-bottom: var(--space-3); }
+    .se-cause { font-size: var(--text-sm); color: var(--text-primary); line-height: 1.6; font-style: italic; margin-bottom: var(--space-1); }
+    .se-context { font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.6; margin-bottom: var(--space-2); }
     .se-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); }
     .se-tag {
       font-family: var(--font-mono); font-size: 10px; padding: 2px 8px;
@@ -188,24 +189,29 @@ function renderSignalEntry(s) {
   const conf = Math.round((s.confidence || 0) * 100);
   const color = STAGE_COLORS[s.stage] || '#6b7280';
   const validated = s.cross_validated || (s.sources||[]).length >= 2;
-  const relatedTo = (s.related_to || []).slice(0, 2);
+  const urgColor = s.urgency === 'high' ? '#f59e0b' : s.urgency === 'medium' ? '#60a5fa' : '#6b7280';
 
   return `
   <div class="signal-entry">
     <div class="se-conf" style="color:${color}">${conf}%</div>
     <div class="se-body">
-      <div class="se-topic">${s.topic}</div>
-      <div class="se-context">${s.why_it_matters || ''}</div>
-      <div class="se-tags">
+      <div class="se-topic">
+        ${s.topic}
+        ${s.urgency === 'high' ? `<span style="margin-left:6px;font-size:9px;font-family:var(--font-mono);padding:1px 6px;border-radius:3px;background:rgba(245,158,11,0.12);color:#f59e0b;border:1px solid rgba(245,158,11,0.25)">urgent</span>` : ''}
+      </div>
+      ${s.primary_cause ? `<div class="se-cause">↳ ${s.primary_cause}</div>` : ''}
+      ${s.why_now ? `<div class="se-context" style="margin-top:4px">${s.why_now}</div>` : (s.why_it_matters ? `<div class="se-context">${s.why_it_matters}</div>` : '')}
+      ${s.agent_action ? `<div style="margin-top:var(--space-2);font-size:10px;color:var(--brand);font-family:var(--font-mono)">→ ${s.agent_action}</div>` : ''}
+      <div class="se-tags" style="margin-top:var(--space-2)">
         <span class="se-tag ${validated?'validated':''}">${validated?'✓ Multi-source':'Single source'}</span>
-        <span class="se-tag">${s.evidence_count} evidence item${s.evidence_count!==1?'s':''}</span>
-        ${relatedTo.map(r=>`<span class="se-tag">→ ${r}</span>`).join('')}
-        ${(s.sources||[]).map(src=>`<span class="se-tag">${src.split(':')[0]}</span>`).join('')}
+        ${s.decision_window ? `<span class="se-tag" style="color:${urgColor}">Window: ${s.decision_window}</span>` : ''}
+        ${(s.sources||[]).slice(0,3).map(src=>`<span class="se-tag">${src.split(':')[0]}</span>`).join('')}
+        ${(s.connected_topics||[]).slice(0,2).map(r=>`<span class="se-tag">→ ${r}</span>`).join('')}
       </div>
     </div>
     <div class="se-actions">
       <span class="stage-badge stage-${s.stage}" style="flex-shrink:0">${s.stage}</span>
-      <a href="/signals" style="font-size:10px;color:var(--text-tertiary);text-decoration:none;font-family:var(--font-mono)">detail →</a>
+      <a href="/signal?id=${s.signal_id}" style="font-size:10px;color:var(--brand);text-decoration:none;font-family:var(--font-mono)">deep →</a>
     </div>
   </div>`;
 }
@@ -268,7 +274,7 @@ function renderBrief(brief) {
       ${formatDate(brief.generated_at)} · ${brief.brief_id}
     </div>
     <h1 class="brief-headline">${brief.headline}</h1>
-    <p class="brief-lead">${brief.lead}</p>
+    <p class="brief-lead">${brief.macro_lead || brief.lead || ''}</p>
     ${metaHtml}
   </div>
   ${sectionsHtml}

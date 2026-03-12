@@ -132,6 +132,7 @@
     <div class="sidebar-group">
       <div class="sidebar-group-title">Intelligence API v2</div>
       <a href="#v2-world-state" class="sidebar-link">GET /v2/world-state</a>
+      <a href="#v2-causal" class="sidebar-link">GET /v2/causal</a>
       <a href="#v2-brief" class="sidebar-link">GET /v2/brief</a>
       <a href="#v2-causal" class="sidebar-link">GET /v2/causal <span style="font-size:9px;color:var(--text-tertiary)">(planned)</span></a>
     </div>
@@ -314,6 +315,45 @@
         }
       </div>
       <p class="docs-p">Null fields are <strong>intentionally null</strong> — not missing. Each null has a documented implementation milestone. This is a commitment to honesty over fake completeness.</p>
+    </div>
+
+    <!-- GET /v2/causal -->
+    <div class="docs-section" id="v2-causal">
+      <h2 class="docs-section-sub">GET /api/v2/causal/:signal_id</h2>
+      <p class="docs-p">Returns a <strong>CausalChainObject</strong> for a signal — why it's happening, what's driving it, what could stop it, and how urgent the decision window is.</p>
+      <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-4);flex-wrap:wrap">
+        <span class="ep-method get">GET</span>
+        <span class="ep-path">/api/v2/causal</span>
+        <span style="color:var(--text-tertiary);font-size:var(--text-xs)">all signals</span>
+      </div>
+      <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-4);flex-wrap:wrap">
+        <span class="ep-method get">GET</span>
+        <span class="ep-path">/api/v2/causal/:signal_id</span>
+        <span style="color:var(--text-tertiary);font-size:var(--text-xs)">single signal</span>
+      </div>
+      <div class="code-block">
+        <span class="code-comment"># Causal analysis for AI Agents signal</span><br>
+        curl /api/v2/causal/evt_001 -H <span class="code-str">"x-api-key: YOUR_KEY"</span>
+      </div>
+      <p class="docs-p" style="margin-top:var(--space-4)"><strong>CausalChainObject schema:</strong></p>
+      <div class="code-block">
+        {<br>
+        &nbsp;&nbsp;<span class="code-key">"primary_cause"</span>: <span class="code-str">"LLM capability crossing tool-use threshold"</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"mechanism"</span>: <span class="code-str">"GPT-4 demonstrated reliable function calling..."</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"enabling_factors"</span>: [<span class="code-str">"string"</span>],<br>
+        &nbsp;&nbsp;<span class="code-key">"accelerants"</span>: [<span class="code-str">"string"</span>], <span class="code-comment">// what's making it faster</span><br>
+        &nbsp;&nbsp;<span class="code-key">"inhibitors"</span>: [<span class="code-str">"string"</span>], <span class="code-comment">// what could slow or reverse it</span><br>
+        &nbsp;&nbsp;<span class="code-key">"causal_chain"</span>: [{ <span class="code-key">"step"</span>: <span class="code-val">1</span>, <span class="code-key">"label"</span>: <span class="code-str">"..."</span>, <span class="code-key">"description"</span>: <span class="code-str">"..."</span> }],<br>
+        &nbsp;&nbsp;<span class="code-key">"causal_confidence"</span>: <span class="code-val">0.88</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"causal_model_source"</span>: <span class="code-str">"domain_knowledge"</span>, <span class="code-comment">// or "derived"</span><br>
+        &nbsp;&nbsp;<span class="code-key">"why_now"</span>: {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"timing_factors"</span>: [<span class="code-str">"string"</span>],<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"urgency"</span>: <span class="code-str">"high | medium | low"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"window"</span>: <span class="code-str">"3–12 months"</span><br>
+        &nbsp;&nbsp;},<br>
+        &nbsp;&nbsp;<span class="code-key">"engine"</span>: <span class="code-str">"P0-B"</span><br>
+        }
+      </div>
     </div>
 
   </div>
