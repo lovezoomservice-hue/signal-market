@@ -29,9 +29,12 @@ jobs:
         run: |
           test -f scripts/send_watchlist_alerts.py \
             || { echo "::error::MISSING scripts/send_watchlist_alerts.py"; exit 1; }
-          test -f data/watchlist.json \
-            && echo "  watchlist: $(python3 -c \"import json; d=json.load(open('data/watchlist.json')); print(len(d.get('watchlist',d) if isinstance(d,dict) else d), 'watches')\")" \
-            || echo "  watchlist: empty (no watches yet)"
+          if [ -f data/watchlist.json ]; then
+            COUNT=$(python3 -c "import json; d=json.load(open('data/watchlist.json')); print(len(d.get('watchlist',d) if isinstance(d,dict) else d))")
+            echo "  watchlist: $COUNT watches"
+          else
+            echo "  watchlist: empty (no watches yet)"
+          fi
           echo "Preflight OK"
 
       - name: Run watchlist alert check
