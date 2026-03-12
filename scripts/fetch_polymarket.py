@@ -159,3 +159,40 @@ def run():
 
 if __name__ == '__main__':
     run()
+
+def get_signals() -> list[dict]:
+    """Returns signals list for use by fetch_world_signals.py aggregator."""
+    from io import StringIO
+    import sys
+    import json
+    from pathlib import Path
+    
+    # Collect all markets across categories
+    from scripts.fetch_polymarket import CATEGORIES, fetch_markets, score_market, TOPIC_KEYWORDS
+    all_markets = []
+    for cat in CATEGORIES:
+        all_markets.extend(fetch_markets(category=cat))
+    
+    signals = []
+    seen = set()
+    for m in all_markets:
+        if not isinstance(m, dict): continue
+        title = (m.get('question') or m.get('title') or '').strip()
+        if not title or title in seen: continue
+        seen.add(title)
+        desc = m.get('description') or m.get('subtitle') or ''
+        best_topic, best_score = None, 0
+        for topic in TOPIC_KEYWORDS:
+            s = score_market(title, desc, topic)
+            if s > best_score: best_topic, best_score = topic, s
+        if best_score < 1: continue
+        vol = float(m.get('volume') or 0)
+        conf = min(0.40 + min(vol/100000, 0.3), 0.80)
+        signals.append({
+            'topic': best_topic, 'confidence': conf, 'stage': 'forming' if conf >= 0.70 else 'emerging',
+            'sources': ['polymarket'], 'proof_id': f"polymarket-{m.get('slug','')}",
+            'source_url': f"https://polymarket.com/event/{m.get('slug','')}",
+            'title': title[:120], 'category': 'Prediction Market', 'evidenceCount': 1,
+            'signal_id': f"poly_{hash(title) & 0xFFFFFF:06x}",
+        })
+    return signals

@@ -24,7 +24,7 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
     today = datetime.date.today().isoformat()
     now   = datetime.datetime.utcnow().isoformat() + "Z"
     if layers is None:
-        layers = ["l0", "l1", "l2", "l3"]
+        layers = ["l0", "l1", "l2", "l3", "l5"]
 
     all_new: list[dict] = []
     stats: dict[str, int] = {}
@@ -48,9 +48,9 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
     # ── L1: Reuters ──────────────────────────────────────────────────────────
     if "l1" in layers:
         try:
-            from scripts.fetch_reuters import fetch_reuters_signals
+            from scripts.fetch_reuters import get_signals as fetch_reuters_signals
         except ImportError:
-            from scripts.fetch_reuters import fetch_reuters_signals
+            sys.path.insert(0, str(ROOT)); from scripts.fetch_reuters import get_signals as fetch_reuters_signals
         try:
             sigs = fetch_reuters_signals()
             all_new.extend(sigs)
@@ -63,9 +63,9 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
     # ── L2: Reddit ───────────────────────────────────────────────────────────
     if "l2" in layers:
         try:
-            from scripts.fetch_reddit import fetch_reddit_signals
+            from scripts.fetch_reddit import get_signals as fetch_reddit_signals
         except ImportError:
-            from scripts.fetch_reddit import fetch_reddit_signals
+            sys.path.insert(0, str(ROOT)); from scripts.fetch_reddit import get_signals as fetch_reddit_signals
         try:
             sigs = fetch_reddit_signals()
             all_new.extend(sigs)
@@ -78,9 +78,9 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
     # ── L3: Polymarket ───────────────────────────────────────────────────────
     if "l3" in layers:
         try:
-            from scripts.fetch_polymarket import fetch_polymarket_signals
+            from scripts.fetch_polymarket import get_signals as fetch_polymarket_signals
         except ImportError:
-            from scripts.fetch_polymarket import fetch_polymarket_signals
+            sys.path.insert(0, str(ROOT)); from scripts.fetch_polymarket import get_signals as fetch_polymarket_signals
         try:
             sigs = fetch_polymarket_signals()
             all_new.extend(sigs)
@@ -89,6 +89,36 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
         except Exception as e:
             print(f"  L3 Polymarket ERROR: {e}", file=sys.stderr)
             stats["l3_polymarket"] = 0
+
+    # ── L3b: Kalshi (regulated prediction market) ────────────────────────────
+    if "l3" in layers:
+        try:
+            from scripts.fetch_kalshi import fetch_kalshi_signals
+        except ImportError:
+            from scripts.fetch_kalshi import fetch_kalshi_signals
+        try:
+            sigs = fetch_kalshi_signals()
+            all_new.extend(sigs)
+            stats["l3_kalshi"] = len(sigs)
+            print(f"  L3 Kalshi:    {len(sigs)} signals")
+        except Exception as e:
+            print(f"  L3 Kalshi ERROR: {e}", file=sys.stderr)
+            stats["l3_kalshi"] = 0
+
+    # ── L5: Professional Judgment (VC / analyst / consulting) ────────────────
+    if "l5" in layers:
+        try:
+            from scripts.fetch_professional_judgment import fetch_professional_judgment_signals
+        except ImportError:
+            from scripts.fetch_professional_judgment import fetch_professional_judgment_signals
+        try:
+            sigs = fetch_professional_judgment_signals()
+            all_new.extend(sigs)
+            stats["l5_professional"] = len(sigs)
+            print(f"  L5 Pro/VC:    {len(sigs)} signals")
+        except Exception as e:
+            print(f"  L5 Professional ERROR: {e}", file=sys.stderr)
+            stats["l5_professional"] = 0
 
     total_raw = len(all_new)
 
@@ -165,7 +195,7 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
 def main():
     parser = argparse.ArgumentParser(description="World Signals Master Fetcher")
     parser.add_argument("--dry-run", action="store_true", help="Fetch but don't write files")
-    parser.add_argument("--layers", default="l0,l1,l2,l3", help="Comma-separated layers: l0,l1,l2,l3")
+    parser.add_argument("--layers", default="l0,l1,l2,l3,l5", help="Comma-separated layers: l0,l1,l2,l3,l5")
     args = parser.parse_args()
 
     layers = [l.strip().lower() for l in args.layers.split(",")]

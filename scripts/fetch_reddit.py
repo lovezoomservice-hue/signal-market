@@ -159,3 +159,12 @@ def run():
 
 if __name__ == '__main__':
     run()
+
+def get_signals() -> list[dict]:
+    """Returns signals list for use by fetch_world_signals.py aggregator."""
+    all_signals = []
+    for sub in SUBREDDITS:
+        posts = fetch_subreddit(sub)
+        for post in posts:
+            all_signals.append(post)
+    return all_signals

@@ -138,3 +138,25 @@ def run():
 
 if __name__ == '__main__':
     run()
+
+def get_signals() -> list[dict]:
+    """Returns signals list for use by fetch_world_signals.py aggregator."""
+    all_signals = []
+    for source, url in TECH_FEEDS.items():
+        items = fetch_feed(url)
+        for item in items:
+            title = item.get('title','')
+            desc  = item.get('description','')
+            link  = item.get('link','')
+            for topic in TOPIC_KEYWORDS:
+                score = score_article(title, desc, topic)
+                if score >= 1:
+                    all_signals.append({
+                        'topic': topic, 'confidence': min(0.5 + score*0.08, 0.88),
+                        'stage': 'emerging', 'sources': [source],
+                        'source_url': link, 'title': title[:120],
+                        'category': 'News/Media', 'evidenceCount': 1,
+                        'signal_id': f"news_{hash(title) & 0xFFFFFF:06x}",
+                        'source_layer': 'L1',
+                    })
+    return all_signals

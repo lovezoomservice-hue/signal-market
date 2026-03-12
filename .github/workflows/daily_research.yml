@@ -164,7 +164,7 @@ jobs:
       # ── 9. World Signals Fetch (L0-L3 multi-layer, degraded-safe) ───────────
       # HN + BBC/NYT/TechCrunch/Verge (L1) + Reddit (L2) + Polymarket (L3)
       # Runs post-AR; failure never blocks main chain.
-      - name: World Signals Fetch (L0-L1-L2-L3, degraded-safe)
+      - name: World Signals Fetch (L0-L1-L2-L3-L5, degraded-safe)
         continue-on-error: true
         run: |
           DATE=$(date +%Y-%m-%d)
@@ -173,7 +173,7 @@ jobs:
           python3 scripts/fetch_world_signals.py 2>&1 | tail -15
           git add output/world_signals_*.json data/signals_history.jsonl || true
           git diff --staged --quiet && echo "WS: nothing to commit" && exit 0
-          git commit -m "auto: world signals fetch $DATE (HN+News+Reddit+Polymarket) [skip ci]"
+          git commit -m "auto: world signals fetch $DATE (HN+News+Reddit+Polymarket+ProJudgment) [skip ci]"
           git push
 
       # ── 10. Failure annotation ────────────────────────────────────────────
