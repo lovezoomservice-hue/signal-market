@@ -54,6 +54,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "watchlist.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "api/v2/causal.js",
       "use": "@vercel/node"
     }
@@ -270,6 +274,10 @@
     {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
+    },
+    {
+      "src": "/watchlist",
+      "dest": "/watchlist.html"
     },
     {
       "src": "/(.*)",

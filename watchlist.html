@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Watchlist — Signal Market</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .wl-header { padding: var(--space-10) 0 var(--space-6); display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .wl-title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; }
+    .section-title { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-4); }
+    .wl-block { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-6); margin-bottom: var(--space-6); }
+    .stats-row { display: flex; gap: var(--space-4); margin-bottom: var(--space-8); flex-wrap: wrap; }
+    .stat-card { background: var(--surface-low); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-5); flex: 1; min-width: 140px; }
+    .stat-label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-2); }
+    .stat-value { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.03em; }
+    /* watch list table */
+    .watch-table { width: 100%; border-collapse: collapse; }
+    .watch-table th { font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); text-align: left; }
+    .watch-table td { padding: var(--space-4); border-bottom: 1px solid var(--border-subtle); font-size: var(--text-sm); vertical-align: middle; }
+    .watch-table tr:last-child td { border-bottom: none; }
+    .watch-row:hover { background: var(--surface-mid); }
+    .badge-stage { font-size: 10px; font-family: var(--font-mono); padding: 3px 8px; border-radius: 100px; }
+    .badge-active { background: rgba(34,197,94,.12); color: #16a34a; }
+    .badge-pending { background: rgba(234,179,8,.12); color: #ca8a04; }
+    .remove-btn { font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); background: transparent; border: 1px solid var(--border-subtle); padding: 4px 10px; border-radius: var(--radius-sm); cursor: pointer; transition: all .15s; }
+    .remove-btn:hover { border-color: #ef4444; color: #ef4444; }
+    /* add form */
+    .add-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: var(--space-3); align-items: end; }
+    @media(max-width:640px) { .add-form { grid-template-columns: 1fr; } }
+    .form-group label { font-size: 11px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); display: block; margin-bottom: var(--space-2); }
+    .form-group input, .form-group select { width: 100%; background: var(--surface-mid); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-3) var(--space-4); font-size: var(--text-sm); color: var(--text-primary); font-family: var(--font-sans); outline: none; box-sizing: border-box; }
+    .form-group input:focus, .form-group select:focus { border-color: var(--brand); }
+    .add-btn { background: var(--brand); color: white; border: none; border-radius: var(--radius-lg); padding: var(--space-3) var(--space-6); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all .15s; white-space: nowrap; }
+    .add-btn:hover { background: #1e6bbf; }
+    .add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    /* triggers */
+    .trigger-item { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-4) 0; border-bottom: 1px solid var(--border-subtle); }
+    .trigger-item:last-child { border-bottom: none; }
+    .trigger-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--brand); margin-top: 5px; flex-shrink: 0; }
+    .trigger-topic { font-size: var(--text-sm); font-weight: 600; margin-bottom: 2px; }
+    .trigger-msg { font-size: var(--text-xs); color: var(--text-secondary); }
+    .trigger-time { font-size: 11px; font-family: var(--font-mono); color: var(--text-tertiary); margin-left: auto; white-space: nowrap; }
+    .empty-state { padding: var(--space-12); text-align: center; color: var(--text-tertiary); }
+    .empty-state a { color: var(--brand); text-decoration: none; }
+    .toast { position: fixed; bottom: var(--space-6); right: var(--space-6); background: var(--surface-high); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: var(--space-3) var(--space-5); font-size: var(--text-sm); z-index: 9999; transition: all .3s; transform: translateY(20px); opacity: 0; pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .nav-link { font-size: var(--text-sm); color: var(--text-secondary); text-decoration: none; transition: color .15s; }
+    .nav-link:hover { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+
+<div class="container" style="max-width:900px;margin:0 auto;padding:0 var(--space-6)">
+
+  <!-- Nav -->
+  <nav style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-5) 0;border-bottom:1px solid var(--border-subtle)">
+    <a href="/" style="font-size:var(--text-sm);font-weight:700;text-decoration:none;color:var(--text-primary);letter-spacing:-0.02em">Signal Market</a>
+    <div style="display:flex;gap:var(--space-6);align-items:center">
+      <a href="/signals" class="nav-link">Signals</a>
+      <a href="/brief" class="nav-link">Brief</a>
+      <a href="/graph" class="nav-link">Graph</a>
+      <a href="/dashboard" class="nav-link">Dashboard</a>
+    </div>
+  </nav>
+
+  <!-- Header -->
+  <div class="wl-header">
+    <div>
+      <div class="wl-title">Your Watchlist</div>
+      <div style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:var(--space-2)">
+        Track signals that matter to you. Get alerted when confidence or stage changes.
+      </div>
+    </div>
+    <div style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);padding-top:6px" id="user-email-label"></div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Watching</div>
+      <div class="stat-value" id="stat-watching">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Triggers (30d)</div>
+      <div class="stat-value" id="stat-triggers">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Last Alert</div>
+      <div class="stat-value" style="font-size:var(--text-lg)" id="stat-last-alert">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Active Signals</div>
+      <div class="stat-value" id="stat-active">—</div>
+    </div>
+  </div>
+
+  <!-- Active watches table -->
+  <div class="section-title">Active Watches</div>
+  <div class="wl-block" id="watch-list-block">
+    <div class="empty-state" id="watch-list-loading">Loading watches…</div>
+  </div>
+
+  <!-- Add watch form -->
+  <div class="section-title">Add a Watch</div>
+  <div class="wl-block">
+    <div class="add-form">
+      <div class="form-group">
+        <label>Topic</label>
+        <select id="form-topic">
+          <option value="">Select a topic…</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Alert email</label>
+        <input type="email" id="form-email" placeholder="you@example.com">
+      </div>
+      <div>
+        <button class="add-btn" id="add-btn" onclick="addWatch()">＋ Add Watch</button>
+      </div>
+    </div>
+    <div style="margin-top:var(--space-3);font-size:var(--text-xs);color:var(--text-tertiary)">
+      You'll receive an email when the signal stage changes or confidence crosses a threshold.
+    </div>
+  </div>
+
+  <!-- Recent triggers -->
+  <div class="section-title">Recent Trigger Log</div>
+  <div class="wl-block" id="triggers-block">
+    <div class="empty-state">Loading trigger log…</div>
+  </div>
+
+  <!-- All trackable signals (discovery) -->
+  <div class="section-title" style="margin-top:var(--space-8)">Trackable Signals</div>
+  <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-bottom:var(--space-4)">
+    All live signals — click any row to add to your watchlist.
+  </div>
+  <div class="wl-block" id="all-signals-block">
+    <div class="empty-state">Loading signals…</div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API_KEY = localStorage.getItem('sm_api_key');
+if (!API_KEY) { window.location.href = '/signin?next=/watchlist'; }
+
+const email = localStorage.getItem('sm_email') || '';
+document.getElementById('user-email-label').textContent = email || 'API key: ' + (API_KEY||'').slice(-6);
+
+function showToast(msg, ms = 3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function formatRelTime(iso) {
+  if (!iso || iso === '—') return '—';
+  try {
+    const diff = Date.now() - new Date(iso).getTime();
+    const h = Math.floor(diff / 3600000);
+    if (h < 1) return `${Math.floor(diff/60000)}m ago`;
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h/24)}d ago`;
+  } catch { return '—'; }
+}
+
+// ── Load all data ─────────────────────────────────────────────────────────────
+async function loadAll() {
+  const [wlRes, triggersRes, sigRes] = await Promise.allSettled([
+    fetch('/api/watchlist', { headers: { 'x-api-key': API_KEY } }).then(r => r.json()),
+    fetch('/api/watchlist/triggers', { headers: { 'x-api-key': API_KEY } }).then(r => r.ok ? r.json() : { triggers: [] }),
+    fetch('/api/signals').then(r => r.json()),
+  ]);
+
+  const wlData = wlRes.status === 'fulfilled' ? wlRes.value : { watchlist: [] };
+  const triggersData = triggersRes.status === 'fulfilled' ? triggersRes.value : { triggers: [] };
+  const sigData = sigRes.status === 'fulfilled' ? sigRes.value : { signals: [] };
+
+  const watches = wlData.watchlist || [];
+  const triggers = triggersData.triggers || [];
+  const signals = sigData.signals || [];
+
+  // Stats
+  document.getElementById('stat-watching').textContent = watches.length;
+  document.getElementById('stat-triggers').textContent = triggers.length;
+  document.getElementById('stat-active').textContent = signals.length;
+  const lastTrigger = triggers[0]?.triggered_at;
+  document.getElementById('stat-last-alert').textContent = lastTrigger ? formatRelTime(lastTrigger) : 'Never';
+
+  // Populate topic select
+  const topicSel = document.getElementById('form-topic');
+  signals.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.topic;
+    opt.textContent = s.topic;
+    topicSel.appendChild(opt);
+  });
+
+  // Render watches
+  renderWatches(watches, signals);
+  renderTriggers(triggers);
+  renderAllSignals(signals, watches);
+}
+
+function renderWatches(watches, signals) {
+  const block = document.getElementById('watch-list-block');
+  if (watches.length === 0) {
+    block.innerHTML = `<div class="empty-state">No watches yet. Add a topic below to start tracking. <a href="/signals">Browse signals →</a></div>`;
+    return;
+  }
+  const sigMap = Object.fromEntries((signals).map(s => [s.topic, s]));
+  block.innerHTML = `
+    <table class="watch-table">
+      <thead><tr>
+        <th>Topic</th><th>Stage</th><th>Confidence</th><th>Email</th><th>Created</th><th>Action</th>
+      </tr></thead>
+      <tbody>
+        ${watches.map(w => {
+          const sig = sigMap[w.topic] || {};
+          const stage = sig.stage || '—';
+          const conf = sig.confidence ? (sig.confidence * 100).toFixed(0) + '%' : '—';
+          return `<tr class="watch-row">
+            <td><a href="/signal?id=${sig.signal_id||''}" style="color:var(--text-primary);text-decoration:none;font-weight:600">${w.topic}</a></td>
+            <td><span class="badge-stage badge-active">${stage}</span></td>
+            <td style="font-family:var(--font-mono);font-size:12px">${conf}</td>
+            <td style="font-size:12px;color:var(--text-secondary)">${w.email||email||'—'}</td>
+            <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary)">${formatRelTime(w.created_at)}</td>
+            <td><button class="remove-btn" onclick="removeWatch('${w.topic}')">Remove</button></td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+}
+
+function renderTriggers(triggers) {
+  const block = document.getElementById('triggers-block');
+  if (triggers.length === 0) {
+    block.innerHTML = `<div class="empty-state">No triggers yet. Alerts fire when a signal stage changes or confidence shifts ±5%.</div>`;
+    return;
+  }
+  block.innerHTML = triggers.slice(0, 20).map(t => `
+    <div class="trigger-item">
+      <div class="trigger-dot"></div>
+      <div style="flex:1">
+        <div class="trigger-topic">${t.topic || '—'}</div>
+        <div class="trigger-msg">${t.message || t.condition || 'Stage change detected'}</div>
+      </div>
+      <div class="trigger-time">${formatRelTime(t.triggered_at)}</div>
+    </div>`).join('');
+}
+
+function renderAllSignals(signals, watches) {
+  const watchedTopics = new Set(watches.map(w => w.topic));
+  const block = document.getElementById('all-signals-block');
+  if (signals.length === 0) {
+    block.innerHTML = `<div class="empty-state">No signals loaded.</div>`;
+    return;
+  }
+  const rows = signals.map(s => {
+    const watching = watchedTopics.has(s.topic);
+    const conf = s.confidence ? (s.confidence * 100).toFixed(0) + '%' : '—';
+    return `<tr class="watch-row" style="cursor:${watching?'default':'pointer'}" onclick="${watching?'':'quickWatch(\''+s.topic+'\')'}">
+      <td><a href="/signal?id=${s.signal_id}" style="color:var(--text-primary);text-decoration:none;font-weight:600" onclick="event.stopPropagation()">${s.topic}</a></td>
+      <td><span class="badge-stage badge-active">${s.stage||'—'}</span></td>
+      <td style="font-family:var(--font-mono);font-size:12px">${conf}</td>
+      <td style="font-size:12px;color:var(--text-secondary)">${(s.sources||[]).length} source${(s.sources||[]).length!==1?'s':''}</td>
+      <td>
+        ${watching
+          ? `<span style="font-size:11px;font-family:var(--font-mono);color:#16a34a">✓ Watching</span>`
+          : `<button class="add-btn" style="padding:4px 12px;font-size:11px" onclick="event.stopPropagation();quickWatch('${s.topic}')">＋ Watch</button>`}
+      </td>
+    </tr>`;
+  }).join('');
+  block.innerHTML = `
+    <table class="watch-table">
+      <thead><tr><th>Topic</th><th>Stage</th><th>Confidence</th><th>Sources</th><th>Watch</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+async function quickWatch(topic) {
+  document.getElementById('form-topic').value = topic;
+  document.getElementById('form-email').value = email;
+  await addWatch();
+}
+
+async function addWatch() {
+  const topic = document.getElementById('form-topic').value.trim();
+  const alertEmail = document.getElementById('form-email').value.trim() || email;
+  if (!topic) { showToast('Please select a topic'); return; }
+
+  const btn = document.getElementById('add-btn');
+  btn.disabled = true;
+  btn.textContent = 'Adding…';
+
+  try {
+    const res = await fetch('/api/watchlist', {
+      method: 'POST',
+      headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, email: alertEmail, threshold: 0.1 }),
+    });
+    if (res.ok) {
+      showToast(`✓ Now watching "${topic}"`);
+      // Update localStorage watched topics too
+      const watched = JSON.parse(localStorage.getItem('sm_watched_topics') || '[]');
+      if (!watched.includes(topic)) { watched.push(topic); localStorage.setItem('sm_watched_topics', JSON.stringify(watched)); }
+      setTimeout(() => loadAll(), 500);
+    } else {
+      const d = await res.json().catch(() => ({}));
+      showToast(d.error || 'Failed to add watch');
+    }
+  } catch (e) {
+    showToast('Network error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '＋ Add Watch';
+  }
+}
+
+async function removeWatch(topic) {
+  try {
+    await fetch('/api/watchlist', {
+      method: 'DELETE',
+      headers: { 'x-api-key': API_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic }),
+    });
+    // Remove from localStorage too
+    const watched = JSON.parse(localStorage.getItem('sm_watched_topics') || '[]');
+    const updated = watched.filter(t => t !== topic);
+    localStorage.setItem('sm_watched_topics', JSON.stringify(updated));
+    showToast(`Removed "${topic}" from watchlist`);
+    setTimeout(() => loadAll(), 300);
+  } catch (e) { showToast('Failed to remove'); }
+}
+
+loadAll().catch(e => console.error('loadAll:', e));
+</script>
+</body>
+</html>

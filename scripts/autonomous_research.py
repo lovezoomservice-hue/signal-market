@@ -21,16 +21,28 @@ OUTPUT   = ROOT / "output"
 
 # Seed topics → initial queries
 SEED_QUERIES = {
-    "AI Agents":             ["autonomous AI agents LLM", "multi-agent systems 2026"],
-    "LLM Infrastructure":    ["large language model inference optimization", "LLM serving scalability"],
-    "AI Reasoning":          ["chain-of-thought reasoning LLM", "inference time compute scaling"],
-    "Efficient AI":          ["efficient neural network training", "model compression quantization 2026"],
-    "Reinforcement Learning":["reinforcement learning from human feedback", "RLHF reward model"],
-    "Diffusion Models":      ["diffusion model image generation 2026", "stable diffusion new architecture"],
-    "AI Coding":             ["code generation LLM", "AI programming assistant benchmark"],
-    "Transformer Architecture": ["transformer architecture alternatives SSM Mamba", "mixture of experts LLM"],
-    "Multimodal AI":         ["multimodal large language model vision", "vision language model 2026"],
-    "AI Infrastructure":     ["AI compute infrastructure GPU cluster", "ML platform orchestration"],
+    # ── L0: AI / Research / Dev (core) ──────────────────────────────────────
+    "AI Agents":                 ["autonomous AI agents LLM", "multi-agent systems tool use 2026"],
+    "LLM Infrastructure":        ["large language model inference optimization", "LLM serving vLLM scalability"],
+    "AI Reasoning":              ["chain-of-thought reasoning LLM", "inference time compute scaling o1 o3"],
+    "Efficient AI":              ["efficient neural network training", "model compression quantization 2026"],
+    "Reinforcement Learning":    ["reinforcement learning from human feedback RLHF", "reward model preference optimization"],
+    "Diffusion Models":          ["diffusion model image video generation 2026", "stable diffusion flux architecture"],
+    "AI Coding":                 ["code generation LLM benchmark", "AI programming assistant SWE-bench"],
+    "Transformer Architecture":  ["transformer alternatives SSM Mamba", "mixture of experts MoE LLM scaling"],
+    "Multimodal AI":             ["multimodal large language model vision language", "GPT-4V Gemini omni 2026"],
+    "AI Infrastructure":         ["AI compute infrastructure GPU cluster", "ML platform orchestration Kubernetes"],
+
+    # ── L4: Frontier Technology Verticals (new) ───────────────────────────
+    "Robotics & Embodied AI":    ["embodied AI robot foundation model manipulation", "humanoid robot learning 2026"],
+    "Brain-Computer Interface":  ["brain computer interface neural decoding 2026", "Neuralink non-invasive BCI"],
+    "Commercial Space & AI":     ["AI edge inference satellite constellation 2026", "SpaceX reusable rocket launch"],
+    "AI Chips & Custom Silicon": ["custom AI accelerator inference chip 2026", "Cerebras Groq Tenstorrent performance"],
+    "Autonomous Vehicles":       ["end-to-end neural autonomous driving 2026", "Waymo Tesla FSD robotaxi fleet"],
+
+    # ── L2: Social / Sentiment (research angle) ───────────────────────────
+    "AI Policy & Governance":    ["AI safety alignment regulation 2026", "AGI risk governance policy"],
+    "AI Investment & Capital":   ["AI startup funding valuation 2026", "LLM company acquisition IPO"],
 }
 
 def arxiv_search(query: str, max_results: int = 5) -> list[dict]:

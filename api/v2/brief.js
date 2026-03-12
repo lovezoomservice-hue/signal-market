@@ -78,6 +78,66 @@ const CAUSAL_CONTEXT = {
     urgency: 'medium', window: '6–18 months',
     agent_action: 'Monitor multimodal benchmark releases and enterprise adoption in design, medical imaging, and video.',
   },
+
+  // ── L4 Frontier Verticals (2026-03-13) ──────────────────────────────────
+  'Robotics & Embodied AI': {
+    primary_cause: 'Foundation models unlocking general-purpose robot manipulation — training on internet data now transfers to physical world',
+    timing: 'Figure, 1X, Unitree shipping commercial units; Boston Dynamics Atlas going electric; Tesla Optimus volume ramp signal',
+    urgency: 'high', window: '12–36 months',
+    monitoring_points: ['Humanoid robot production unit announcements', 'RT-2/π0 model benchmark improvements', 'Manufacturing deployment contracts'],
+    invalidation_conditions: ['Physical world transfer learning plateaus without new data modalities', 'Cost per robot stays above $50k for 2+ years'],
+    agent_action: 'Track monthly robot deployment announcements and arXiv manipulation paper velocity.',
+  },
+  'Brain-Computer Interface': {
+    primary_cause: 'Neuralink N1 implant demonstrating motor cortex decoding at consumer scale — opening commercial BCI market',
+    timing: 'First paralysis patient controlling computer confirmed; Synchron FDA approval; academic BCI velocity accelerating',
+    urgency: 'medium', window: '12–48 months',
+    monitoring_points: ['Neuralink patient count milestones', 'Non-invasive EEG accuracy benchmarks', 'FDA approval pipeline for BCI devices'],
+    invalidation_conditions: ['Adverse events from implanted devices halt clinical trials', 'Wireless bandwidth limits block high-resolution decoding'],
+    agent_action: 'Monitor Neuralink clinical trial updates and non-invasive BCI accuracy papers.',
+  },
+  'Commercial Space & AI': {
+    primary_cause: 'Starship making orbital launch fully reusable — collapsing $/kg to orbit by 10–100x and enabling new satellite economy',
+    timing: 'Starship orbital test flights succeeding; Starlink v3 deployment underway; AI satellite inference emerging',
+    urgency: 'medium', window: '24–60 months',
+    monitoring_points: ['Starship launch cadence and reuse count', 'Satellite constellation AI processing announcements', 'Launch cost per kg trajectory'],
+    invalidation_conditions: ['Starship development halted by regulatory or technical failure', 'Alternative launch vehicles maintain cost competitiveness'],
+    agent_action: 'Track Starship launch manifest and per-kg cost estimates quarterly.',
+  },
+  'AI Chips & Custom Silicon': {
+    primary_cause: 'NVIDIA GPU bottleneck creating $100B+ alternative accelerator market — Groq/Cerebras/Tenstorrent demonstrating inference cost reduction',
+    timing: 'H100/H200 allocation scarcity persists; Blackwell delayed; hyperscalers building custom ASICs (TPU v5, Trainium2, Maia)',
+    urgency: 'high', window: '6–24 months',
+    monitoring_points: ['Groq/Cerebras inference $/token vs NVIDIA', 'Hyperscaler custom silicon production ramp', 'AMD MI300X deployment velocity'],
+    invalidation_conditions: ['NVIDIA H100 supply normalizes and ASP drops >40%', 'Custom silicon yields remain low below 7nm process'],
+    agent_action: 'Track inference cost benchmarks and hyperscaler ASIC deployment announcements.',
+  },
+  'Autonomous Vehicles': {
+    primary_cause: 'Waymo proving full commercial autonomy in 3 cities — scale threshold crossed, regulatory unlocking accelerating',
+    timing: 'Waymo One at 150k+ weekly rides; Tesla FSD v12 end-to-end; China robotaxi fleets (Apollo, WeRide) scaling',
+    urgency: 'high', window: '12–36 months',
+    monitoring_points: ['Waymo ride volume quarterly growth', 'Tesla FSD engagement rate (miles per disengagement)', 'Robotaxi city expansion announcements'],
+    invalidation_conditions: ['Major autonomous accident triggers federal regulatory freeze', 'LiDAR/sensor cost fails to reach sub-$500 threshold'],
+    agent_action: 'Monitor Waymo weekly ride count, Tesla FSD v12 disengagement rate, and robotaxi expansion cities.',
+  },
+
+  // ── Professional Judgment & Capital Layer ───────────────────────────────
+  'AI Policy & Governance': {
+    primary_cause: 'Governments racing to regulate AI before capability overhang becomes unmanageable — EU AI Act live, US executive action ongoing',
+    timing: 'EU AI Act enforcement 2025–2027; US AI Safety Institute active; China AI governance expanding',
+    urgency: 'medium', window: '6–24 months',
+    monitoring_points: ['EU AI Act high-risk system compliance deadlines', 'US NIST AI RMF adoption by federal contractors', 'Frontier model reporting requirements'],
+    invalidation_conditions: ['Regulatory deadlines extended under industry lobbying', 'Major AI safety incident accelerates restrictions beyond current scope'],
+    agent_action: 'Track EU AI Act enforcement timeline and US NIST framework adoption milestones.',
+  },
+  'AI Investment & Capital': {
+    primary_cause: 'AI infrastructure and application layer attracting unprecedented capital — $100B+ annual commitment from hyperscalers alone',
+    timing: 'OpenAI, Anthropic, xAI, Mistral all raising at $10B+ valuations; GPU infrastructure capex compressing ROI windows',
+    urgency: 'high', window: '6–18 months',
+    monitoring_points: ['Monthly AI funding announcements >$100M', 'Hyperscaler AI capex guidance', 'AI startup acquisition activity'],
+    invalidation_conditions: ['Interest rate shock dries up growth capital', 'AI revenue multiples compress below 10x ARR'],
+    agent_action: 'Track monthly AI funding rounds and hyperscaler capex announcements.',
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────

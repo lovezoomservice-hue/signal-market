@@ -86,11 +86,11 @@ if (!API_KEY) { window.location.href = '/signin'; }
 
 const SNIPPETS = {
   curl: (key) => `<span class="code-comment"># Get all signals</span>
-curl https://api.signal-market.com/api/signals \\
+curl https://signal-market-z14d.vercel.app/api/signals \\
   -H <span class="code-string">"x-api-key: ${key}"</span>
 
 <span class="code-comment"># Get WorldState for a specific signal</span>
-curl https://api.signal-market.com/api/v2/world-state/evt_001 \\
+curl https://signal-market-z14d.vercel.app/api/v2/world-state/evt_001 \\
   -H <span class="code-string">"x-api-key: ${key}"</span>`,
 
   python: (key) => `<span class="code-key">import</span> requests
@@ -99,7 +99,7 @@ headers = {<span class="code-string">"x-api-key"</span>: <span class="code-strin
 
 <span class="code-comment"># Fetch all signals</span>
 r = requests.get(
-    <span class="code-string">"https://api.signal-market.com/api/signals"</span>,
+    <span class="code-string">"https://signal-market-z14d.vercel.app/api/signals"</span>,
     headers=headers
 )
 signals = r.json()[<span class="code-string">"signals"</span>]
@@ -108,7 +108,7 @@ signals = r.json()[<span class="code-string">"signals"</span>]
 
   js: (key) => `<span class="code-comment">// Fetch signals with your API key</span>
 <span class="code-key">const</span> res = <span class="code-key">await</span> fetch(
-  <span class="code-string">"https://api.signal-market.com/api/signals"</span>,
+  <span class="code-string">"https://signal-market-z14d.vercel.app/api/signals"</span>,
   { headers: { <span class="code-string">"x-api-key"</span>: <span class="code-string">"${key}"</span> } }
 );
 <span class="code-key">const</span> { signals } = <span class="code-key">await</span> res.json();
@@ -161,6 +161,21 @@ async function loadDashboard() {
     user = { email: localStorage.getItem('sm_email') || '', plan: 'free', req_count: 0, plan_info: { name: 'Free', req_per_day: 100 } };
   }
 
+  // Fetch live stats
+  let stats = { total_signals: 0, last_updated: '—', cross_validated: 0 };
+  try {
+    const [statsRes, pipelineRes] = await Promise.all([
+      fetch('/api/signals').then(r => r.json()),
+      fetch('/api/status').then(r => r.ok ? r.json() : Promise.resolve({})),
+    ]);
+    const signals = Array.isArray(statsRes) ? statsRes : (statsRes.signals || []);
+    stats.total_signals = signals.length;
+    stats.cross_validated = signals.filter(s => s.cross_validated || (s.sources || []).length >= 2).length;
+    stats.last_updated = pipelineRes.last_run ? new Date(pipelineRes.last_run).toLocaleString() : 'Recently';
+  } catch (e) {
+    console.warn('Stats fetch failed:', e.message);
+  }
+
   const email = user.email || localStorage.getItem('sm_email') || '';
   document.getElementById('user-email').textContent = email;
 
@@ -189,6 +204,24 @@ async function loadDashboard() {
         <div class="dc-label">Plan</div>
         <div class="dc-value" style="font-size:var(--text-xl)">${user.plan_info?.name || 'Free'}</div>
         <div class="dc-note">${reqLimit === null ? 'Unlimited requests' : reqLimit + ' req/day'} · <a href="/pricing" style="color:var(--brand);text-decoration:none">Upgrade →</a></div>
+      </div>
+    </div>
+
+    <div class="dash-grid" style="margin-top:var(--space-4)">
+      <div class="dash-card">
+        <div class="dc-label">Total signals</div>
+        <div class="dc-value">${stats.total_signals}</div>
+        <div class="dc-note">Active in database</div>
+      </div>
+      <div class="dash-card">
+        <div class="dc-label">Cross-validated</div>
+        <div class="dc-value">${stats.cross_validated}/${stats.total_signals || '—'}</div>
+        <div class="dc-note">Multi-source confirmed</div>
+      </div>
+      <div class="dash-card">
+        <div class="dc-label">Last updated</div>
+        <div class="dc-value" style="font-size:var(--text-base)">${stats.last_updated}</div>
+        <div class="dc-note">Pipeline run</div>
       </div>
     </div>
 

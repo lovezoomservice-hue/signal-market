@@ -467,6 +467,7 @@
       <a href="/signals" style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500;text-decoration:none;border-bottom:2px solid var(--brand);padding-bottom:2px;">Signals</a>
       <a href="/graph" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Graph</a>
       <a href="/docs" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">API</a>
+      <a href="/watchlist" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Watchlist</a>
     </div>
     <div style="display:flex;align-items:center;gap:var(--space-3);">
       <span class="live-dot"></span>
@@ -889,9 +890,41 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(
 // ── Watchlist ────────────────────────────────────────────────────────────
 let _activeSignalTopic = null;
 const _origOpenDrawer = openDrawer;
+
+// Load watched topics from localStorage
+function getWatchedTopics() {
+  try { return JSON.parse(localStorage.getItem('sm_watched_topics') || '[]'); }
+  catch { return []; }
+}
+function isTopicWatched(topic) {
+  return getWatchedTopics().includes(topic);
+}
+function addTopicToWatched(topic) {
+  const topics = getWatchedTopics();
+  if (!topics.includes(topic)) {
+    topics.push(topic);
+    localStorage.setItem('sm_watched_topics', JSON.stringify(topics));
+  }
+}
+function updateWatchButton() {
+  const btn = document.getElementById('btn-watch');
+  if (!btn || !_activeSignalTopic) return;
+  if (isTopicWatched(_activeSignalTopic)) {
+    btn.textContent = '✓ Watching';
+    btn.style.color = '#86efac';
+    btn.style.borderColor = 'rgba(134,239,172,0.35)';
+  } else {
+    btn.textContent = '＋ Watch';
+    btn.style.color = '#c8a8f0';
+    btn.style.borderColor = 'rgba(200,168,240,0.35)';
+  }
+}
+
 function openDrawer(sig) {
   _activeSignalTopic = sig?.topic || null;
   _origOpenDrawer(sig);
+  // Update watch button after drawer opens
+  setTimeout(updateWatchButton, 100);
 }
 
 async function addToWatchlist() {
@@ -907,6 +940,7 @@ async function addToWatchlist() {
     });
     const d = await r.json();
     if (r.ok && d.success) {
+      addTopicToWatched(_activeSignalTopic);
       btn.textContent = '✓ Watching';
       btn.style.color = '#86efac';
       btn.style.borderColor = 'rgba(134,239,172,0.35)';

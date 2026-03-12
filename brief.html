@@ -154,6 +154,7 @@
     <div style="display:flex;align-items:center;gap:var(--space-6);">
       <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Signals</a>
       <a href="/graph" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Graph</a>
+      <a href="/watchlist" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Watchlist</a>
       <a href="/brief" style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500;text-decoration:none;border-bottom:2px solid var(--brand);padding-bottom:2px;">Brief</a>
       <a href="/api" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">API</a>
     </div>
@@ -219,6 +220,21 @@ function renderSignalEntry(s) {
 function renderBrief(brief) {
   const meta = brief.meta || {};
   const gi = brief.graph_insight;
+
+  // Empty state - no sections
+  if (!brief.sections || brief.sections.length === 0) {
+    document.getElementById('brief-root').innerHTML = `
+    <div class="brief-header">
+      <div class="brief-date"><span class="live-dot"></span> ${formatDate(brief.generated_at)} · ${brief.brief_id}</div>
+      <h1 class="brief-headline">${brief.headline || 'Daily Intelligence Brief'}</h1>
+      <p class="brief-lead">Brief generating... check back at 01:00 UTC when the daily pipeline completes.</p>
+      <div style="padding:var(--space-6);background:var(--surface-low);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);text-align:center;margin-top:var(--space-6)">
+        <p style="color:var(--text-secondary);margin-bottom:var(--space-4)">While you wait, explore live signals:</p>
+        <a href="/signals" class="btn-primary">Browse signals →</a>
+      </div>
+    </div>`;
+    return;
+  }
 
   const metaHtml = `
   <div class="brief-meta-row">
