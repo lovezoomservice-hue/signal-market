@@ -57,6 +57,7 @@ function checkTriggers(watchlist, signals) {
     const stage_ok = !w.stage || sig.stage === w.stage;
     if (conf_ok && stage_ok) {
       const entry = { ts: new Date().toISOString(), watch_id: w.id, topic: sig.topic,
+        signal_id: sig.signal_id||null,
         stage: sig.stage, confidence: sig.confidence, threshold: w.threshold,
         email: w.email||null, trigger: 'THRESHOLD_EXCEEDED' };
       logTrigger(entry);

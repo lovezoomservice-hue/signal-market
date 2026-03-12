@@ -98,6 +98,7 @@ def check_triggers(watchlist, signals):
                 "ts":         datetime.datetime.now(datetime.timezone.utc).isoformat().replace("+00:00","Z"),
                 "watch_id":   wid,
                 "topic":      match["topic"],
+                "signal_id":  match.get("signal_id"),
                 "stage":      match["stage"],
                 "confidence": match["confidence"],
                 "threshold":  thresh,
@@ -109,8 +110,15 @@ def check_triggers(watchlist, signals):
 # ── Email ────────────────────────────────────────────────────────────────────
 
 def build_html(t):
-    conf  = round(t["confidence"] * 100)
+    conf   = round(t["confidence"] * 100)
     thresh = round(t["threshold"] * 100)
+    sid    = t.get("signal_id") or ""
+    # Deep link: signal.html?id=evt_xxx if signal_id available, else signals list
+    detail_url = (
+        f"https://signal-market.pages.dev/signal?id={sid}"
+        if sid else
+        "https://signal-market.pages.dev/signals"
+    )
     return f"""<!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>body{{font-family:-apple-system,sans-serif;background:#07060f;color:#e2e8f0;margin:0;padding:0}}
 .w{{max-width:520px;margin:0 auto;padding:32px 24px}}
@@ -121,15 +129,18 @@ h2{{font-size:20px;font-weight:700;margin:16px 0 6px}}
 .meta{{font-size:13px;color:#94a3b8;margin-bottom:24px}}
 .cta{{background:#c8a8f0;color:#07060f;font-weight:700;text-decoration:none;
   padding:12px 24px;border-radius:8px;font-size:14px;display:inline-block}}
+.sid{{font-family:monospace;font-size:11px;color:#475569;margin-top:8px}}
 .foot{{margin-top:32px;font-size:11px;color:#475569}}
 </style></head><body><div class="w">
 <span class="badge">Watchlist Alert</span>
 <h2>📡 {t['topic']}</h2>
 <div class="conf">{conf}%</div>
 <div class="meta">confidence · threshold {thresh}% · stage: {t['stage']}</div>
-<a class="cta" href="https://signal-market.pages.dev/signals">View Signals →</a>
-<div class="foot">Signal Market · You're watching <strong>{t['topic']}</strong>.
-<a href="https://signal-market.pages.dev" style="color:#94a3b8"> Manage watchlist</a></div>
+<a class="cta" href="{detail_url}">View Signal →</a>
+{f'<div class="sid">signal_id: {sid}</div>' if sid else ''}
+<div class="foot">Signal Market · You're watching <strong>{t['topic']}</strong>. ·
+<a href="https://signal-market.pages.dev/signals" style="color:#94a3b8">All signals</a>
+</div>
 </div></body></html>"""
 
 def send_alert(t):
