@@ -13,7 +13,7 @@
 import { readFileSync, existsSync } from 'fs';
 import crypto from 'crypto';
 import { join } from 'path';
-import persistence from './lib/kv.js';
+import persistence from '../lib/kv.js';
 
 // ── Storage paths for seed data (backwards compatibility) ──────────────────
 const STORE_PATH = join(process.cwd(), 'data', 'auth_store.json');
