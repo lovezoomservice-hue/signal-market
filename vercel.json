@@ -240,6 +240,10 @@
       "dest": "/about.html"
     },
     {
+      "src": "/api/v2/agent-brief",
+      "dest": "/api/v2/agent-brief.js"
+    },
+    {
       "src": "/api/v2/brief",
       "dest": "/api/v2/brief.js"
     },

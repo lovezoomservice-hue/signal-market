@@ -24,19 +24,18 @@ _SSL_CTX = ssl.create_default_context()
 _SSL_CTX.check_hostname = False
 _SSL_CTX.verify_mode = ssl.CERT_NONE
 
-# ── VC Firm Blog RSS Feeds ────────────────────────────────────────────────────
+# ── VC Firm Blog RSS Feeds (VERIFIED WORKING) ─────────────────────────────────
 VC_FEEDS = [
-    ("https://a16z.com/feed/",                       "a16z",           "Andreessen Horowitz"),
-    ("https://www.sequoiacap.com/articles/feed/",    "sequoia",        "Sequoia Capital"),
-    ("https://www.bvp.com/atlas/rss.xml",            "bessemer",       "Bessemer Venture Partners"),
-    ("https://firstround.com/review/feed.xml",       "first_round",    "First Round Capital"),
-    ("https://www.nfx.com/feed",                     "nfx",            "NFX"),
-    ("https://hbr.org/topics/technology/rss",        "hbr_tech",       "Harvard Business Review Tech"),
+    ("https://news.greylock.com/feed",                          "greylock",      "Greylock Partners"),
+    ("https://techcrunch.com/category/venture/feed/",           "tc_venture",    "TechCrunch Venture"),
+    ("https://techcrunch.com/category/artificial-intelligence/feed/", "tc_ai",    "TechCrunch AI"),
+    ("https://www.ycombinator.com/blog/rss.xml",                "yc_blog",       "Y Combinator"),
+    ("https://www.technologyreview.com/feed/",                  "mit_tr",        "MIT Technology Review"),
+    ("https://stratechery.com/feed/",                           "stratechery",   "Stratechery"),
 ]
 
 # ── Public Tech Analysis / Research ──────────────────────────────────────────
 ANALYST_FEEDS = [
-    ("https://www.theinformation.com/feed",          "the_information","The Information"),
     ("https://www.semianalysis.com/feed",            "semianalysis",   "SemiAnalysis"),
     ("https://www.ben-evans.com/benedictevans?format=rss", "ben_evans","Benedict Evans"),
     ("https://www.notboring.co/feed",                "not_boring",     "Not Boring"),
@@ -51,8 +50,8 @@ TOPIC_KEYWORDS = {
     "Robotics & Embodied AI":    ["robot","humanoid","embodied ai","physical ai","figure","1x","manipulation"],
     "Commercial Space":          ["spacex","launch","satellite","rocket","starship","space economy"],
     "Autonomous Vehicles":       ["waymo","self-driving","autonomous vehicle","fsd","robotaxi"],
-    "AI Policy & Governance":    ["ai regulation","ai safety","alignment","governance","policy","regulation","eu ai","executive order"],
-    "AI Investment & Capital":   ["ai funding","valuation","raise","round","ipo","acquisition","investment","portfolio","venture"],
+    "AI Policy & Governance":    ["ai regulation","ai safety","alignment","governance","policy","regulation","eu ai","executive order", "legislation", "senate", "congress", "white house", "nist", "eu ai act"],
+    "AI Investment & Capital":   ["ai funding","valuation","raise","round","ipo","acquisition","investment","portfolio","venture", "vc", "venture capital", "funding", "series", "seed", "unicorn"],
     "AI Reasoning":              ["reasoning","o1","o3","chain of thought","math","logic","benchmark"],
     "Diffusion Models":          ["diffusion","image generation","video generation","sora","midjourney","flux"],
     "Multimodal AI":             ["multimodal","vision","gpt-4v","gemini","image understanding"],
