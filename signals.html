@@ -203,8 +203,48 @@
     .sig-card.stage-forming::before      { background: var(--signal-forming); }
     .sig-card.stage-emerging::before     { background: var(--signal-emerging); }
     .sig-card.stage-peak::before         { background: var(--signal-peak); }
+    /* Left border accent based on stage */
+    .sig-card.stage-accelerating { border-left: 3px solid var(--brand); }
+    .sig-card.stage-forming      { border-left: 3px solid var(--signal-forming); }
+    .sig-card.stage-emerging     { border-left: 3px solid var(--signal-emerging); }
+    .sig-card.stage-peak         { border-left: 3px solid var(--signal-peak); }
     .sig-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
     .sig-card:hover::before { opacity: 1; }
+
+    /* Urgency badge */
+    .urgency-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+    .urgency-high   { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .urgency-medium { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+    .urgency-low    { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    /* Action teaser */
+    .action-teaser {
+      font-size: var(--text-xs);
+      color: var(--text-secondary);
+      line-height: 1.5;
+      background: rgba(45, 125, 210, 0.06);
+      border: 1px solid rgba(45, 125, 210, 0.12);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      margin-top: var(--space-3);
+    }
+    .action-teaser-label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand);
+      font-family: var(--font-mono);
+      display: block;
+      margin-bottom: 2px;
+    }
 
     /* card header */
     .sc-header {
@@ -607,15 +647,47 @@ const STAGE_LABELS = {
   peak: 'Peak', fading: 'Fading', weak: 'Weak'
 };
 
+function formatLastUpdated(updatedAt) {
+  if (!updatedAt) {
+    const now = new Date();
+    return `Updated ${now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  }
+  const date = new Date(updatedAt);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffHours < 1) {
+    return 'Updated just now';
+  } else if (diffHours < 24) {
+    return `Updated ${diffHours}h ago`;
+  } else if (diffDays < 7) {
+    return `Updated ${diffDays}d ago`;
+  } else {
+    return `Updated ${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+  }
+}
+
 let allSignals = [];
 let activeFilter = 'all';
 let sortMode = 'confidence';
+let causalCache = {}; // Cache causal data by signal_id
 
 async function fetchSignals() {
   try {
     const r = await fetch(`${API_BASE}/signals`);
     const d = await r.json();
     allSignals = Array.isArray(d) ? d : (d.signals || Object.values(d));
+    // Preload causal data for all signals (in parallel, non-blocking)
+    allSignals.forEach(sig => {
+      if (!causalCache[sig.signal_id]) {
+        fetch(`/api/v2/causal/${sig.signal_id}`)
+          .then(r => r.json())
+          .then(c => { causalCache[sig.signal_id] = c; renderGrid(); })
+          .catch(() => { causalCache[sig.signal_id] = {}; });
+      }
+    });
     updateStats();
     renderGrid();
   } catch (e) {
@@ -639,7 +711,7 @@ function impactSegments(score) {
   ).join('');
 }
 
-function renderCard(sig) {
+function renderCard(sig, causalData = {}) {
   const conf = sig.confidence || 0;
   const confPct = Math.round(conf * 100);
   const confBarW = Math.round(conf * 100);
@@ -650,6 +722,24 @@ function renderCard(sig) {
   const proofId = sig.proof_id || '';
   const sourceUrl = sig.source_url || '#';
 
+  // Get urgency from causal data
+  const urgency = causalData.why_now?.urgency || 'low';
+  const urgencyLabel = urgency === 'high' ? 'HIGH' : urgency === 'medium' ? 'MEDIUM' : 'LOW';
+  const urgencyClass = urgency === 'high' ? 'urgency-high' : urgency === 'medium' ? 'urgency-medium' : 'urgency-low';
+
+  // Action teaser (first 60 chars)
+  const agentAction = causalData.agent_action || causalData.next_best_action || '';
+  const actionTeaser = agentAction ? (agentAction.length > 60 ? agentAction.slice(0, 60) + '…' : agentAction) : null;
+
+  // Evidence count
+  const evidenceCount = sig.evidenceCount || 0;
+
+  // Last updated timestamp
+  const lastUpdated = formatLastUpdated(sig.updated_at);
+
+  // Topic with flame emoji for accelerating
+  const topicDisplay = stage === 'accelerating' ? `🔥 ${sig.topic}` : sig.topic;
+
   const sourcePills = sources.map(s => {
     const cls = SOURCE_CLASS[s] || '';
     const lbl = SOURCE_LABELS[s] || s;
@@ -657,11 +747,12 @@ function renderCard(sig) {
   }).join('');
 
   return `
-  <div class="sig-card stage-${stage}" data-id="${sig.signal_id}" data-stage="${stage}" data-conf="${conf}" data-impact="${sig.impact_score||0}" data-evidence="${sig.evidenceCount||0}">
+  <div class="sig-card stage-${stage}" data-id="${sig.signal_id}" data-stage="${stage}" data-conf="${conf}" data-impact="${sig.impact_score||0}" data-evidence="${evidenceCount}">
     <div class="sc-header">
-      <div class="sc-topic">${sig.topic}</div>
-      <div class="sc-badges">
+      <div class="sc-topic" style="font-size: var(--text-xl);">${topicDisplay}</div>
+      <div class="sc-badges" style="flex-direction: column; align-items: flex-end; gap: 4px;">
         <span class="stage-badge stage-${stage}">${STAGE_LABELS[stage] || stage}</span>
+        <span class="urgency-badge ${urgencyClass}">${urgencyLabel}</span>
       </div>
     </div>
 
@@ -674,6 +765,12 @@ function renderCard(sig) {
         <div class="conf-bar-fill" style="width:${confBarW}%"></div>
       </div>
     </div>
+
+    ${actionTeaser ? `
+    <div class="action-teaser">
+      <span class="action-teaser-label">Next best action</span>
+      ${actionTeaser}
+    </div>` : ''}
 
     <div class="sc-validation">
       <div class="sc-val-header">
@@ -690,10 +787,14 @@ function renderCard(sig) {
           <div class="impact-bar">${impactSegments(sig.impact_score)}</div>
         </div>
         <span style="font-family:var(--font-mono)">${sig.category || 'AI Research'}</span>
+        <span style="font-size:10px;color:var(--text-tertiary);margin-left:8px;">${evidenceCount} evidence</span>
       </div>
-      <a href="${sourceUrl}" target="_blank" class="sc-proof-link" onclick="event.stopPropagation()">
-        ${proofId ? proofId.slice(0,24) + '…' : 'Source →'}
-      </a>
+      <div style="text-align:right;">
+        <a href="${sourceUrl}" target="_blank" class="sc-proof-link" onclick="event.stopPropagation()">
+          ${proofId ? proofId.slice(0,24) + '…' : 'Source →'}
+        </a>
+        <div style="font-size:9px;color:var(--text-tertiary);margin-top:4px;font-family:var(--font-mono)">${lastUpdated}</div>
+      </div>
     </div>
   </div>`;
 }
@@ -716,13 +817,27 @@ function renderGrid() {
     document.getElementById('signals-grid').innerHTML = `<p style="color:var(--text-tertiary);padding:var(--space-8);grid-column:1/-1">No signals match this filter.</p>`;
     return;
   }
-  document.getElementById('signals-grid').innerHTML = list.map(renderCard).join('');
+  // Render cards with cached causal data
+  document.getElementById('signals-grid').innerHTML = list.map(sig =>
+    renderCard(sig, causalCache[sig.signal_id] || {})
+  ).join('');
   // Attach click handlers
   document.querySelectorAll('.sig-card').forEach(card => {
     card.addEventListener('click', () => {
       const id = card.dataset.id;
       const sig = allSignals.find(s => s.signal_id === id);
-      if (sig) openDrawer(sig);
+      if (sig) {
+        // Fetch causal data if not cached, then open drawer
+        if (!causalCache[id]) {
+          fetch(`/api/v2/causal/${id}`)
+            .then(r => r.json())
+            .then(c => { causalCache[id] = c; })
+            .catch(() => { causalCache[id] = {}; })
+            .finally(() => openDrawer(sig));
+        } else {
+          openDrawer(sig);
+        }
+      }
     });
   });
 }
