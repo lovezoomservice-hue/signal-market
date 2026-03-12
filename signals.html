@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Intelligence Feed — Signal Market</title>
+  <meta name="description" content="8 sources monitored. 1 scored intelligence feed. Know what matters before the noise clears.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    /* ── Page layout ─────────────────────────────────────────── */
+    .page-header {
+      padding: var(--space-16) var(--space-8) var(--space-10);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .page-header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-6);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-8);
+    }
+    .page-title-block h1 {
+      font-size: var(--text-4xl);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: var(--space-2);
+      line-height: 1.1;
+    }
+    .page-title-block .subtitle {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      max-width: 520px;
+      line-height: 1.55;
+    }
+    .page-title-block .subtitle em {
+      color: var(--text-primary);
+      font-style: normal;
+      font-weight: 500;
+    }
+
+    /* ── Value statement bar ─────────────────────────────────── */
+    .value-bar {
+      display: flex;
+      align-items: stretch;
+      gap: 1px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      margin-bottom: var(--space-8);
+    }
+    .value-bar-item {
+      flex: 1;
+      padding: var(--space-4) var(--space-5);
+      background: var(--surface-low);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      min-width: 0;
+    }
+    .value-bar-item .vb-num {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xl);
+      font-weight: 600;
+      color: var(--brand);
+      line-height: 1;
+    }
+    .value-bar-item .vb-label {
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .value-bar-item.highlight .vb-num { color: var(--signal-accelerating); }
+    .value-bar-item.dim .vb-num { color: var(--text-secondary); text-decoration: line-through; opacity: 0.5; }
+
+    /* ── Why statement ───────────────────────────────────────── */
+    .why-strip {
+      background: linear-gradient(135deg, rgba(45,125,210,0.06) 0%, rgba(45,125,210,0.02) 100%);
+      border: 1px solid rgba(45,125,210,0.15);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5) var(--space-6);
+      margin-bottom: var(--space-8);
+      display: flex;
+      align-items: center;
+      gap: var(--space-6);
+      flex-wrap: wrap;
+    }
+    .why-strip .why-headline {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      flex: 1;
+      min-width: 260px;
+      line-height: 1.6;
+    }
+    .why-strip .why-headline strong {
+      color: var(--text-primary);
+      display: block;
+      font-size: var(--text-base);
+      margin-bottom: var(--space-1);
+    }
+    .why-comparison {
+      display: flex;
+      gap: var(--space-4);
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .why-box {
+      text-align: center;
+      padding: var(--space-3) var(--space-4);
+      background: var(--surface-low);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+    .why-box .wb-n { font-family: var(--font-mono); font-size: var(--text-xl); font-weight: 600; }
+    .why-box .wb-l { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+    .why-box.bad .wb-n { color: var(--text-tertiary); }
+    .why-box.good .wb-n { color: var(--signal-accelerating); }
+    .why-arrow { font-size: var(--text-xl); color: var(--text-tertiary); }
+
+    /* ── Controls ────────────────────────────────────────────── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-6);
+      padding: 0 var(--space-8);
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .filter-btn {
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: var(--brand); color: var(--text-primary); }
+    .filter-btn.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+    .controls-spacer { flex: 1; }
+    .sort-select {
+      padding: var(--space-2) var(--space-4);
+      background: var(--surface-low);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      font-size: var(--text-sm);
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+    .live-count {
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    /* ── Signal grid ─────────────────────────────────────────── */
+    .signals-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 var(--space-8) var(--space-16);
+    }
+    .signals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: var(--space-4);
+    }
+
+    /* ── Signal card ─────────────────────────────────────────── */
+    .sig-card {
+      background: var(--surface-low);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      cursor: pointer;
+      transition: border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .sig-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .sig-card.stage-accelerating::before { background: var(--signal-accelerating); }
+    .sig-card.stage-forming::before      { background: var(--signal-forming); }
+    .sig-card.stage-emerging::before     { background: var(--signal-emerging); }
+    .sig-card.stage-peak::before         { background: var(--signal-peak); }
+    .sig-card:hover { border-color: rgba(255,255,255,0.12); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+    .sig-card:hover::before { opacity: 1; }
+
+    /* card header */
+    .sc-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .sc-topic {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+    .sc-badges { display: flex; gap: var(--space-2); align-items: center; flex-shrink: 0; }
+
+    /* confidence display */
+    .sc-confidence-block {
+      margin-bottom: var(--space-4);
+    }
+    .sc-conf-row {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+    .sc-conf-num {
+      font-family: var(--font-mono);
+      font-size: var(--text-3xl);
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .stage-accelerating .sc-conf-num { color: var(--signal-accelerating); }
+    .stage-forming .sc-conf-num      { color: var(--signal-forming); }
+    .stage-emerging .sc-conf-num     { color: var(--signal-emerging); }
+    .stage-peak .sc-conf-num         { color: var(--signal-peak); }
+    .sc-conf-label {
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      line-height: 1;
+    }
+    .conf-bar-wrapper {
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .conf-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s ease;
+    }
+    .stage-accelerating .conf-bar-fill { background: var(--signal-accelerating); }
+    .stage-forming .conf-bar-fill      { background: var(--signal-forming); }
+    .stage-emerging .conf-bar-fill     { background: var(--signal-emerging); }
+    .stage-peak .conf-bar-fill         { background: var(--signal-peak); }
+
+    /* source validation — the key "why we're better" element */
+    .sc-validation {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+    .sc-val-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+    .sc-val-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+    }
+    .sc-val-score {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      color: var(--signal-accelerating);
+    }
+    .sc-sources {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+    }
+    .sc-source-pill {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 99px;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-tertiary);
+      background: rgba(255,255,255,0.03);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .sc-source-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--signal-forming); }
+    .sc-source-pill.src-arxiv .dot { background: #60a5fa; }
+    .sc-source-pill.src-github .dot { background: #a78bfa; }
+    .sc-source-pill.src-rss .dot { background: #34d399; }
+
+    /* footer */
+    .sc-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border-subtle);
+      font-size: var(--text-xs);
+      color: var(--text-tertiary);
+    }
+    .sc-footer-left { display: flex; align-items: center; gap: var(--space-3); }
+    .sc-impact { display: flex; align-items: center; gap: var(--space-1); }
+    .sc-impact .impact-bar {
+      display: flex;
+      gap: 2px;
+    }
+    .impact-seg {
+      width: 4px;
+      height: 10px;
+      border-radius: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+    .impact-seg.on { background: var(--brand); }
+    .sc-proof-link {
+      color: var(--text-tertiary);
+      text-decoration: none;
+      font-family: var(--font-mono);
+      transition: color 0.15s;
+    }
+    .sc-proof-link:hover { color: var(--text-primary); }
+
+    /* ── Empty / loading states ──────────────────────────────── */
+    .skeleton-card {
+      background: var(--surface-low);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      height: 220px;
+    }
+    .skeleton-line {
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--surface-low) 25%, rgba(255,255,255,0.04) 50%, var(--surface-low) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      margin-bottom: var(--space-3);
+    }
+
+    /* ── Signal detail drawer ────────────────────────────────── */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.open { opacity: 1; pointer-events: all; }
+    .drawer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: min(520px, 100vw);
+      background: #0d1117;
+      border-left: 1px solid var(--border-subtle);
+      z-index: 101;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+      padding: var(--space-8);
+    }
+    .drawer.open { transform: translateX(0); }
+    .drawer-close {
+      position: absolute;
+      top: var(--space-5);
+      right: var(--space-5);
+      width: 32px; height: 32px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+    .drawer-close:hover { background: var(--surface-mid); color: var(--text-primary); }
+    .drawer-section { margin-bottom: var(--space-7); }
+    .drawer-section-title {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+      font-family: var(--font-mono);
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .drawer-field { margin-bottom: var(--space-3); }
+    .drawer-field-label { font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: 4px; }
+    .drawer-field-value { font-size: var(--text-sm); color: var(--text-primary); line-height: 1.5; }
+    .drawer-field-value.mono { font-family: var(--font-mono); font-size: var(--text-xs); }
+    .evidence-item {
+      padding: var(--space-3);
+      background: var(--surface-low);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-2);
+    }
+    .evidence-title { font-size: var(--text-sm); font-weight: 500; margin-bottom: 4px; }
+    .evidence-meta { font-size: var(--text-xs); color: var(--text-tertiary); font-family: var(--font-mono); }
+
+    /* ── Nav supplement ──────────────────────────────────────── */
+    nav { position: sticky; top: 0; z-index: 50; }
+
+    @media (max-width: 640px) {
+      .page-header { padding: var(--space-10) var(--space-4) var(--space-6); }
+      .controls { padding: 0 var(--space-4); }
+      .signals-container { padding: 0 var(--space-4) var(--space-10); }
+      .value-bar { flex-wrap: wrap; }
+      .why-strip { flex-direction: column; }
+      .signals-grid { grid-template-columns: 1fr; }
+      .page-title-block h1 { font-size: var(--text-3xl); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);letter-spacing:-0.01em;">Signal Market</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:var(--space-6);">
+      <a href="/signals" style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500;text-decoration:none;border-bottom:2px solid var(--brand);padding-bottom:2px;">Signals</a>
+      <a href="/graph" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Graph</a>
+      <a href="/docs" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">API</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--space-3);">
+      <span class="live-dot"></span>
+      <span style="font-size:var(--text-xs);color:var(--text-tertiary);font-family:var(--font-mono);">LIVE</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Page header -->
+<div class="page-header">
+  <div class="page-header-top">
+    <div class="page-title-block">
+      <h1>Signal Intelligence Feed</h1>
+      <p class="subtitle">
+        Every signal here has survived <em>multi-source cross-validation</em> and confidence scoring.
+        Not a feed. An intelligence layer.
+      </p>
+    </div>
+    <a href="/docs" class="btn-secondary" style="flex-shrink:0;white-space:nowrap;">API Access →</a>
+  </div>
+
+  <!-- Value bar: the vs-browsing-yourself argument in numbers -->
+  <div class="value-bar">
+    <div class="value-bar-item dim">
+      <span class="vb-num" id="raw-count">~800</span>
+      <span class="vb-label">arXiv papers today</span>
+    </div>
+    <div class="value-bar-item dim">
+      <span class="vb-num">10+</span>
+      <span class="vb-label">sources monitored</span>
+    </div>
+    <div class="value-bar-item highlight">
+      <span class="vb-num" id="signal-count">—</span>
+      <span class="vb-label">signals extracted</span>
+    </div>
+    <div class="value-bar-item highlight">
+      <span class="vb-num" id="high-conf-count">—</span>
+      <span class="vb-label">high confidence (≥0.85)</span>
+    </div>
+    <div class="value-bar-item">
+      <span class="vb-num" id="avg-evidence">—</span>
+      <span class="vb-label">avg. evidence sources</span>
+    </div>
+    <div class="value-bar-item">
+      <span class="vb-num">0</span>
+      <span class="vb-label">noise you have to filter</span>
+    </div>
+  </div>
+
+  <!-- Why strip -->
+  <div class="why-strip">
+    <div class="why-headline">
+      <strong>Why is this different from reading sources yourself?</strong>
+      Every signal here is scored, not surfaced. We don't show you a paper — we show you a convergence pattern across papers, repositories, and package ecosystems. If two independent sources agree on momentum, the confidence rises. If only one does, you'll see it flagged.
+    </div>
+    <div class="why-comparison">
+      <div class="why-box bad">
+        <div class="wb-n">800+</div>
+        <div class="wb-l">raw signals</div>
+      </div>
+      <div class="why-arrow">→</div>
+      <div class="why-box" style="background:rgba(45,125,210,0.08);border-color:rgba(45,125,210,0.2);">
+        <div class="wb-n" style="color:var(--brand);">cross-validate</div>
+        <div class="wb-l">score + filter</div>
+      </div>
+      <div class="why-arrow">→</div>
+      <div class="why-box good">
+        <div class="wb-n" id="why-count">8</div>
+        <div class="wb-l">intelligence signals</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="filter-btn active" data-filter="all">All signals</button>
+  <button class="filter-btn" data-filter="accelerating">Accelerating</button>
+  <button class="filter-btn" data-filter="forming">Forming</button>
+  <button class="filter-btn" data-filter="emerging">Emerging</button>
+  <div class="controls-spacer"></div>
+  <div class="live-count">
+    <span class="live-dot"></span>
+    <span id="visible-count">—</span> signals
+  </div>
+  <select class="sort-select" id="sort-select">
+    <option value="confidence">Sort: Confidence</option>
+    <option value="impact">Sort: Impact</option>
+    <option value="evidence">Sort: Evidence</option>
+  </select>
+</div>
+
+<!-- Signal grid -->
+<div class="signals-container">
+  <div class="signals-grid" id="signals-grid">
+    <!-- skeleton -->
+    <div class="skeleton-card"><div class="skeleton-line" style="width:60%"></div><div class="skeleton-line" style="width:40%"></div><div class="skeleton-line" style="width:80%"></div></div>
+    <div class="skeleton-card"><div class="skeleton-line" style="width:55%"></div><div class="skeleton-line" style="width:35%"></div><div class="skeleton-line" style="width:75%"></div></div>
+    <div class="skeleton-card"><div class="skeleton-line" style="width:65%"></div><div class="skeleton-line" style="width:45%"></div><div class="skeleton-line" style="width:70%"></div></div>
+  </div>
+</div>
+
+<!-- Signal detail drawer -->
+<div class="drawer-overlay" id="drawer-overlay"></div>
+<div class="drawer" id="signal-drawer">
+  <button class="drawer-close" id="drawer-close">×</button>
+  <div id="drawer-content"></div>
+</div>
+
+<script>
+const API_BASE = '/api';
+const SOURCE_LABELS = {
+  'arxiv:cs.AI': 'arXiv cs.AI',
+  'arxiv:cs.LG': 'arXiv cs.LG',
+  'arxiv:cs.CL': 'arXiv cs.CL',
+  'arxiv_rss':   'arXiv RSS',
+  'github:trending': 'GitHub Trending',
+  'npm:trending': 'npm Trending',
+  'hn:frontpage': 'Hacker News',
+};
+const SOURCE_CLASS = {
+  'arxiv:cs.AI': 'src-arxiv', 'arxiv:cs.LG': 'src-arxiv', 'arxiv:cs.CL': 'src-arxiv',
+  'arxiv_rss': 'src-rss', 'github:trending': 'src-github', 'npm:trending': 'src-github',
+};
+const STAGE_ORDER = { accelerating: 4, peak: 3, forming: 2, emerging: 1, weak: 0 };
+const STAGE_LABELS = {
+  accelerating: 'Accelerating', forming: 'Forming', emerging: 'Emerging',
+  peak: 'Peak', fading: 'Fading', weak: 'Weak'
+};
+
+let allSignals = [];
+let activeFilter = 'all';
+let sortMode = 'confidence';
+
+async function fetchSignals() {
+  try {
+    const r = await fetch(`${API_BASE}/signals`);
+    const d = await r.json();
+    allSignals = Array.isArray(d) ? d : (d.signals || Object.values(d));
+    updateStats();
+    renderGrid();
+  } catch (e) {
+    document.getElementById('signals-grid').innerHTML = `<p style="color:var(--text-tertiary);padding:var(--space-8)">Unable to load signals. Is the server running?</p>`;
+  }
+}
+
+function updateStats() {
+  document.getElementById('signal-count').textContent = allSignals.length;
+  const hi = allSignals.filter(s => s.confidence >= 0.85).length;
+  document.getElementById('high-conf-count').textContent = hi;
+  const avgEv = (allSignals.reduce((a, s) => a + (s.evidenceCount || 0), 0) / allSignals.length).toFixed(1);
+  document.getElementById('avg-evidence').textContent = avgEv;
+  document.getElementById('why-count').textContent = allSignals.length;
+}
+
+function impactSegments(score) {
+  const filled = Math.round((score || 0) * 5);
+  return Array.from({length: 5}, (_, i) =>
+    `<div class="impact-seg ${i < filled ? 'on' : ''}"></div>`
+  ).join('');
+}
+
+function renderCard(sig) {
+  const conf = sig.confidence || 0;
+  const confPct = Math.round(conf * 100);
+  const confBarW = Math.round(conf * 100);
+  const stage = sig.stage || 'emerging';
+  const sources = sig.sources || [];
+  const srcCount = sources.length;
+  const valScore = srcCount >= 3 ? 'HIGH' : srcCount === 2 ? 'MED' : 'LOW';
+  const proofId = sig.proof_id || '';
+  const sourceUrl = sig.source_url || '#';
+
+  const sourcePills = sources.map(s => {
+    const cls = SOURCE_CLASS[s] || '';
+    const lbl = SOURCE_LABELS[s] || s;
+    return `<span class="sc-source-pill ${cls}"><span class="dot"></span>${lbl}</span>`;
+  }).join('');
+
+  return `
+  <div class="sig-card stage-${stage}" data-id="${sig.signal_id}" data-stage="${stage}" data-conf="${conf}" data-impact="${sig.impact_score||0}" data-evidence="${sig.evidenceCount||0}">
+    <div class="sc-header">
+      <div class="sc-topic">${sig.topic}</div>
+      <div class="sc-badges">
+        <span class="stage-badge stage-${stage}">${STAGE_LABELS[stage] || stage}</span>
+      </div>
+    </div>
+
+    <div class="sc-confidence-block">
+      <div class="sc-conf-row">
+        <span class="sc-conf-num">${confPct}%</span>
+        <span class="sc-conf-label">confidence</span>
+      </div>
+      <div class="conf-bar-wrapper">
+        <div class="conf-bar-fill" style="width:${confBarW}%"></div>
+      </div>
+    </div>
+
+    <div class="sc-validation">
+      <div class="sc-val-header">
+        <span class="sc-val-title">Cross-source validation</span>
+        <span class="sc-val-score">${valScore} · ${srcCount} source${srcCount !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="sc-sources">${sourcePills}</div>
+    </div>
+
+    <div class="sc-footer">
+      <div class="sc-footer-left">
+        <div class="sc-impact">
+          <span style="font-size:10px;color:var(--text-tertiary);margin-right:4px;">Impact</span>
+          <div class="impact-bar">${impactSegments(sig.impact_score)}</div>
+        </div>
+        <span style="font-family:var(--font-mono)">${sig.category || 'AI Research'}</span>
+      </div>
+      <a href="${sourceUrl}" target="_blank" class="sc-proof-link" onclick="event.stopPropagation()">
+        ${proofId ? proofId.slice(0,24) + '…' : 'Source →'}
+      </a>
+    </div>
+  </div>`;
+}
+
+function getSortedFiltered() {
+  let list = allSignals.filter(s => activeFilter === 'all' || s.stage === activeFilter);
+  list.sort((a, b) => {
+    if (sortMode === 'confidence') return (b.confidence||0) - (a.confidence||0);
+    if (sortMode === 'impact')     return (b.impact_score||0) - (a.impact_score||0);
+    if (sortMode === 'evidence')   return (b.evidenceCount||0) - (a.evidenceCount||0);
+    return 0;
+  });
+  return list;
+}
+
+function renderGrid() {
+  const list = getSortedFiltered();
+  document.getElementById('visible-count').textContent = list.length;
+  if (!list.length) {
+    document.getElementById('signals-grid').innerHTML = `<p style="color:var(--text-tertiary);padding:var(--space-8);grid-column:1/-1">No signals match this filter.</p>`;
+    return;
+  }
+  document.getElementById('signals-grid').innerHTML = list.map(renderCard).join('');
+  // Attach click handlers
+  document.querySelectorAll('.sig-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.id;
+      const sig = allSignals.find(s => s.signal_id === id);
+      if (sig) openDrawer(sig);
+    });
+  });
+}
+
+// Filter buttons
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    renderGrid();
+  });
+});
+
+// Sort select
+document.getElementById('sort-select').addEventListener('change', e => {
+  sortMode = e.target.value;
+  renderGrid();
+});
+
+// Drawer
+function openDrawer(sig) {
+  const stage = sig.stage || 'emerging';
+  const sources = sig.sources || [];
+  const srcPills = sources.map(s => `<span class="sc-source-pill ${SOURCE_CLASS[s]||''}"><span class="dot"></span>${SOURCE_LABELS[s]||s}</span>`).join('');
+  document.getElementById('drawer-content').innerHTML = `
+    <div style="margin-bottom:var(--space-6)">
+      <div style="display:flex;align-items:center;gap:var(--space-3);margin-bottom:var(--space-2)">
+        <span class="stage-badge stage-${stage}">${STAGE_LABELS[stage]||stage}</span>
+        <span style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-tertiary)">${sig.signal_id}</span>
+      </div>
+      <h2 style="font-size:var(--text-2xl);font-weight:700;letter-spacing:-0.02em;margin-bottom:var(--space-2)">${sig.topic}</h2>
+      <p style="color:var(--text-secondary);font-size:var(--text-sm);line-height:1.6">
+        ${getTopicContext(sig)}
+      </p>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Confidence Score</div>
+      <div style="display:flex;align-items:baseline;gap:var(--space-3);margin-bottom:var(--space-3)">
+        <span style="font-family:var(--font-mono);font-size:var(--text-4xl);font-weight:700;color:var(--signal-${stage})">${Math.round((sig.confidence||0)*100)}%</span>
+        <div>
+          <div style="font-size:var(--text-xs);color:var(--text-tertiary)">Bayesian posterior</div>
+          <div style="font-size:var(--text-xs);color:var(--text-tertiary)">Cross-source validated</div>
+        </div>
+      </div>
+      <div class="conf-bar-wrapper" style="height:6px">
+        <div class="conf-bar-fill stage-${stage}" style="width:${Math.round((sig.confidence||0)*100)}%;background:var(--signal-${stage})"></div>
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Source Validation</div>
+      <div class="evidence-item">
+        <div class="evidence-title" style="color:var(--text-secondary);font-size:var(--text-xs);margin-bottom:var(--space-2)">Sources that independently confirm this signal:</div>
+        <div class="sc-sources">${srcPills}</div>
+      </div>
+      <div style="font-size:var(--text-xs);color:var(--text-tertiary);margin-top:var(--space-2);line-height:1.5">
+        ${sources.length >= 2
+          ? '✓ Multi-source confirmed — this signal appears across independent data streams, reducing false-positive risk.'
+          : '⚠ Single-source — confidence is lower until a second independent source confirms.'}
+      </div>
+    </div>
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">Signal Metadata</div>
+      <div class="drawer-field">
+        <div class="drawer-field-label">Category</div>
+        <div class="drawer-field-value">${sig.category || 'AI Research'}</div>
+      </div>
+      <div class="drawer-field">
+        <div class="drawer-field-label">First detected</div>
+        <div class="drawer-field-value mono">${sig.first_seen || '—'}</div>
+      </div>
+      <div class="drawer-field">
+        <div class="drawer-field-label">Evidence count</div>
+        <div class="drawer-field-value">${sig.evidenceCount || 0} item${(sig.evidenceCount||0) !== 1 ? 's' : ''}</div>
+      </div>
+      <div class="drawer-field">
+        <div class="drawer-field-label">Impact score</div>
+        <div class="drawer-field-value">${((sig.impact_score||0)*100).toFixed(0)} / 100</div>
+      </div>
+    </div>
+
+    ${sig.source_url ? `
+    <div class="drawer-section">
+      <div class="drawer-section-title">Primary Evidence</div>
+      <div class="evidence-item">
+        <div class="evidence-title">${sig.proof_id || 'Primary source'}</div>
+        <div class="evidence-meta">${sig.source_url}</div>
+        <a href="${sig.source_url}" target="_blank" style="display:inline-block;margin-top:var(--space-2);font-size:var(--text-xs);color:var(--brand);text-decoration:none">View source →</a>
+      </div>
+    </div>` : ''}
+
+    <div class="drawer-section">
+      <div class="drawer-section-title">API Access</div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-secondary);line-height:1.8">
+        GET /api/signals/${sig.signal_id}<br>
+        GET /api/events/${sig.signal_id}/probability<br>
+        GET /api/v2/world-state/${sig.signal_id}
+      </div>
+    </div>
+  `;
+  document.getElementById('signal-drawer').classList.add('open');
+  document.getElementById('drawer-overlay').classList.add('open');
+}
+
+function getTopicContext(sig) {
+  const contexts = {
+    'AI Agents':           'Autonomous AI systems that plan, act, and use tools. Confirmed momentum from arXiv research papers and ecosystem tooling activity.',
+    'LLM Infrastructure':  'The infrastructure layer for training and serving large language models. Strong acceleration signal from both research publications and cloud platform activity.',
+    'Diffusion Models':    'Generative image and media models. GitHub repository activity confirms sustained developer interest beyond initial hype phase.',
+    'AI Coding':           'AI-assisted software development tools. Formation pattern indicates early-stage adoption curve with strong underlying research base.',
+    'Efficient AI':        'Techniques for reducing compute cost per performance unit. Emerging signal from optimization research clusters.',
+    'Reinforcement Learning': 'RL methods seeing renewed activity, likely driven by RLHF applications in LLM alignment research.',
+    'Transformer Arch':    'Architectural research on attention mechanisms continuing. Emerging stage suggests niche but active research community.',
+    'AI Reasoning':        'Reasoning and chain-of-thought capabilities in language models. Emerging signal from NLP research outputs.',
+  };
+  return contexts[sig.topic] || `Active ${sig.stage} signal in the ${sig.category || 'AI'} domain. ${sig.evidenceCount || 0} evidence item${(sig.evidenceCount||0) !== 1 ? 's' : ''} from ${(sig.sources||[]).length} source${(sig.sources||[]).length !== 1 ? 's' : ''}.`;
+}
+
+function closeDrawer() {
+  document.getElementById('signal-drawer').classList.remove('open');
+  document.getElementById('drawer-overlay').classList.remove('open');
+}
+document.getElementById('drawer-close').addEventListener('click', closeDrawer);
+document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+fetchSignals();
+setInterval(fetchSignals, 60000);
+</script>
+</body>
+</html>

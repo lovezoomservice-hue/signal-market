@@ -8,9 +8,33 @@
     {
       "src": "index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "signals.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "graph.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "^/signals$",
+      "dest": "/signals.html"
+    },
+    {
+      "src": "^/graph$",
+      "dest": "/graph.html"
+    },
+    {
+      "src": "/api/v2/world-state/(.+)",
+      "dest": "/api/v2/world-state.js?signal_id=$1"
+    },
+    {
+      "src": "/api/v2/world-state",
+      "dest": "/api/v2/world-state.js"
+    },
     {
       "src": "/api/graph/stats",
       "dest": "/api/graph.js?id=stats"
