@@ -1,0 +1,56 @@
+name: Send Daily Digest
+
+on:
+  schedule:
+    - cron: '0 1 * * *'    # 01:00 UTC = 09:00 CST
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no actual email sent)'
+        required: false
+        default: 'false'
+
+jobs:
+  send-digest:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Preflight — verify digest script and secrets
+        run: |
+          test -f scripts/send_digest.py || { echo "::error::MISSING scripts/send_digest.py"; exit 1; }
+          test -n "${{ secrets.SMTP_PASS }}" || { echo "::error::SMTP_PASS secret not set"; exit 1; }
+          test -n "${{ secrets.API_BASE }}" || { echo "::warning::API_BASE not set, using default"; }
+          echo "Preflight OK"
+
+      - name: Send digest
+        run: python3 scripts/send_digest.py
+        env:
+          SMTP_PASS:  ${{ secrets.SMTP_PASS }}
+          API_BASE:   ${{ secrets.API_BASE }}
+          DRY_RUN:    ${{ github.event.inputs.dry_run == 'true' && '1' || '0' }}
+          MAIL_FROM:  aimusk@nstar-live.com
+          SMTP_HOST:  smtp.qiye.163.com
+          SMTP_PORT:  "465"
+
+      - name: Upload digest log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: digest-log-${{ github.run_number }}
+          path: output/digest_*.log
+          retention-days: 7
+
+      - name: Annotate on failure
+        if: failure()
+        run: |
+          echo "::error title=Daily Digest Failed::Check SMTP credentials and API_BASE. Run: ${{ github.run_id }}"

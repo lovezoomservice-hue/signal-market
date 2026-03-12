@@ -60,6 +60,24 @@ const CAUSAL_CONTEXT = {
     urgency: 'high', window: '3–12 months',
     agent_action: 'Track MATH and GPQA benchmark leaderboard. Monitor reasoning-specialized model releases.',
   },
+  'Transformer Architecture': {
+    primary_cause: 'Architectural scaling limits driving active research in MoE, SSM, and efficiency variants',
+    timing: 'Mamba, Jamba, and hybrid architectures challenging pure transformer dominance in long-context workloads',
+    urgency: 'low', window: '12–36 months',
+    agent_action: 'Monitor SSM/hybrid model benchmark performance vs dense transformers on long-context tasks.',
+  },
+  'AI Infrastructure': {
+    primary_cause: 'Enterprise AI workloads scaling to production — GPU scarcity and inference cost driving infrastructure buildout',
+    timing: 'vLLM, TGI and inference optimization frameworks maturing; hyperscaler GPU capex at record highs',
+    urgency: 'high', window: '6–18 months',
+    agent_action: 'Track GPU availability, inference cost per token trends, and major hyperscaler capex announcements.',
+  },
+  'Multimodal AI': {
+    primary_cause: 'Convergent activity across vision-language, audio, and video modalities reaching commercial viability',
+    timing: 'GPT-4o, Gemini 1.5, Claude 3 all demonstrate strong multimodal performance; consumer adoption accelerating',
+    urgency: 'medium', window: '6–18 months',
+    agent_action: 'Monitor multimodal benchmark releases and enterprise adoption in design, medical imaging, and video.',
+  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
