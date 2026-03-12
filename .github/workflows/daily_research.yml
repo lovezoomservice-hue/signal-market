@@ -2,35 +2,112 @@ name: Daily Research Signal Update
 
 on:
   schedule:
-    - cron: '50 9 * * *'   # 17:50 UTC+8 = 09:50 UTC
-  workflow_dispatch:         # 允许手动触发
+    - cron: '50 9 * * *'   # 17:50 CST = 09:50 UTC
+  workflow_dispatch:         # manual trigger for testing
 
 jobs:
   update-signals:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write        # needed for git push
 
     steps:
-      - uses: actions/checkout@v4
+      # ── 1. Checkout ──────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
-      - uses: actions/setup-python@v5
+      # ── 2. Python setup ──────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Run research → signal pipeline
-        run: python3 scripts/research_to_signal.py
+      # ── 3. Preflight checks ───────────────────────────────────────────────
+      - name: Preflight — verify workspace layout
+        run: |
+          echo "=== Preflight checks ==="
+          test -f scripts/run_full_pipeline_v2.py \
+            || { echo "::error::MISSING scripts/run_full_pipeline_v2.py"; exit 1; }
+          test -d data  || mkdir -p data
+          test -d output || mkdir -p output
+          echo "  ✓ run_full_pipeline_v2.py exists"
+          echo "  ✓ data/ ready"
+          echo "  ✓ output/ ready"
+          python3 --version
+          echo "Preflight OK"
 
-      - name: Update api/signals.js with fresh data
-        run: python3 scripts/inject_signals.py
+      # ── 4. Run pipeline (single authoritative runner) ────────────────────
+      - name: Run full research + signal pipeline
+        id: pipeline
+        run: |
+          echo "=== Pipeline start: $(date -u +%Y-%m-%dT%H:%M:%SZ) ==="
+          python3 scripts/run_full_pipeline_v2.py 2>&1 | tee output/pipeline_ci_$(date +%Y%m%d).log
+          EXIT=${PIPESTATUS[0]}
+          echo "=== Pipeline exit: $EXIT ==="
+          exit $EXIT
+        env:
+          # Tier-1 secrets (optional — pipeline degrades gracefully if absent)
+          ALPHAVANTAGE_API_KEY: ${{ secrets.ALPHAVANTAGE_API_KEY }}
+          CRYPTOPANIC_API_KEY:  ${{ secrets.CRYPTOPANIC_API_KEY }}
+          SERPAPI_API_KEY:      ${{ secrets.SERPAPI_API_KEY }}
+          FRED_API_KEY:         ${{ secrets.FRED_API_KEY }}
+          PRODUCTHUNT_TOKEN:    ${{ secrets.PRODUCTHUNT_TOKEN }}
 
-      - name: Append to history
-        run: python3 scripts/append_history.py
+      # ── 5. Validate output ────────────────────────────────────────────────
+      - name: Validate — signal count and schema
+        run: |
+          python3 - << 'EOF'
+          import json, sys
+          with open("data/signals_history.jsonl") as f:
+              sigs = [json.loads(l) for l in f if l.strip()]
+          valid = [s for s in sigs if s.get("signal_id") and s.get("topic") and s.get("confidence")]
+          print(f"Total lines: {len(sigs)}  Valid signals: {len(valid)}")
+          if len(valid) < 5:
+              print("::error::Pipeline produced fewer than 5 valid signals — aborting commit")
+              sys.exit(1)
+          # Report top 5
+          for s in sorted(valid, key=lambda x: -x.get("confidence",0))[:5]:
+              print(f"  {s['signal_id']:<12} conf={s['confidence']} {s['topic']}")
+          print("Validation OK")
+          EOF
 
-      - name: Commit & push if changed
+      # ── 6. Upload pipeline log as artifact ───────────────────────────────
+      - name: Upload pipeline log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pipeline-log-${{ github.run_number }}
+          path: output/pipeline_ci_*.log
+          retention-days: 14
+
+      # ── 7. Commit updated JSONL (only if changed) ────────────────────────
+      - name: Commit signals_history.jsonl if changed
         run: |
           git config user.name  "signal-market-bot"
           git config user.email "bot@signal.market"
-          git add api/signals.js data/signals_history.jsonl output/
-          git diff --staged --quiet || git commit -m "auto: daily signal update $(date +%Y-%m-%d)"
-          git push
+          git add data/signals_history.jsonl
+          if git diff --staged --quiet; then
+            echo "No signal changes today — nothing to commit"
+          else
+            SIGNAL_COUNT=$(python3 -c "
+          import json
+          with open('data/signals_history.jsonl') as f:
+              sigs=[json.loads(l) for l in f if l.strip() and json.loads(l).get('signal_id')]
+          print(len(sigs))
+          ")
+            git commit -m "auto: daily signal update $(date +%Y-%m-%d) — ${SIGNAL_COUNT} signals [skip ci]"
+            git push
+            echo "Committed and pushed ${SIGNAL_COUNT} signals"
+          fi
+
+      # ── 8. Failure annotation ─────────────────────────────────────────────
+      - name: Annotate failure summary
+        if: failure()
+        run: |
+          echo "::error title=Daily Research Signal Update Failed::Check pipeline log artifact for details. Run: ${{ github.run_id }}"
+          if [ -f output/pipeline_ci_$(date +%Y%m%d).log ]; then
+            echo "=== Last 30 lines of pipeline log ==="
+            tail -30 output/pipeline_ci_$(date +%Y%m%d).log
+          fi
