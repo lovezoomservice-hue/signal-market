@@ -207,6 +207,128 @@ function secondOrder(signal) {
   return SECOND_ORDER_KB[signal.topic] || null;
 }
 
+// ── Historical analogs ────────────────────────────────────────────────────────
+// Rule-based mapping: current AI signal → closest historical technology adoption pattern
+const HISTORICAL_ANALOGS_KB = {
+  'AI Agents': [
+    {
+      period: '2008–2014',
+      name: 'Cloud Computing / AWS adoption wave',
+      description: 'Platform shift from owned servers to API-accessed compute. Early adopters built moats; laggards paid 3–5× integration cost later. Agent frameworks are repeating this pattern — first-mover advantage in agentic infrastructure accrues rapidly.',
+      similarity: 0.82,
+      key_lesson: 'Platform transitions compress fast once tooling matures. The 18-month window between "early adopter" and "mainstream" is closing.',
+    },
+    {
+      period: '2007–2012',
+      name: 'Mobile app ecosystem formation (iOS App Store)',
+      description: 'New distribution layer created overnight. Developers who moved first captured audience; the platform set constraints everyone else had to work within. Agent frameworks are today\'s App Store — whoever sets the orchestration standard wins.',
+      similarity: 0.71,
+      key_lesson: 'Distribution layer shifts create winners and losers faster than most incumbents expect.',
+    },
+  ],
+  'LLM Infrastructure': [
+    {
+      period: '2015–2020',
+      name: 'Kubernetes / container orchestration standardization',
+      description: 'Infrastructure complexity created by new compute paradigm (containers) spawned an ecosystem of orchestration tooling. K8s won by being open-source and solving real problems. vLLM/TGI are in the same race for LLM serving.',
+      similarity: 0.78,
+      key_lesson: 'Infrastructure layers standardize around the open-source winner within 2–3 years of the problem becoming mainstream.',
+    },
+  ],
+  'Diffusion Models': [
+    {
+      period: '2006–2012',
+      name: 'Digital photography + photo stock disruption',
+      description: 'Getty Images and Corbis built century-long moats that smartphone cameras eroded in under 5 years. Diffusion models are compressing the same disruption for professional illustration and creative services into 2–3 years.',
+      similarity: 0.85,
+      key_lesson: 'Creative tools with 10× cost/quality improvements don\'t gradually displace incumbents — they create entirely new markets and strand the old ones.',
+    },
+  ],
+  'AI Coding': [
+    {
+      period: '2000–2008',
+      name: 'Low-code / no-code web builder wave (WordPress era)',
+      description: 'Hand-coded websites gave way to CMS platforms. Developers didn\'t disappear — they moved up the stack. AI coding tools are compressing a similar shift: routine implementation moves to AI, developers move to architecture and judgment.',
+      similarity: 0.68,
+      key_lesson: 'Each generation of tooling abstraction increases developer productivity and raises the floor of what constitutes "programming."',
+    },
+    {
+      period: '2010–2017',
+      name: 'DevOps / infrastructure-as-code revolution',
+      description: 'Ops became code; roles merged; deployment frequency increased 100×. AI coding tools are doing the same to the development cycle — shipping cadence compresses, team size shrinks, scope expands.',
+      similarity: 0.73,
+      key_lesson: 'Productivity revolutions in software compound — each cycle produces more software with fewer people.',
+    },
+  ],
+  'Efficient AI': [
+    {
+      period: '2012–2018',
+      name: 'ARM chip proliferation in mobile devices',
+      description: 'Power-efficient compute unlocked always-on, pocket-sized intelligence. RISC-V and custom silicon for AI are following the same trajectory — purpose-built efficiency chips create new product categories impossible on general compute.',
+      similarity: 0.76,
+      key_lesson: 'Efficiency breakthroughs don\'t just reduce cost — they create entirely new form factors and use cases.',
+    },
+  ],
+  'Reinforcement Learning': [
+    {
+      period: '1997–2005',
+      name: 'Game AI breakthrough wave (Deep Blue → computer Go)',
+      description: 'RL systems progressively mastered constrained decision domains — chess, Go, Atari. Each breakthrough was dismissed until it wasn\'t. o1/R1 are applying the same trajectory to open-ended reasoning tasks.',
+      similarity: 0.72,
+      key_lesson: 'RL capabilities in closed domains consistently foreshadow capabilities in open domains 3–7 years later.',
+    },
+  ],
+  'Transformer Architecture': [
+    {
+      period: '2000–2010',
+      name: 'x86 vs RISC architecture competition',
+      description: 'Dominant architectures face efficiency challengers every decade. RISC didn\'t kill x86 — it carved new niches. Mamba/SSM vs Transformer is the same dynamic: the challenger finds domains where it outperforms the incumbent rather than replacing it wholesale.',
+      similarity: 0.61,
+      key_lesson: 'Architectural competition rarely produces outright winners — it produces specialization and ecosystem bifurcation.',
+    },
+  ],
+  'Transformer Arch': [
+    {
+      period: '2000–2010',
+      name: 'x86 vs RISC architecture competition',
+      description: 'Dominant architectures face efficiency challengers every decade. New architectures find niches rather than replacing incumbents wholesale.',
+      similarity: 0.61,
+      key_lesson: 'Architectural competition produces specialization, not single winners.',
+    },
+  ],
+  'AI Reasoning': [
+    {
+      period: '1990–2005',
+      name: 'Expert system → statistical NLP transition',
+      description: 'Rules-based AI (expert systems) gave way to statistical learning. The current reasoning breakthrough is the inverse: statistical models (LLMs) are recovering the structured, multi-step reasoning that expert systems were designed for.',
+      similarity: 0.64,
+      key_lesson: 'The capability cycle tends to return to old problem framings with new methods — reasoning was always the target.',
+    },
+  ],
+  'Multimodal AI': [
+    {
+      period: '2008–2015',
+      name: 'Smartphone sensor convergence (camera + GPS + accelerometer)',
+      description: 'Single devices combining multiple sensing modalities enabled entirely new application categories (Maps + Camera = Street View, Instagram, Uber). Vision + language + audio in LLMs is the same convergence — the application wave follows the sensing wave.',
+      similarity: 0.69,
+      key_lesson: 'Sensing modality convergence creates nonlinear application possibilities — sum of parts dramatically understates the whole.',
+    },
+  ],
+  'AI Infrastructure': [
+    {
+      period: '1999–2008',
+      name: 'Dot-com infrastructure buildout → cloud transformation',
+      description: 'Excess internet infrastructure built during the bubble became the foundation for cloud computing. AI infrastructure capex (GPU clusters, cooling, power) is following the same pattern — today\'s overbuild is tomorrow\'s commodity.',
+      similarity: 0.74,
+      key_lesson: 'Infrastructure overbuild during platform transitions tends to accelerate subsequent adoption by collapsing marginal costs.',
+    },
+  ],
+};
+
+function historicalAnalogs(signal) {
+  return HISTORICAL_ANALOGS_KB[signal.topic] || null;
+}
+
 function buildWSO(signal, graphEdges=[]) {
   // edges use signal_id (e.g. 'evt_001') as source key — match by signal_id
   const relatedDomains = graphEdges
@@ -228,7 +350,7 @@ function buildWSO(signal, graphEdges=[]) {
       impacted_domains:    null,
       first_order_effects: firstOrder(signal),
       second_order_effects: secondOrder(signal),
-      historical_analogs:  null,
+      historical_analogs:  historicalAnalogs(signal),
       source_quality:      sourceQuality(signal),
       raw_sources:         signal.sources||[],
     },

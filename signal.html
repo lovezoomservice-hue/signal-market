@@ -431,6 +431,22 @@ function renderDetail(signal, wso, allSignals, causal) {
         <div class="mon-item"><span class="mon-icon">→</span>${m}</div>`).join('')}
       </div>
     </div>
+
+    <!-- Historical analogs -->
+    ${(wso.event?.historical_analogs || []).length ? `
+    <div class="intel-section">
+      <div class="intel-section-title">Historical analogs</div>
+      ${(wso.event.historical_analogs || []).map(a => `
+      <div style="padding:var(--space-3) var(--space-4);background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:var(--radius-md);margin-bottom:var(--space-3)">
+        <div style="display:flex;align-items:baseline;gap:var(--space-2);margin-bottom:var(--space-2)">
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--brand);font-weight:600">${a.period}</span>
+          <span style="font-size:var(--text-xs);color:var(--text-primary);font-weight:600">${a.name}</span>
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-tertiary);margin-left:auto">similarity ${Math.round((a.similarity||0)*100)}%</span>
+        </div>
+        <div style="font-size:var(--text-xs);color:var(--text-secondary);line-height:1.6;margin-bottom:var(--space-2)">${a.description}</div>
+        <div style="font-size:10px;color:#f59e0b;font-style:italic"><span style="color:var(--text-tertiary)">Key lesson: </span>${a.key_lesson}</div>
+      </div>`).join('')}
+    </div>` : ''}
   </div>`;
 
   const sidebarHtml = `

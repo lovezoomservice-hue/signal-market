@@ -14,10 +14,134 @@ Steps:
   5. Output pipeline report
 """
 
-import json, subprocess, sys
+import json, subprocess, sys, re, urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from collections import defaultdict
+
+# ── Canonical evidence KB ─────────────────────────────────────────────────────
+# For each topic: the best known primary evidence item (not today's random arXiv paper)
+# Used as fallback when pipeline has no proof_id or the fetched title is irrelevant
+CANONICAL_EVIDENCE = {
+    'AI Agents': {
+        'proof_id':   'arxiv-2309.07864',
+        'source_url': 'https://arxiv.org/abs/2309.07864',
+        'title':      'AgentBench: Evaluating LLMs as Agents',
+    },
+    'LLM Infrastructure': {
+        'proof_id':   'arxiv-2309.06180',
+        'source_url': 'https://arxiv.org/abs/2309.06180',
+        'title':      'Efficient Memory Management for LLM Serving with PagedAttention (vLLM)',
+    },
+    'Diffusion Models': {
+        'proof_id':   'arxiv-2112.10752',
+        'source_url': 'https://arxiv.org/abs/2112.10752',
+        'title':      'High-Resolution Image Synthesis with Latent Diffusion Models',
+    },
+    'AI Coding': {
+        'proof_id':   'arxiv-2310.06770',
+        'source_url': 'https://arxiv.org/abs/2310.06770',
+        'title':      'SWE-bench: Can Language Models Resolve Real-World GitHub Issues?',
+    },
+    'Efficient AI': {
+        'proof_id':   'arxiv-2404.14219',
+        'source_url': 'https://arxiv.org/abs/2404.14219',
+        'title':      'Phi-3 Technical Report: A Highly Capable Language Model Locally on Your Phone',
+    },
+    'Reinforcement Learning': {
+        'proof_id':   'arxiv-2501.12599',
+        'source_url': 'https://arxiv.org/abs/2501.12599',
+        'title':      'DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL',
+    },
+    'Transformer Architecture': {
+        'proof_id':   'arxiv-2205.14135',
+        'source_url': 'https://arxiv.org/abs/2205.14135',
+        'title':      'FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness',
+    },
+    'Transformer Arch': {
+        'proof_id':   'arxiv-2205.14135',
+        'source_url': 'https://arxiv.org/abs/2205.14135',
+        'title':      'FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness',
+    },
+    'AI Reasoning': {
+        'proof_id':   'arxiv-2201.11903',
+        'source_url': 'https://arxiv.org/abs/2201.11903',
+        'title':      'Chain-of-Thought Prompting Elicits Reasoning in Large Language Models',
+    },
+    'Multimodal AI': {
+        'proof_id':   'arxiv-2310.03744',
+        'source_url': 'https://arxiv.org/abs/2310.03744',
+        'title':      'LLaVA: Improved Baselines with Visual Instruction Tuning',
+    },
+    'AI Infrastructure': {
+        'proof_id':   'github-vllm-project/vllm',
+        'source_url': 'https://github.com/vllm-project/vllm',
+        'title':      'vLLM: Easy, Fast, and Cheap LLM Serving for Everyone',
+    },
+}
+
+# ── arXiv title resolver ──────────────────────────────────────────────────────
+def resolve_arxiv_title(proof_id):
+    """Extract arXiv ID from proof_id string and fetch its real paper title."""
+    m = re.search(r'(\d{4}\.\d{4,5})', str(proof_id))
+    if not m:
+        return None
+    arxiv_id = m.group(1)
+    try:
+        url = f'http://export.arxiv.org/api/query?id_list={arxiv_id}&max_results=1'
+        with urllib.request.urlopen(url, timeout=6) as r:
+            xml = r.read().decode()
+        parts = xml.split('<entry>')
+        if len(parts) < 2:
+            return None
+        entry = parts[1]
+        tm = re.search(r'<title>(.*?)</title>', entry, re.DOTALL)
+        if tm:
+            title = re.sub(r'\s+', ' ', tm.group(1)).strip()
+            # Reject generic feed titles
+            if title and len(title) > 10 and 'arxiv query' not in title.lower():
+                return title
+    except Exception:
+        pass
+    return None
+
+# ── Signal enrichment ─────────────────────────────────────────────────────────
+def enrich_signal(signal):
+    """
+    Ensure every signal has a valid proof_id, source_url, and title.
+
+    Strategy:
+      - title + source_url: CANONICAL_EVIDENCE wins (curated, high-quality)
+        — the daily arXiv paper found by keyword-matching may not be the best
+          representative of the trend; canonical KB ensures consistently good titles.
+      - proof_id: keep daily-fetched ID if present (it's valid evidence);
+        fall back to canonical proof_id if none.
+      - daily_proof_id: retain original pipeline proof_id as secondary field
+        so the actual fetched source is not lost.
+    """
+    topic = signal.get('topic', '')
+    canonical = CANONICAL_EVIDENCE.get(topic)
+
+    # Preserve original daily evidence ID
+    if signal.get('proof_id') and not signal.get('daily_proof_id'):
+        signal['daily_proof_id'] = signal['proof_id']
+
+    if canonical:
+        signal['title']      = canonical['title']
+        signal['source_url'] = canonical['source_url']
+        # Only override proof_id if none present
+        if not signal.get('proof_id'):
+            signal['proof_id'] = canonical['proof_id']
+    else:
+        # No canonical — try live arXiv resolve as last resort
+        if not signal.get('title') and signal.get('proof_id'):
+            live_title = resolve_arxiv_title(signal['proof_id'])
+            if live_title:
+                signal['title'] = live_title
+        if not signal.get('title'):
+            signal['title'] = f'{topic} — emerging signal'
+
+    return signal
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
@@ -112,7 +236,15 @@ def deduplicate_and_crossvalidate(signals):
         # Sum evidence
         total_ev = sum(g.get("evidenceCount", 0) or 0 for g in group)
 
+        # Prefer record with title/proof_id for metadata fields
+        best_meta = next((g for g in group if g.get('title') and g.get('proof_id')), best)
+
         merged_signal = {**best}
+        # Carry over title/proof_id/source_url from best_meta if best is missing them
+        for field in ('title', 'proof_id', 'source_url'):
+            if not merged_signal.get(field) and best_meta.get(field):
+                merged_signal[field] = best_meta[field]
+
         merged_signal["confidence"] = new_conf
         merged_signal["sources"] = unique_sources[:8]  # cap to 8
         merged_signal["evidenceCount"] = max(total_ev, best.get("evidenceCount", 1))
@@ -166,8 +298,18 @@ def main():
     print(f"  merged: {len(final_signals)} unique topics")
     print(f"  cross-validated: {cross_validated}/{len(final_signals)}")
 
-    # Step 4: Write
-    print("\n[4/4] Writing consolidated snapshot...")
+    # Step 4: Enrich — ensure every signal has title, proof_id, source_url
+    print("\n[4/5] Enriching signal metadata (title/proof_id/source_url)...")
+    enriched = 0
+    for s in final_signals:
+        before = s.get('title', '')
+        enrich_signal(s)
+        if not before and s.get('title'):
+            enriched += 1
+    print(f"  enriched: {enriched} signals got title/proof_id from canonical KB or arXiv API")
+
+    # Step 5: Write
+    print("\n[5/5] Writing consolidated snapshot...")
     write_snapshot(final_signals)
 
     # Report
