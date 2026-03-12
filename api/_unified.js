@@ -35,8 +35,17 @@ function loadSnapshot() {
     if (!existsSync(HIST_FILE)) { _snapshotCache = null; _snapshotCacheTs = now; return null; }
     const lines = readFileSync(HIST_FILE, 'utf8').trim().split('\n').filter(Boolean);
     if (!lines.length) { _snapshotCache = null; _snapshotCacheTs = now; return null; }
-    const latest = JSON.parse(lines[lines.length - 1]);
-    _snapshotCache = latest?.signals?.length ? latest : null;
+    // Support two formats:
+    // 1. Each line is a signal record (topic/signal_id present) — new canonical format
+    // 2. Last line is a metadata wrapper {signals:[...]} — legacy format
+    const parsed = lines.map(l => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+    const signalLines = parsed.filter(r => r.topic && r.signal_id);
+    if (signalLines.length > 0) {
+      _snapshotCache = { signals: signalLines };
+    } else {
+      const latest = parsed[parsed.length - 1];
+      _snapshotCache = latest?.signals?.length ? latest : null;
+    }
   } catch { _snapshotCache = null; }
   _snapshotCacheTs = Date.now();
   return _snapshotCache;
