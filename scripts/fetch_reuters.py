@@ -1,131 +1,141 @@
 #!/usr/bin/env python3
 """
-News RSS Fetcher (L1 Media Layer) — Signal Market Source Layer L1
-Free, no API key required. Sources: BBC Tech, NYT Tech, TechCrunch, The Verge.
-(Reuters RSS feeds deprecated; replaced with equivalent free news RSS sources.)
+fetch_reuters.py — Reuters technology & business news fetcher (Tier L1, FREE)
 
-Usage:
-  python3 scripts/fetch_reuters.py
-  python3 scripts/fetch_reuters.py --dry-run
+Parses Reuters RSS feeds for AI/tech news.
+No API key required — uses public RSS feeds.
+
+Feeds:
+- Technology: https://www.reuters.com/rssfeed/technology-news
+- Business: https://www.reuters.com/rssfeed/business
 """
-import sys, re, urllib.request, ssl, datetime, argparse
+
+import json
+import sys
+import urllib.request
+import re
+from datetime import datetime
+from pathlib import Path
 import xml.etree.ElementTree as ET
 
-# Free RSS feeds — all verified working 2026-03-13
-FEEDS = [
-    ("https://feeds.bbci.co.uk/news/technology/rss.xml",              "bbc_tech"),
-    ("https://feeds.bbci.co.uk/news/science_and_environment/rss.xml", "bbc_science"),
-    ("https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml",   "nyt_tech"),
-    ("https://techcrunch.com/feed/",                                   "techcrunch"),
-    ("https://www.theverge.com/rss/index.xml",                        "theverge"),
-]
+ROOT = Path(__file__).parent.parent
+OUTPUT = ROOT / "output"
 
-_SSL_CTX = ssl.create_default_context()
-_SSL_CTX.check_hostname = False
-_SSL_CTX.verify_mode = ssl.CERT_NONE
-
-TOPIC_KEYWORDS = {
-    "LLM Infrastructure":      ["llm","language model","gpt","claude","gemini","inference","training","openai","anthropic","vllm","transformer"],
-    "AI Agents":               ["ai agent","autonomous agent","agentic","ai assistant","copilot","multi-agent"],
-    "AI Chips & Hardware":     ["chip","semiconductor","nvidia","gpu","tpu","accelerator","cerebras","groq","tenstorrent","intel ai","amd ai"],
-    "Robotics & Embodied AI":  ["robot","humanoid","boston dynamics","figure","unitree","1x","embodied","automation","mechanical"],
-    "Commercial Space":        ["spacex","starship","rocket","satellite","launch","orbit","nasa","esa","moon","mars","reentry"],
-    "Brain-Computer Interface":["neuralink","bci","brain computer","neural interface","brain implant","synchron","neuropace"],
-    "Autonomous Vehicles":     ["waymo","self-driving","autonomous vehicle","tesla fsd","cruise","robotaxi","lidar","autopilot"],
-    "AI Reasoning":            ["reasoning","chain of thought","o1","o3","problem solving","logic","deduction","inference model"],
-    "Diffusion Models":        ["diffusion","stable diffusion","sora","dall-e","midjourney","image generation","video generation","flux"],
-    "Multimodal AI":           ["multimodal","vision language","gpt-4v","gemini vision","image understanding","video understanding"],
-    "AI Policy & Regulation":  ["ai regulation","ai policy","ai law","ai safety","executive order","ai act","senate ai","congress ai"],
-    "AI Investment & Capital":  ["ai funding","ai investment","ai valuation","ai ipo","ai startup","ai acquisition","series","venture capital ai"],
+# Reuters RSS feeds
+REUTERS_FEEDS = {
+    'technology': 'https://www.reuters.com/rssfeed/technology-news',
+    'business': 'https://www.reuters.com/rssfeed/business',
 }
 
-def score_relevance(text: str, keywords: list[str]) -> float:
-    text = text.lower()
-    matches = sum(1 for kw in keywords if kw in text)
-    return min(0.92, 0.45 + matches * 0.12)
+# Topic keyword mapping
+TOPIC_KEYWORDS = {
+    'AI Agents': ['ai agents', 'autonomous agents', 'intelligent agents', 'software agents'],
+    'AI Coding': ['copilot', 'code generation', 'ai coding', 'github copilot', 'cursor'],
+    'AI Chips & Hardware': ['ai chip', 'nvidia', 'amd', 'intel', 'semiconductor', 'gpu', 'tpu'],
+    'Autonomous Vehicles': ['autonomous vehicle', 'self-driving', 'waymo', 'tesla fsd', 'robotaxi'],
+    'AI Regulation': ['ai regulation', 'ai safety', 'ai policy', 'eu ai act', 'ai governance'],
+    'LLM Infrastructure': ['llm', 'large language model', 'transformer', 'inference', 'vllm'],
+    'AI Ethics': ['ai ethics', 'ai bias', 'ai fairness', 'algorithmic bias'],
+    'Robotics & Embodied AI': ['robotics', 'embodied ai', 'humanoid robot', 'boston dynamics'],
+    'Brain-Computer Interface': ['brain computer', 'neuralink', 'bci', 'neural interface'],
+}
 
-def fetch_feed(url: str, source_tag: str) -> list[dict]:
+def fetch_feed(url):
+    """Fetch and parse RSS feed."""
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 SignalMarket/1.0"})
-        data = urllib.request.urlopen(req, context=_SSL_CTX, timeout=12).read()
-        root = ET.fromstring(data)
-        items = root.findall(".//item")
-        results = []
-        for item in items[:30]:
-            title = (item.findtext("title") or "").strip()
-            link  = (item.findtext("link") or "").strip()
-            desc  = (item.findtext("description") or "").strip()
-            pub_date = (item.findtext("pubDate") or "").strip()
-            text = f"{title} {desc}".lower()
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            xml_data = resp.read()
 
-            # Find best matching topic
-            best_topic, best_score = None, 0.0
-            for topic, kws in TOPIC_KEYWORDS.items():
-                score = score_relevance(text, kws)
-                if score > 0.55 and score > best_score:
-                    best_topic, best_score = topic, score
+        root = ET.fromstring(xml_data)
+        items = []
 
-            if best_topic:
-                results.append({
-                    "topic":          best_topic,
-                    "signal_id":      f"reuters_{hash(title) & 0xFFFFFF:06x}",
-                    "confidence":     round(best_score, 2),
-                    "stage":          "forming" if best_score < 0.65 else "emerging" if best_score < 0.8 else "accelerating",
-                    "evidence_count": 1,
-                    "sources":        ["reuters"],
-                    "source_url":     link or "https://reuters.com",
-                    "category":       f"News / Media ({source_tag})",
-                    "proof_id":       f"reuters-{datetime.date.today().isoformat()}-{hash(title) & 0xFFFF:04x}",
-                    "title":          title[:120],
-                    "published_at":   pub_date,
-                    "why_important":  f"Reuters: {title[:100]}",
-                    "source_layer":   "L1",
-                    "source_tag":     source_tag,
-                })
-        return results
+        # Handle RSS 2.0 structure
+        channel = root.find('channel')
+        if channel is not None:
+            for item in channel.findall('item'):
+                title = item.find('title')
+                link = item.find('link')
+                pub_date = item.find('pubDate')
+                description = item.find('description')
+                category = item.find('category')
+
+                if title is not None and link is not None:
+                    items.append({
+                        'title': title.text or '',
+                        'link': link.text or '',
+                        'pub_date': pub_date.text if pub_date is not None else '',
+                        'description': description.text if description is not None else '',
+                        'category': category.text if category is not None else '',
+                    })
+        return items
     except Exception as e:
-        print(f"  [reuters] feed {url}: {e}", file=sys.stderr)
+        print(f"  Feed fetch failed: {e}", file=sys.stderr)
         return []
 
-def fetch_reuters_signals() -> list[dict]:
+def score_article(title, description, topic):
+    """Score article relevance to topic."""
+    text = (title + ' ' + description).lower()
+    keywords = TOPIC_KEYWORDS.get(topic, [])
+
+    score = 0
+    for kw in keywords:
+        if kw in text:
+            score += 1
+
+    return score
+
+def run():
+    OUTPUT.mkdir(exist_ok=True)
+
     all_signals = []
-    seen_titles: set[str] = set()
-    for url, tag in FEEDS:
-        items = fetch_feed(url, tag)
-        for s in items:
-            t = s["title"]
-            if t not in seen_titles:
-                seen_titles.add(t)
-                all_signals.append(s)
-    return all_signals
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dry-run", action="store_true")
-    args = parser.parse_args()
+    for feed_name, feed_url in REUTERS_FEEDS.items():
+        print(f"  Fetching Reuters {feed_name} feed...", file=sys.stderr)
+        items = fetch_feed(feed_url)
+        print(f"  Found {len(items)} items in {feed_name}", file=sys.stderr)
 
-    print(f"Reuters Fetcher — {datetime.date.today().isoformat()}")
-    signals = fetch_reuters_signals()
-    print(f"  Raw signals: {len(signals)}")
+        for item in items:
+            # Find best matching topic
+            best_topic = None
+            best_score = 0
 
-    # Group by topic
-    by_topic: dict[str, list] = {}
-    for s in signals:
-        by_topic.setdefault(s["topic"], []).append(s)
+            for topic in TOPIC_KEYWORDS.keys():
+                score = score_article(item['title'], item['description'], topic)
+                if score > best_score:
+                    best_score = score
+                    best_topic = topic
 
-    for topic, items in sorted(by_topic.items(), key=lambda x: -len(x[1])):
-        top = max(items, key=lambda x: x["confidence"])
-        print(f"  [{topic:<30}] {len(items)} items, best_conf={top['confidence']}: {top['title'][:60]}")
+            if best_score >= 1:
+                # Calculate confidence based on keyword matches
+                confidence = min(0.35 + (best_score * 0.10), 0.75)
 
-    if not args.dry_run:
-        import json, pathlib
-        out = pathlib.Path(__file__).parent.parent / "output"
-        out.mkdir(exist_ok=True)
-        path = out / f"reuters_signals_{datetime.date.today().isoformat()}.json"
-        path.write_text(json.dumps({"signals": signals, "fetched_at": datetime.datetime.utcnow().isoformat()+"Z"}, indent=2, ensure_ascii=False))
-        print(f"  ✓ Saved: {path}")
+                all_signals.append({
+                    'topic': best_topic,
+                    'confidence': confidence,
+                    'stage': 'emerging' if confidence < 0.5 else 'forming',
+                    'sources': [f'reuters:{feed_name}'],
+                    'proof_id': f'reuters-{feed_name}-{hash(item["link"]) % 10000:04d}',
+                    'source_url': item['link'],
+                    'title': item['title'],
+                    'category': 'News',
+                    'evidenceCount': 1,
+                    'published_at': item['pub_date'],
+                })
 
-    return signals
+    # Deduplicate by URL
+    seen_urls = set()
+    unique_signals = []
+    for sig in all_signals:
+        if sig['source_url'] not in seen_urls:
+            seen_urls.add(sig['source_url'])
+            unique_signals.append(sig)
 
-if __name__ == "__main__":
-    main()
+    output_path = OUTPUT / f"reuters_{datetime.now().strftime('%Y%m%d_%H%M')}.json"
+    with open(output_path, 'w') as f:
+        json.dump({'count': len(unique_signals), 'signals': unique_signals, 'source': 'reuters'}, f, indent=2)
+
+    print(json.dumps({'count': len(unique_signals), 'source': 'reuters'}))
+
+if __name__ == '__main__':
+    run()
