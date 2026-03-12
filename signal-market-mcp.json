@@ -1,0 +1,159 @@
+{
+  "mcpVersion": "1.0",
+  "name": "signal-market",
+  "description": "Signal Market — AI technology trend intelligence. Provides real-time signals, causal analysis, and trend data for 10 AI topics.",
+  "version": "1.0.0",
+  "servers": {
+    "local": {
+      "url": "http://localhost:3001",
+      "description": "Local development server"
+    },
+    "production": {
+      "url": "https://signal-market-z14d.vercel.app",
+      "description": "Production API"
+    }
+  },
+  "tools": [
+    {
+      "name": "get_signals",
+      "description": "Get all current AI technology signals with confidence scores, stages, and source counts. Topics: AI Agents, LLM Infrastructure, Diffusion Models, Efficient AI, AI Coding, AI Infrastructure, Reinforcement Learning, Transformer Architecture, AI Reasoning, Multimodal AI.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "stage": {
+            "type": "string",
+            "description": "Filter by stage: accelerating | forming | emerging | peak | fading",
+            "enum": ["accelerating", "forming", "emerging", "peak", "fading"]
+          },
+          "min_confidence": {
+            "type": "number",
+            "description": "Minimum confidence threshold (0.0 - 1.0)"
+          }
+        }
+      },
+      "endpoint": {
+        "method": "GET",
+        "path": "/api/signals"
+      }
+    },
+    {
+      "name": "get_brief",
+      "description": "Get the latest AI intelligence brief with causal analysis, macro trends, and decision windows. Includes primary_cause, why_now, agent_action for each signal.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "endpoint": {
+        "method": "GET",
+        "path": "/api/v2/brief"
+      }
+    },
+    {
+      "name": "get_trends",
+      "description": "Get trend trajectories — how each AI topic is evolving over time.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "endpoint": {
+        "method": "GET",
+        "path": "/api/trends"
+      }
+    },
+    {
+      "name": "get_topics",
+      "description": "Get the list of monitored AI topics with metadata.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "endpoint": {
+        "method": "GET",
+        "path": "/api/topics"
+      }
+    },
+    {
+      "name": "get_stats",
+      "description": "Get aggregate statistics: total signals, cross-validated count, stage distribution, source coverage.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "endpoint": {
+        "method": "GET",
+        "path": "/api/stats"
+      }
+    },
+    {
+      "name": "get_pipeline_status",
+      "description": "Get data pipeline status: last run time, signal count, validation results.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "endpoint": {
+        "method": "GET",
+        "path": "/api/pipeline/status"
+      }
+    },
+    {
+      "name": "add_watchlist",
+      "description": "Watch a signal topic and receive alerts when confidence crosses a threshold.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string",
+            "description": "Topic to watch (e.g. 'AI Agents')"
+          },
+          "threshold": {
+            "type": "number",
+            "description": "Confidence threshold 0.0-1.0 to trigger alert (default 0.7)"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email address for alert delivery"
+          }
+        },
+        "required": ["topic"]
+      },
+      "endpoint": {
+        "method": "POST",
+        "path": "/api/watchlist"
+      }
+    },
+    {
+      "name": "get_api_docs",
+      "description": "Get the full OpenAPI specification for Signal Market API.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "endpoint": {
+        "method": "GET",
+        "path": "/api/docs"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "description": "Get top accelerating signals",
+      "tool": "get_signals",
+      "input": {}
+    },
+    {
+      "description": "Get causal brief for decision making",
+      "tool": "get_brief",
+      "input": {}
+    },
+    {
+      "description": "Watch AI Agents signal",
+      "tool": "add_watchlist",
+      "input": { "topic": "AI Agents", "threshold": 0.85 }
+    }
+  ],
+  "mcp2cli_config": {
+    "command": "npx",
+    "args": ["mcp2cli", "--openapi", "https://signal-market-z14d.vercel.app/api/docs", "--server", "signal-market"]
+  }
+}
