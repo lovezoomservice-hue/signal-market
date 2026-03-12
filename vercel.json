@@ -188,6 +188,10 @@
       "dest": "/api/auth/index.js"
     },
     {
+      "src": "/api/auth/subscribers",
+      "dest": "/api/auth/subscribers.js"
+    },
+    {
       "src": "/api/auth",
       "dest": "/api/auth/index.js"
     },

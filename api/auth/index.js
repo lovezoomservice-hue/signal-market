@@ -226,13 +226,41 @@ function handleUnsubscribe(req, res) {
 }
 
 function handleSubscriberList(req, res) {
-  const key = req.headers['x-api-key'] || '';
-  const store = loadJSON(join(process.cwd(), 'data', 'auth_store.json'), {});
-  const keyObj = store.api_keys?.[key];
-  const user = keyObj ? store.users?.[keyObj.userId] : null;
-  if (!user || user.plan !== 'enterprise') return res.status(403).json({ error: 'Enterprise plan required' });
+  // Accept: x-api-key (enterprise) OR Authorization: Bearer <founder_key>
+  const FOUNDER_KEY = 'sm_founder_95d12139a6c22bd5bdd33720462ad743';
+  const apiKey  = req.headers['x-api-key'] || '';
+  const bearer  = (req.headers['authorization'] || '').replace('Bearer ', '').trim();
+  const isFounder = bearer === FOUNDER_KEY;
+
+  if (!isFounder) {
+    const store  = loadJSON(join(process.cwd(), 'data', 'auth_store.json'), {});
+    const keyObj = store.api_keys?.[apiKey];
+    const user   = keyObj ? store.users?.[keyObj.userId] : null;
+    if (!user || user.plan !== 'enterprise') return res.status(403).json({ error: 'Enterprise plan required' });
+  }
+
   const subs = loadJSON(SUBS_PATH, { subscribers: {} });
-  return res.status(200).json({ count: Object.keys(subs.subscribers).length, subscribers: Object.values(subs.subscribers) });
+  const all  = Object.values(subs.subscribers);
+  const active     = all.filter(s => s.active !== false && s.status !== 'unsubscribed');
+  const unsubscribed = all.filter(s => s.active === false || s.status === 'unsubscribed');
+
+  return res.status(200).json({
+    total:        all.length,
+    active:       active.length,
+    unsubscribed: unsubscribed.length,
+    subscribers:  active.map(s => ({
+      id:            s.id,
+      email:         s.email,
+      subscribed_at: s.subscribed_at,
+      plan:          s.plan || 'free',
+    })),
+    unsubscribed_list: unsubscribed.map(s => ({
+      id:              s.id,
+      email:           s.email,
+      unsubscribed_at: s.unsubscribed_at,
+    })),
+    retrieved_at: new Date().toISOString(),
+  });
 }
 
 function handleInfo(req, res) {

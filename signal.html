@@ -461,6 +461,25 @@ function renderDetail(signal, wso, allSignals, causal) {
         </div>`).join('')}
       </div>
     </div>` : ''}
+
+    <!-- Key actors — live from WorldState (F-2 rule-based) -->
+    ${wso.event?.actors ? `
+    <div class="intel-section">
+      <div class="intel-section-title">Key actors <span style="font-family:var(--font-mono);font-size:9px;color:var(--brand);text-transform:none;letter-spacing:0;margin-left:8px">live</span></div>
+      <div style="padding:var(--space-3) var(--space-4);background:rgba(255,255,255,0.02);border:1px solid var(--border-subtle);border-radius:var(--radius-md)">
+        <div style="display:flex;align-items:baseline;gap:var(--space-3);margin-bottom:var(--space-3)">
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-tertiary);flex-shrink:0">DOMINANT</span>
+          <span style="font-size:var(--text-sm);color:var(--text-primary);font-weight:600">${wso.event.actors.dominant}</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:var(--space-3)">
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-tertiary);flex-shrink:0;margin-top:3px">CHALLENGERS</span>
+          <div style="display:flex;flex-wrap:wrap;gap:var(--space-2)">
+            ${(wso.event.actors.challengers||[]).map(c=>`<span style="font-size:10px;color:var(--text-secondary);background:rgba(255,255,255,0.04);border:1px solid var(--border-subtle);border-radius:4px;padding:2px 8px">${c}</span>`).join('')}
+          </div>
+        </div>
+        ${wso.event.actors.category ? `<div style="margin-top:var(--space-2);font-family:var(--font-mono);font-size:9px;color:var(--text-tertiary)">${wso.event.actors.category}</div>` : ''}
+      </div>
+    </div>` : ''}
   </div>`;
 
   const sidebarHtml = `
