@@ -104,7 +104,64 @@ jobs:
             echo "Committed and pushed ${SIGNAL_COUNT} signals"
           fi
 
-      # ── 8. Failure annotation ─────────────────────────────────────────────
+      # ── 8. AutonomousResearchFetcher — degraded-safe post-chain enrichment ──
+      # Runs AFTER main chain commits; failure never breaks main chain.
+      # Tracks zero-gain runs in output/ar_gain_log.json:
+      #   consecutive_no_gain >= 3 → sets AR_SKIP_WEEKLY flag → only runs on Mondays.
+      - name: Autonomous Research Enrichment (degraded-safe)
+        continue-on-error: true
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          GAIN_LOG="output/ar_gain_log.json"
+          DAY_OF_WEEK=$(date +%u)   # 1=Mon ... 7=Sun
+
+          # Read consecutive no-gain counter
+          CONSEC=0
+          if [ -f "$GAIN_LOG" ]; then
+            CONSEC=$(python3 -c "import json; d=json.load(open('$GAIN_LOG')); print(d.get('consecutive_no_gain',0))")
+          fi
+
+          # If 3+ consecutive no-gain: only run on Mondays (weekly degradation)
+          if [ "$CONSEC" -ge 3 ] && [ "$DAY_OF_WEEK" != "1" ]; then
+            echo "AR: downgraded to weekly (consecutive_no_gain=$CONSEC). Skipping today (day=$DAY_OF_WEEK)."
+            exit 0
+          fi
+
+          echo "AR: running autonomous_research.py (consec_no_gain=$CONSEC)..."
+          BEFORE=$(md5sum data/signals_history.jsonl 2>/dev/null | cut -d' ' -f1 || echo "none")
+
+          python3 scripts/autonomous_research.py 2>&1 | tail -10
+
+          AFTER=$(md5sum data/signals_history.jsonl 2>/dev/null | cut -d' ' -f1 || echo "none")
+
+          # Determine gain
+          if [ "$BEFORE" != "$AFTER" ]; then
+            echo "AR: JSONL changed — gain detected, reset counter"
+            NEW_CONSEC=0
+          else
+            NEW_CONSEC=$((CONSEC + 1))
+            echo "AR: no JSONL change — consecutive_no_gain now $NEW_CONSEC"
+          fi
+
+          # Update gain log
+          python3 -c "
+          import json, os
+          path='$GAIN_LOG'
+          d = json.load(open(path)) if os.path.exists(path) else {}
+          d['consecutive_no_gain'] = $NEW_CONSEC
+          d['last_run'] = '$DATE'
+          d['mode'] = 'weekly' if $NEW_CONSEC >= 3 else 'daily'
+          open(path,'w').write(json.dumps(d, indent=2))
+          print(f'AR gain_log: {d}')
+          "
+
+          # Commit enriched JSONL + gain log if changed
+          git add data/signals_history.jsonl output/ar_gain_log.json || true
+          git diff --staged --quiet && echo "AR: nothing to commit" && exit 0
+          git commit -m "auto: autonomous research enrichment $DATE [skip ci]"
+          git push
+
+      # ── 9. Failure annotation ─────────────────────────────────────────────
       - name: Annotate failure summary
         if: failure()
         run: |
