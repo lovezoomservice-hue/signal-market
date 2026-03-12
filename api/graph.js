@@ -14,7 +14,7 @@
 import { getUnifiedSignals } from './_unified.js';
 import { getEvidence, getLifecycle } from './_store.js';
 
-function buildGraph(signals, filter_topic = null) {
+export function buildGraph(signals, filter_topic = null) {
   // ── Build nodes ────────────────────────────────────────────────
   const nodes = signals.map((s, i) => {
     const sig_id = `evt_${String(i + 1).padStart(3, '0')}`;
