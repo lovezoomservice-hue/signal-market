@@ -16,7 +16,23 @@
       "subscribed_at": "2026-03-12T06:37:45.387Z",
       "active": false,
       "unsubscribed_at": "2026-03-12T06:38:15.067Z"
+    },
+    "sub_3e69c2d6ebfb84e5": {
+      "id": "sub_3e69c2d6ebfb84e5",
+      "email": "browser-test-1773297625685@example.com",
+      "plan": "free",
+      "source": "brief",
+      "subscribed_at": "2026-03-12T06:40:26.299Z",
+      "active": true
+    },
+    "sub_4e34419d7b50e875": {
+      "id": "sub_4e34419d7b50e875",
+      "email": "bv-1773297766762@test.com",
+      "plan": "free",
+      "source": "brief",
+      "subscribed_at": "2026-03-12T06:42:47.380Z",
+      "active": true
     }
   },
-  "_updated": "2026-03-12T06:38:15.067Z"
+  "_updated": "2026-03-12T06:42:47.380Z"
 }
