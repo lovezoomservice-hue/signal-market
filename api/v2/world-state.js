@@ -134,6 +134,79 @@ function firstOrder(s) {
   return m[s.stage] || m['accelerating'] || null;
 }
 
+// Second-order effects: downstream economic/social/industry consequences
+const SECOND_ORDER_KB = {
+  'AI Agents': [
+    'Knowledge work automation — white-collar job market restructuring begins',
+    'Software development team size compression (1 engineer + agents > 5 engineers)',
+    'Enterprise SaaS moat erosion — workflows that required software now require prompts',
+    'New category of "agent infrastructure" companies (orchestration, eval, memory) emerges',
+  ],
+  'LLM Infrastructure': [
+    'Cloud provider GPU capex becomes defining competitive moat',
+    'On-premise AI becomes economically viable for mid-market — data sovereignty unlocked',
+    'Inference cost curves drive new product categories (always-on AI companions, ambient intelligence)',
+    'Talent market bifurcates: ML researchers vs MLOps/inference engineers',
+  ],
+  'Diffusion Models': [
+    'Stock photography and illustration market permanent structural decline',
+    'Entertainment pre-production cost collapse (concept art, storyboarding)',
+    'New IP ownership and copyright frameworks required by major jurisdictions',
+    'Video generation maturity unlocks AI-native film/advertising production pipelines',
+  ],
+  'AI Coding': [
+    'Junior developer pipeline shrinks — entry-level positions commoditized',
+    'Technical co-founder requirement for startups softens significantly',
+    'Software maintenance cost collapse → longer-lived legacy codebases',
+    'Security vulnerability surface area increases proportionally with AI-generated code volume',
+  ],
+  'Efficient AI': [
+    'Smartphone becomes primary inference device — cloud dependency reduces',
+    'AI-powered devices in price brackets previously excluded from AI (IoT, automotive)',
+    'Sovereign AI becomes viable for mid-size nations without massive GPU infrastructure',
+    'Edge AI market (Qualcomm, Apple Silicon, custom ASICs) becomes strategic battleground',
+  ],
+  'Reinforcement Learning': [
+    'Automated scientific discovery accelerates — AI agents run experiments autonomously',
+    'Alignment research urgency increases proportionally with agent capability',
+    'Game theory and mechanism design become critical AI safety tools',
+    'Process reward models create new category of AI evaluation companies',
+  ],
+  'Transformer Architecture': [
+    'Specialized hardware for non-transformer architectures gains investment',
+    'Long-context capabilities unlock new document/legal/medical AI applications',
+    'Energy efficiency improvements from MoE reduce AI carbon footprint at scale',
+    'Academic publish-or-perish dynamics shift toward empirical scaling papers',
+  ],
+  'Transformer Arch': [
+    'Specialized hardware for efficient architectures gains investment (SSM accelerators)',
+    'Long-context use cases (100k+ token) unlock legal, medical, and code review applications',
+    'MoE deployment at scale reduces per-token inference cost → new price-performance tier',
+  ],
+  'AI Reasoning': [
+    'Professional services disruption accelerates — legal research, financial analysis, medical diagnosis',
+    'Standardized testing and credentialing systems face legitimacy crisis',
+    'Scientific peer review process requires fundamental reform',
+    'Reasoning models become primary interface for enterprise decision support',
+  ],
+  'Multimodal AI': [
+    'Document-intensive industries (insurance, legal, healthcare) undergo automation wave',
+    'Physical-world robotics viability improves (vision + language + action)',
+    'Accessibility technology leap — real-time scene description, sign language translation',
+    'Content moderation at scale becomes feasible across text, image, and video simultaneously',
+  ],
+  'AI Infrastructure': [
+    'Cloud hyperscaler capex concentration increases — GPU supply chain becomes geopolitically strategic',
+    'AI-native database and observability tooling becomes mandatory enterprise infrastructure',
+    'API-first AI companies face margin compression as infrastructure commoditizes',
+    'Energy demand for AI data centers reshapes power grid investment nationally',
+  ],
+};
+
+function secondOrder(signal) {
+  return SECOND_ORDER_KB[signal.topic] || null;
+}
+
 function buildWSO(signal, graphEdges=[]) {
   // edges use signal_id (e.g. 'evt_001') as source key — match by signal_id
   const relatedDomains = graphEdges
@@ -154,7 +227,7 @@ function buildWSO(signal, graphEdges=[]) {
       related_domains:     relatedDomains.length ? relatedDomains : null,
       impacted_domains:    null,
       first_order_effects: firstOrder(signal),
-      second_order_effects:null,
+      second_order_effects: secondOrder(signal),
       historical_analogs:  null,
       source_quality:      sourceQuality(signal),
       raw_sources:         signal.sources||[],
@@ -216,7 +289,7 @@ export default function handler(req, res) {
       world_states:  all,
       null_fields_explanation: {
         actors:               'Actor data pipeline — P1 (requires Founder decision on method: rule-based vs API vs LLM)',
-        causal_explanation:   'core_drivers + monitoring_points + invalidation_conditions: LIVE via P0-B causal engine. secondary_drivers + dominant_actor: P1.',
+        causal_explanation:   'core_drivers / monitoring_points / invalidation_conditions / second_order_effects: LIVE. secondary_drivers / dominant_actor: P1.',
         propagation:          'Propagation Layer — P1',
         scenario_sensitivity: 'Scenario Injection Engine — P2',
         confidence_interval:  'Available for signals with confidence ≥ 0.85; others require more evidence.',
