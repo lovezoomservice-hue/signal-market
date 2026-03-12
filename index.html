@@ -1,662 +1,927 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Signal Market — AI Trend Intelligence</title>
-<style>
-:root {
-  --bg: #0a0a0f;
-  --surface: #12121a;
-  --surface2: #1a1a26;
-  --border: #2a2a3a;
-  --accent: #e83a57;
-  --accent2: #7c3aed;
-  --text: #e8e8f0;
-  --muted: #888899;
-  --green: #22c55e;
-  --yellow: #eab308;
-  --blue: #3b82f6;
-  --radius: 8px;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; min-height: 100vh; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signal Market — Intelligence Infrastructure for the AI Frontier</title>
+  <meta name="description" content="Signal Market monitors 10+ global sources, distills AI technology signals, maps their relationships, and delivers structured intelligence for founders, researchers, investors, and AI agents.">
+  <meta property="og:title" content="Signal Market — Intelligence Infrastructure for the AI Frontier">
+  <meta property="og:description" content="Know what's emerging in AI before the noise clears.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    /* ── Page-specific: Landing ──────────────────────── */
 
-/* Nav */
-nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 2rem;
-  display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 10; }
-.logo { font-size: 1.1rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
-.logo-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.3)} }
-.nav-links { display: flex; gap: 1.5rem; }
-.nav-links a { color: var(--muted); text-decoration: none; font-size: .9rem; transition: color .2s; }
-.nav-links a:hover { color: var(--text); }
-.status-pill { background: rgba(34,197,94,.15); color: var(--green); padding: 4px 10px;
-  border-radius: 20px; font-size: .75rem; font-weight: 600; border: 1px solid rgba(34,197,94,.3); }
+    /* Dot-grid background texture */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(45,125,210,0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
 
-/* Layout */
-.container { max-width: 1280px; margin: 0 auto; padding: 2rem; }
-.header { margin-bottom: 2rem; }
-.header h1 { font-size: 2rem; font-weight: 800; margin-bottom: .5rem; }
-.header h1 span { color: var(--accent); }
-.header p { color: var(--muted); font-size: .95rem; }
+    /* ── Hero ──────────────────────────────────────── */
+    .hero {
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: var(--sp-16);
+      padding-top: var(--nav-height);
+      padding-inline: var(--sp-6);
+      max-width: var(--max-width);
+      margin-inline: auto;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 900px) {
+      .hero {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: var(--sp-12);
+        min-height: auto;
+        padding-block: calc(var(--nav-height) + var(--sp-16)) var(--sp-16);
+      }
+    }
 
-/* Stats bar */
-.stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; }
-.stat-card .label { color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5rem; }
-.stat-card .value { font-size: 1.8rem; font-weight: 700; }
-.stat-card .sub { color: var(--muted); font-size: .8rem; margin-top: .2rem; }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-3);
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: var(--sp-6);
+    }
+    .hero-eyebrow-sep { color: var(--border); }
 
-/* Grid */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
-@media(max-width:900px) { .grid-2 { grid-template-columns: 1fr; } }
-.section-title { font-size: .85rem; font-weight: 600; color: var(--muted); text-transform: uppercase;
-  letter-spacing: .1em; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
-.section-title::after { content:''; flex: 1; height: 1px; background: var(--border); }
+    .hero-headline {
+      font-size: clamp(2.5rem, 5.5vw, 4.5rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.04em;
+      color: var(--text-primary);
+      margin-bottom: var(--sp-6);
+    }
+    .hero-headline span {
+      background: linear-gradient(135deg, var(--brand-bright), #A78BFA);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-/* Signal cards */
-.signal-list { display: flex; flex-direction: column; gap: .75rem; }
-.signal-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 1rem 1.25rem; display: flex; align-items: center; gap: 1rem;
-  transition: border-color .2s, transform .15s; cursor: pointer; }
-.signal-card:hover { border-color: var(--accent); transform: translateX(3px); }
-.signal-card .rank { color: var(--muted); font-size: .85rem; font-weight: 700; min-width: 24px; text-align: right; }
-.signal-info { flex: 1; }
-.signal-info .name { font-weight: 600; margin-bottom: 4px; }
-.signal-info .meta { color: var(--muted); font-size: .8rem; display: flex; gap: 8px; align-items: center; }
-.ev-count { background: var(--surface2); padding: 2px 8px; border-radius: 4px; font-size: .75rem; }
-.signal-score { text-align: right; }
-.score-bar-wrap { width: 80px; height: 6px; background: var(--border); border-radius: 3px; margin-top: 4px; }
-.score-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+    .hero-sub {
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+      line-height: 1.75;
+      max-width: 52ch;
+      margin-bottom: var(--sp-8);
+    }
+    @media (max-width: 900px) { .hero-sub { margin-inline: auto; } }
 
-/* Stage badges */
-.badge { padding: 2px 8px; border-radius: 4px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
-.badge-peak         { background: rgba(234,179,8,.15);  color: #eab308; border: 1px solid rgba(234,179,8,.3); }
-.badge-accelerating { background: rgba(232,58,87,.15);  color: #e83a57; border: 1px solid rgba(232,58,87,.3); }
-.badge-forming      { background: rgba(59,130,246,.15); color: #3b82f6; border: 1px solid rgba(59,130,246,.3); }
-.badge-emerging     { background: rgba(34,197,94,.15);  color: #22c55e; border: 1px solid rgba(34,197,94,.3); }
-.badge-weak         { background: rgba(136,136,153,.15);color: #888899; border: 1px solid rgba(136,136,153,.3); }
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      flex-wrap: wrap;
+      margin-bottom: var(--sp-8);
+    }
+    @media (max-width: 900px) { .hero-ctas { justify-content: center; } }
 
-/* Watchlist panel */
-.watchlist-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
-.watch-input-row { display: flex; gap: .75rem; margin-bottom: 1rem; }
-.watch-input-row input { flex: 1; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
-  padding: .6rem .9rem; color: var(--text); font-size: .9rem; outline: none; }
-.watch-input-row input:focus { border-color: var(--accent); }
-.btn { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: .6rem 1.2rem;
-  font-size: .9rem; font-weight: 600; cursor: pointer; transition: opacity .2s; }
-.btn:hover { opacity: .85; }
-.btn-sm { padding: .4rem .8rem; font-size: .8rem; }
-.watch-item { display: flex; align-items: center; justify-content: space-between; padding: .6rem 0;
-  border-bottom: 1px solid var(--border); font-size: .9rem; }
-.watch-item:last-child { border-bottom: none; }
-.trigger-badge { background: rgba(34,197,94,.15); color: var(--green); padding: 2px 6px;
-  border-radius: 4px; font-size: .72rem; font-weight: 600; }
-.empty { color: var(--muted); font-size: .85rem; text-align: center; padding: 1.5rem; }
+    .hero-stats {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-4);
+      flex-wrap: wrap;
+    }
+    @media (max-width: 900px) { .hero-stats { justify-content: center; } }
+    .hero-stat {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+    }
+    .hero-stat-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
 
-/* Source links */
-.source-link { color: var(--accent); font-size: .75rem; text-decoration: none; }
-.source-link:hover { text-decoration: underline; }
+    /* ── Graph panel ─────────────────────────────────── */
+    .hero-graph-panel {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-graph-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(45,125,210,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    #hero-graph-svg {
+      width: 100%;
+      max-width: 520px;
+      height: 440px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      background: rgba(13,17,23,0.8);
+      backdrop-filter: blur(8px);
+      overflow: visible;
+    }
+    @media (max-width: 900px) {
+      #hero-graph-svg { height: 320px; max-width: 100%; }
+      .hero-graph-panel { width: 100%; }
+    }
 
-/* Footer */
-.footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; color: var(--muted); font-size: .8rem;
-  display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; }
-.footer span { display: flex; gap: 1rem; }
+    .graph-label {
+      position: absolute;
+      bottom: var(--sp-4);
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      font-size: var(--text-xs);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
 
+    /* ── Live signal feed ────────────────────────────── */
+    .signals-section {
+      position: relative;
+      z-index: 1;
+      padding-block: var(--sp-24);
+      border-top: 1px solid var(--border-dim);
+    }
+    .signals-section-inner {
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--sp-6);
+    }
+    .signals-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--sp-8);
+      flex-wrap: wrap;
+      gap: var(--sp-4);
+    }
+    .signals-header-left { display: flex; flex-direction: column; gap: var(--sp-2); }
+    .signals-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: var(--sp-4);
+      margin-bottom: var(--sp-8);
+    }
+    @media (max-width: 640px) { .signals-grid { grid-template-columns: 1fr; } }
 
-/* Mobile responsive */
-@media(max-width:640px) {
-  nav { padding: 0 1rem; }
-  .nav-links { display: none; }
-  .container { padding: 1rem; }
-  .header h1 { font-size: 1.5rem; }
-  .stats-bar { grid-template-columns: 1fr 1fr; }
-  .grid-2 { grid-template-columns: 1fr; }
-  #plans-grid { grid-template-columns: 1fr; }
-  .score-bar-wrap { width: 50px; }
-  .footer { flex-direction: column; gap: .75rem; text-align: center; }
-}
-@media(max-width:400px) {
-  .stats-bar { grid-template-columns: 1fr; }
-  .watch-input-row { flex-direction: column; }
-}
+    .signals-gate {
+      text-align: center;
+      padding: var(--sp-12) var(--sp-6);
+      background: linear-gradient(to bottom, transparent, var(--bg-surface));
+      margin-top: calc(var(--sp-8) * -1);
+      position: relative;
+      z-index: 2;
+    }
+    .signals-gate p {
+      margin-bottom: var(--sp-4);
+      font-size: var(--text-lg);
+      color: var(--text-secondary);
+    }
 
-/* Loading */
-.loading { color: var(--muted); font-size: .85rem; padding: 2rem; text-align: center; }
-.dot-anim::after { content: '...'; animation: dots 1.2s steps(4,end) infinite; }
-@keyframes dots { 0%,100%{content:''} 25%{content:'.'} 50%{content:'..'} 75%{content:'...'} }
-</style>
+    /* Skeleton loaders */
+    .signal-card-skeleton {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--sp-5);
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+    .skeleton-line {
+      height: 14px;
+      background: var(--bg-hover);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--sp-3);
+    }
+    .skeleton-line.short { width: 40%; }
+    .skeleton-line.medium { width: 65%; }
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.6; }
+      50%       { opacity: 1; }
+    }
+
+    /* ── How it works ────────────────────────────────── */
+    .how-section {
+      position: relative;
+      z-index: 1;
+      padding-block: var(--sp-24);
+      border-top: 1px solid var(--border-dim);
+    }
+    .how-inner {
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--sp-6);
+    }
+    .how-header {
+      text-align: center;
+      margin-bottom: var(--sp-16);
+    }
+    .how-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--sp-6);
+    }
+    @media (max-width: 768px) { .how-grid { grid-template-columns: 1fr; } }
+    .how-card {
+      padding: var(--sp-8);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      position: relative;
+    }
+    .how-step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: var(--brand-glow);
+      border: 1px solid var(--border-brand);
+      font-family: var(--font-mono);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--brand);
+      margin-bottom: var(--sp-5);
+    }
+    .how-card h3 {
+      font-size: var(--text-xl);
+      margin-bottom: var(--sp-3);
+      letter-spacing: -0.02em;
+    }
+    .how-card p {
+      font-size: var(--text-sm);
+      line-height: 1.75;
+    }
+    .source-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-2);
+      margin-top: var(--sp-4);
+    }
+    .source-chip-sm {
+      padding: 3px var(--sp-3);
+      background: var(--bg-hover);
+      border: 1px solid var(--border-dim);
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── API teaser ──────────────────────────────────── */
+    .api-section {
+      position: relative;
+      z-index: 1;
+      padding-block: var(--sp-24);
+      border-top: 1px solid var(--border-dim);
+    }
+    .api-inner {
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--sp-6);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-16);
+      align-items: center;
+    }
+    @media (max-width: 900px) {
+      .api-inner { grid-template-columns: 1fr; }
+    }
+    .api-code-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+    .api-code-header {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-2);
+      padding: var(--sp-4) var(--sp-5);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-surface);
+    }
+    .dot-red    { width:10px;height:10px;border-radius:50%;background:#FF5F57;flex-shrink:0; }
+    .dot-yellow { width:10px;height:10px;border-radius:50%;background:#FFBD2E;flex-shrink:0; }
+    .dot-green  { width:10px;height:10px;border-radius:50%;background:#28CA41;flex-shrink:0; }
+    .api-code-header-label { font-size:var(--text-xs);color:var(--text-muted);font-family:var(--font-mono);margin-left:auto; }
+    .api-code-body { padding: var(--sp-6); overflow-x: auto; }
+    .api-code-body pre { font-size: var(--text-xs); line-height: 1.9; color: var(--text-secondary); }
+    .api-code-body .c-comment { color: var(--text-muted); }
+    .api-code-body .c-key     { color: #79C0FF; }
+    .api-code-body .c-str     { color: #A5D6FF; }
+    .api-code-body .c-num     { color: #F2CC60; }
+    .api-code-body .c-green   { color: #7EE787; }
+    .api-code-body .c-purple  { color: #D2A8FF; }
+
+    /* ── Pricing strip ───────────────────────────────── */
+    .pricing-strip {
+      position: relative;
+      z-index: 1;
+      padding-block: var(--sp-16);
+      border-top: 1px solid var(--border-dim);
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .pricing-strip-inner {
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--sp-6);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-8);
+      flex-wrap: wrap;
+    }
+    .pricing-strip-text h3 { font-size: var(--text-2xl); margin-bottom: var(--sp-2); }
+    .pricing-strip-text p { color: var(--text-secondary); font-size: var(--text-base); }
+    .pricing-strip-actions { display: flex; gap: var(--sp-4); flex-shrink: 0; }
+
+    /* ── Footer ──────────────────────────────────────── */
+    footer {
+      position: relative;
+      z-index: 1;
+      padding-block: var(--sp-16);
+    }
+    .footer-inner {
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--sp-6);
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: var(--sp-12);
+    }
+    @media (max-width: 768px) {
+      .footer-inner { grid-template-columns: 1fr 1fr; gap: var(--sp-8); }
+    }
+    @media (max-width: 480px) { .footer-inner { grid-template-columns: 1fr; } }
+    .footer-brand-col .sm-logo { margin-bottom: var(--sp-4); }
+    .footer-brand-col p {
+      font-size: var(--text-sm);
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 30ch;
+    }
+    .footer-col-title {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: var(--sp-4);
+    }
+    .footer-links {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+    }
+    .footer-link {
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      transition: color var(--ease-fast);
+    }
+    .footer-link:hover { color: var(--text-primary); }
+    .footer-bottom {
+      max-width: var(--max-width);
+      margin-inline: auto;
+      padding-inline: var(--sp-6);
+      padding-top: var(--sp-8);
+      margin-top: var(--sp-8);
+      border-top: 1px solid var(--border-dim);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--sp-4);
+      flex-wrap: wrap;
+    }
+    .footer-bottom p { font-size: var(--text-xs); color: var(--text-muted); }
+
+    /* ── Update timestamp ────────────────────────────── */
+    .update-time {
+      font-size: var(--text-xs);
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+  </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    Signal Market
+<!-- ═══════════════════════════════════ NAVIGATION ══════════════════════════════════ -->
+<nav class="sm-nav" id="main-nav">
+  <div class="sm-nav-inner">
+    <a href="/" class="sm-logo">
+      <span class="sm-logo-dot"></span>
+      Signal Market
+    </a>
+    <nav class="sm-nav-links" aria-label="Main navigation">
+      <a href="/signals" class="sm-nav-link">Signals</a>
+      <a href="/graph"   class="sm-nav-link">Graph</a>
+      <a href="/brief"   class="sm-nav-link">Brief</a>
+      <a href="/api"     class="sm-nav-link">API</a>
+      <a href="/pricing" class="sm-nav-link">Pricing</a>
+    </nav>
+    <div class="sm-nav-actions">
+      <a href="/signin" class="sm-nav-signin">Sign in</a>
+      <a href="/signup" class="btn btn-primary" style="font-size:0.8125rem;padding:0.4rem 1rem;">Get started →</a>
+    </div>
   </div>
-  <div class="nav-links">
-    <a href="#">Signals</a>
-    <a href="#">Trends</a>
-    <a href="#pricing-section">Pricing</a>
-    <a href="#" onclick="showModal()">API Key</a>
-    <a href="/api/docs?format=html" target="_blank">API</a>
-  </div>
-  <div class="status-pill" id="status-pill">● Live</div>
 </nav>
 
-<div class="container">
-  <div class="header">
-    <h1>AI Trend <span>Intelligence</span></h1>
-    <p>Real-time signals from arXiv, GitHub & research sources — updated daily</p>
+<!-- ═══════════════════════════════════ HERO ════════════════════════════════════════ -->
+<section class="hero" aria-label="Hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">
+      <span class="live-dot">Live</span>
+      <span class="hero-eyebrow-sep">·</span>
+      <span>Intelligence Infrastructure</span>
+      <span class="hero-eyebrow-sep">·</span>
+      <span>AI Frontier</span>
+    </div>
+
+    <h1 class="hero-headline">
+      Know what's<br>
+      <span>emerging</span><br>
+      before the noise clears.
+    </h1>
+
+    <p class="hero-sub">
+      Signal Market monitors 10+ global sources — arXiv, GitHub, HackerNews, npm,
+      PyPI, and more — distills AI technology signals, maps their relationships,
+      and delivers structured intelligence you can act on.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="/signals" class="btn btn-primary">Explore live signals →</a>
+      <a href="/api"     class="btn btn-secondary">API docs</a>
+    </div>
+
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span id="stat-signals">—</span>
+        <span>signals tracked</span>
+      </div>
+      <div class="hero-stat"><div class="hero-stat-dot"></div></div>
+      <div class="hero-stat">10+ sources monitored</div>
+      <div class="hero-stat"><div class="hero-stat-dot"></div></div>
+      <div class="hero-stat">Evidence-backed confidence</div>
+    </div>
   </div>
 
-  <!-- Stats bar -->
-  <div class="stats-bar" id="stats-bar">
-    <div class="stat-card"><div class="label">Total Signals</div><div class="value" id="stat-count">—</div><div class="sub" id="stat-date">Loading...</div></div>
-    <div class="stat-card"><div class="label">Avg Confidence</div><div class="value" id="stat-conf">—</div><div class="sub">across all signals</div></div>
-    <div class="stat-card"><div class="label">With Evidence</div><div class="value" id="stat-proof">—</div><div class="sub">proof_id attached</div></div>
-    <div class="stat-card"><div class="label">Data Sources</div><div class="value">3</div><div class="sub">arXiv · GitHub · HN</div></div>
+  <div class="hero-graph-panel">
+    <div class="hero-graph-glow"></div>
+    <svg id="hero-graph-svg" role="img" aria-label="Live Signal Graph — AI frontier topology">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="4" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glow-strong">
+          <feGaussianBlur stdDeviation="8" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+      <!-- Graph rendered by JS -->
+      <text x="50%" y="50%" text-anchor="middle" fill="#484F58" font-size="13" font-family="Inter,sans-serif">
+        Loading signal graph…
+      </text>
+    </svg>
+    <div class="graph-label">
+      <span class="live-dot">Live graph</span>
+      <span>· Hover to explore · <a href="/graph" style="color:var(--brand)">Full view →</a></span>
+    </div>
   </div>
+</section>
 
-  <div class="grid-2">
-    <!-- Signals -->
-    <div>
-      <div class="section-title">Live Signals</div>
-      <div class="signal-list" id="signal-list">
-        <div class="loading dot-anim">Fetching signals</div>
+<!-- ═══════════════════════════════════ LIVE SIGNALS ════════════════════════════════ -->
+<section class="signals-section" aria-label="Live AI Signals">
+  <div class="signals-section-inner">
+    <div class="signals-header">
+      <div class="signals-header-left">
+        <span class="section-eyebrow">Live Intelligence</span>
+        <h2 class="section-title" style="margin-bottom:0;">AI Frontier Signals</h2>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--sp-4);">
+        <span class="live-dot">Updated just now</span>
+        <span class="update-time" id="signals-ts"></span>
       </div>
     </div>
 
-    <!-- Trends -->
-    <div>
-      <div class="section-title">Trend Signals</div>
-      <div class="signal-list" id="trend-list">
-        <div class="loading dot-anim">Fetching trends</div>
+    <!-- Skeleton state -->
+    <div class="signals-grid" id="signals-grid-skeleton">
+      <div class="signal-card-skeleton">
+        <div class="skeleton-line medium"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line medium" style="margin-top:var(--sp-4)"></div>
+      </div>
+      <div class="signal-card-skeleton">
+        <div class="skeleton-line" style="width:55%"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line medium" style="margin-top:var(--sp-4)"></div>
+      </div>
+      <div class="signal-card-skeleton">
+        <div class="skeleton-line" style="width:70%"></div>
+        <div class="skeleton-line short"></div>
+        <div class="skeleton-line medium" style="margin-top:var(--sp-4)"></div>
       </div>
     </div>
-  </div>
 
-  <!-- Signal Graph -->
-  <div class="section-title" style="margin-top:2rem">Signal Graph
-    <span style="font-size:.75rem;font-weight:400;opacity:.6;margin-left:.5rem">topic relationship network</span>
-  </div>
-  <div id="graph-container" style="background:#0d1117;border-radius:12px;border:1px solid #21262d;overflow:hidden;margin-bottom:2rem">
-    <div id="graph-toolbar" style="display:flex;gap:.5rem;padding:.75rem 1rem;border-bottom:1px solid #21262d;align-items:center;flex-wrap:wrap">
-      <span id="graph-stats" style="font-size:.75rem;opacity:.5">loading...</span>
-      <div style="margin-left:auto;display:flex;gap:.5rem">
-        <button class="btn btn-sm" onclick="resetGraph()" style="font-size:.7rem;padding:.2rem .6rem">Reset</button>
-        <button class="btn btn-sm" id="graph-filter-btn" onclick="clearGraphFilter()" style="font-size:.7rem;padding:.2rem .6rem;display:none">✕ Clear filter</button>
-      </div>
-    </div>
-    <svg id="signal-graph" width="100%" style="height:420px;cursor:grab"></svg>
-    <div id="graph-detail" style="padding:.75rem 1rem;font-size:.78rem;min-height:2.5rem;border-top:1px solid #21262d;opacity:.7"></div>
-  </div>
+    <!-- Actual signals, injected by JS -->
+    <div class="signals-grid" id="signals-grid" style="display:none;"></div>
 
-  <!-- Watchlist -->
-  <div class="section-title">Watchlist</div>
-  <div class="watchlist-panel">
-    <div class="watch-input-row">
-      <input id="watch-topic" type="text" placeholder="Topic to watch (e.g. AI Agents)" />
-      <input id="watch-threshold" type="number" placeholder="Threshold" value="0.8" step="0.05" min="0" max="1" style="width:110px" />
-      <button class="btn btn-sm" onclick="addWatch()">+ Watch</button>
-    </div>
-    <div id="watch-list"><div class="empty">No watches yet — add a topic above</div></div>
-    <div id="trigger-log" style="margin-top:1rem;"></div>
-  </div>
-</div>
-
-  <!-- Pricing -->
-  <div class="container" id="pricing-section" style="padding-top:0">
-    <div class="section-title">Pricing</div>
-    <div id="plans-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:2rem">
-      <div class="loading dot-anim">Loading plans</div>
+    <div class="signals-gate">
+      <p>Showing <strong id="signals-shown" style="color:var(--text-primary)">5</strong> of <strong id="signals-total" style="color:var(--text-primary)">—</strong> signals tracked</p>
+      <a href="/signals" class="btn btn-primary">View all signals →</a>
     </div>
   </div>
+</section>
 
-  <!-- Register Modal -->
-  <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:2rem;width:400px;max-width:90vw">
-      <h2 style="margin-bottom:1rem;font-size:1.2rem">Get API Access</h2>
-      <div id="reg-form">
-        <input id="reg-email" type="email" placeholder="your@email.com"
-          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.7rem;color:var(--text);font-size:.9rem;margin-bottom:.75rem;outline:none">
-        <input id="reg-name" type="text" placeholder="Name (optional)"
-          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.7rem;color:var(--text);font-size:.9rem;margin-bottom:1rem;outline:none">
-        <div style="display:flex;gap:.75rem">
-          <button class="btn" style="flex:1" onclick="register()">Create Free Account</button>
-          <button class="btn" style="background:var(--surface2);color:var(--muted)" onclick="closeModal()">Cancel</button>
+<!-- ═══════════════════════════════════ HOW IT WORKS ════════════════════════════════ -->
+<section class="how-section" aria-label="How Signal Market works">
+  <div class="how-inner">
+    <div class="how-header">
+      <div class="section-eyebrow">From noise to intelligence</div>
+      <h2 class="section-title">How Signal Market works</h2>
+      <p class="section-sub" style="margin-inline:auto;text-align:center;">
+        Three steps from raw data to actionable AI frontier intelligence.
+      </p>
+    </div>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="how-step-num">01</div>
+        <h3>Monitor</h3>
+        <p>10+ global sources scanned continuously — research, code repositories, community discussions, investment signals.</p>
+        <div class="source-chips">
+          <span class="source-chip-sm">arXiv</span>
+          <span class="source-chip-sm">GitHub</span>
+          <span class="source-chip-sm">npm</span>
+          <span class="source-chip-sm">PyPI</span>
+          <span class="source-chip-sm">HuggingFace</span>
+          <span class="source-chip-sm">HackerNews</span>
+          <span class="source-chip-sm">Reddit</span>
+          <span class="source-chip-sm">ProductHunt</span>
+          <span class="source-chip-sm">Crunchbase</span>
+          <span class="source-chip-sm">LinkedIn</span>
         </div>
       </div>
-      <div id="reg-result" style="display:none"></div>
+      <div class="how-card">
+        <div class="how-step-num">02</div>
+        <h3>Distill</h3>
+        <p>Cross-source validation eliminates noise. Confidence scores reflect evidence depth. Lifecycle state machine tracks where each technology is in its growth curve.</p>
+        <div class="source-chips" style="margin-top:var(--sp-5);">
+          <span class="source-chip-sm" style="color:var(--stage-accel-text);border-color:var(--stage-accel);">Accelerating</span>
+          <span class="source-chip-sm" style="color:var(--stage-emerging-text);border-color:var(--stage-emerging);">Emerging</span>
+          <span class="source-chip-sm" style="color:var(--stage-peak-text);border-color:var(--stage-peak);">Peak</span>
+          <span class="source-chip-sm" style="color:var(--stage-forming-text);border-color:var(--stage-forming);">Forming</span>
+        </div>
+      </div>
+      <div class="how-card">
+        <div class="how-step-num">03</div>
+        <h3>Deliver</h3>
+        <p>Intelligence surfaces in four ways: live signal feed, interactive graph, daily brief, and a structured API for agents and tools.</p>
+        <div class="source-chips" style="margin-top:var(--sp-5);">
+          <span class="source-chip-sm">Signal feed</span>
+          <span class="source-chip-sm">Graph</span>
+          <span class="source-chip-sm">Daily brief</span>
+          <span class="source-chip-sm">API</span>
+        </div>
+      </div>
     </div>
   </div>
+</section>
 
-<footer class="footer">
-  <span>Signal Market API v4 · Data updated daily</span>
-  <span>
-    <a href="/api/docs?format=html" target="_blank" style="color:var(--muted);text-decoration:none">API Docs</a>
-    <a href="https://github.com/lovezoomservice-hue/signal-market" target="_blank" style="color:var(--muted);text-decoration:none">GitHub</a>
-  </span>
+<!-- ═══════════════════════════════════ API TEASER ══════════════════════════════════ -->
+<section class="api-section" aria-label="API and Agent access">
+  <div class="api-inner">
+    <div>
+      <div class="section-eyebrow">Built for developers and AI agents</div>
+      <h2 class="section-title">Structured intelligence,<br>queryable by anything.</h2>
+      <p class="section-sub" style="margin-bottom:var(--sp-8);">
+        Signal Market is the intelligence layer for AI systems. Query signals, graph data, 
+        and probability scores programmatically — built for agent context windows 
+        and developer tools alike.
+      </p>
+      <div style="display:flex;gap:var(--sp-4);flex-wrap:wrap;">
+        <a href="/api" class="btn btn-primary">Read API docs →</a>
+        <a href="/pricing" class="btn btn-secondary">Get API access</a>
+      </div>
+    </div>
+    <div class="api-code-panel">
+      <div class="api-code-header">
+        <span class="dot-red"></span>
+        <span class="dot-yellow"></span>
+        <span class="dot-green"></span>
+        <span class="api-code-header-label">GET /api/signals</span>
+      </div>
+      <div class="api-code-body">
+        <pre><span class="c-comment"># Fetch live AI frontier signals</span>
+<span class="c-purple">curl</span> https://api.signal-market.com/api/signals \
+  -H <span class="c-str">"x-api-key: sm_your_key"</span>
+
+<span class="c-comment">→ Response</span>
+{
+  <span class="c-key">"count"</span>: <span class="c-num">8</span>,
+  <span class="c-key">"signals"</span>: [
+    {
+      <span class="c-key">"topic"</span>:      <span class="c-str">"AI Agents"</span>,
+      <span class="c-key">"stage"</span>:      <span class="c-str">"accelerating"</span>,
+      <span class="c-key">"confidence"</span>: <span class="c-num">0.97</span>,
+      <span class="c-key">"evidence"</span>:   <span class="c-num">4</span>,
+      <span class="c-key">"sources"</span>:    [<span class="c-str">"arxiv"</span>, <span class="c-str">"github"</span>]
+    },
+    <span class="c-comment">…</span>
+  ]
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ PRICING STRIP ═══════════════════════════════ -->
+<section class="pricing-strip">
+  <div class="pricing-strip-inner">
+    <div class="pricing-strip-text">
+      <h3>Start monitoring the AI frontier today.</h3>
+      <p>Free plan includes 10 signals/day and the daily brief.</p>
+    </div>
+    <div class="pricing-strip-actions">
+      <a href="/pricing" class="btn btn-secondary">See pricing</a>
+      <a href="/signup"  class="btn btn-primary">Start free →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════ FOOTER ══════════════════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand-col">
+      <a href="/" class="sm-logo" style="font-size:var(--text-base);">
+        <span class="sm-logo-dot"></span>
+        Signal Market
+      </a>
+      <p>Intelligence infrastructure for the AI frontier. Know what's emerging before the noise clears.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Product</div>
+      <div class="footer-links">
+        <a href="/signals" class="footer-link">Signals</a>
+        <a href="/graph"   class="footer-link">Signal Graph</a>
+        <a href="/brief"   class="footer-link">Daily Brief</a>
+        <a href="/pricing" class="footer-link">Pricing</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Developers</div>
+      <div class="footer-links">
+        <a href="/api"         class="footer-link">API Docs</a>
+        <a href="/api#auth"    class="footer-link">Authentication</a>
+        <a href="/api#agents"  class="footer-link">Agent Guide</a>
+        <a href="/api#limits"  class="footer-link">Rate Limits</a>
+      </div>
+    </div>
+    <div>
+      <div class="footer-col-title">Company</div>
+      <div class="footer-links">
+        <a href="/about"   class="footer-link">About</a>
+        <a href="/about#sources" class="footer-link">Data Sources</a>
+        <a href="/about#scoring" class="footer-link">How we score</a>
+        <a href="/status"  class="footer-link">Status</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Signal Market. Intelligence infrastructure for the AI frontier.</p>
+    <p>Built with evidence, not opinion.</p>
+  </div>
 </footer>
 
-<script>
-const API = 'https://signal-market-z14d.vercel.app';
+<!-- ═══════════════════════════════════ SCRIPTS ═════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script type="module">
+import { fetchSignals, fetchGraph, stageHex, formatConf, formatSource } from '/assets/js/api-client.js';
 
-function stageBadge(stage) {
-  return `<span class="badge badge-${stage}">${stage}</span>`;
-}
+/* ── Sticky nav ──────────────────────────────────────── */
+const nav = document.getElementById('main-nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+}, { passive: true });
 
-async function loadSignals() {
+/* ── Hero Signal Graph (D3) ──────────────────────────── */
+async function renderHeroGraph() {
   try {
-    const r = await fetch(`${API}/api/signals`);
-    const d = await r.json();
-    const sigs = d.signals || [];
+    const data = await fetchGraph();
+    const svg  = d3.select('#hero-graph-svg');
+    const el   = document.getElementById('hero-graph-svg');
+    const W    = el.clientWidth  || 520;
+    const H    = el.clientHeight || 440;
 
-    document.getElementById('stat-count').textContent = d.count || sigs.length;
-    document.getElementById('stat-date').textContent  = `Updated ${d.updated_at || '—'}`;
-    const avgConf = sigs.length ? Math.round(sigs.reduce((a,s)=>a+(s.confidence||0),0)/sigs.length*100) : 0;
-    document.getElementById('stat-conf').textContent  = avgConf + '%';
-    const withProof = sigs.filter(s=>s.proof_id).length;
-    document.getElementById('stat-proof').textContent = `${withProof}/${sigs.length}`;
+    svg.selectAll('*').remove();
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
 
-    const list = document.getElementById('signal-list');
-    if (!sigs.length) { list.innerHTML = '<div class="empty">No signals</div>'; return; }
-    list.innerHTML = sigs.map((s,i) => `
-      <div class="signal-card" onclick="openUrl('${s.source_url||''}')">
-        <div class="rank">#${i+1}</div>
-        <div class="signal-info">
-          <div class="name">${s.topic}</div>
-          <div class="meta">
-            ${stageBadge(s.stage)}
-            <span class="ev-count">ev ${s.evidenceCount||s.evidence_count||0}</span>
-            ${s.source_url ? `<a href="${s.source_url}" target="_blank" class="source-link" onclick="event.stopPropagation()">arXiv ↗</a>` : ''}
-          </div>
-        </div>
-        <div class="signal-score">
-          <div style="font-weight:700">${Math.round((s.confidence||0)*100)}%</div>
-          <div class="score-bar-wrap"><div class="score-bar" style="width:${Math.round((s.confidence||0)*100)}%"></div></div>
-        </div>
-      </div>
-    `).join('');
-  } catch(e) {
-    document.getElementById('signal-list').innerHTML = '<div class="empty">Failed to load signals</div>';
+    // Defs (filters already in HTML)
+    const defs = svg.append('defs');
+    defs.append('radialGradient').attr('id', 'node-glow-strong')
+      .selectAll('stop').data([
+        { offset: '0%',   color: 'rgba(45,125,210,0.4)' },
+        { offset: '100%', color: 'rgba(45,125,210,0)' },
+      ]).enter().append('stop')
+      .attr('offset', d => d.offset)
+      .attr('stop-color', d => d.color);
+
+    const nodes = (data.nodes || []).slice(0, 8).map(d => ({ ...d }));
+    const nodeIds = new Set(nodes.map(n => n.id));
+    const links  = (data.edges || [])
+      .filter(e => nodeIds.has(e.source) && nodeIds.has(e.target))
+      .map(e => ({ source: e.source, target: e.target, weight: e.weight || 0.5 }));
+
+    const radius = d => Math.max(14, Math.min(32, (d.confidence || 0.5) * 36));
+
+    const sim = d3.forceSimulation(nodes)
+      .force('link',   d3.forceLink(links).id(d => d.id).distance(100).strength(0.4))
+      .force('charge', d3.forceManyBody().strength(-280))
+      .force('center', d3.forceCenter(W / 2, H / 2))
+      .force('collision', d3.forceCollide().radius(d => radius(d) + 24));
+
+    const linkG = svg.append('g').attr('class', 'links');
+    const link  = linkG.selectAll('line').data(links).enter().append('line')
+      .attr('stroke', '#30363D')
+      .attr('stroke-width', d => Math.max(1, (d.weight || 0.4) * 2.5))
+      .attr('stroke-opacity', 0.45);
+
+    const nodeG = svg.append('g').attr('class', 'nodes');
+    const node  = nodeG.selectAll('g').data(nodes).enter().append('g')
+      .attr('class', 'node-group')
+      .style('cursor', 'pointer')
+      .on('mouseenter', function(event, d) {
+        d3.select(this).select('circle').attr('filter', 'url(#glow-strong)').attr('r', radius(d) * 1.15);
+        tooltip.style('opacity', 1).html(
+          `<strong>${d.label}</strong><br>
+           <span style="color:${stageHex(d.stage)}">${d.stage}</span>
+           &nbsp;·&nbsp; conf: ${formatConf(d.confidence)}`
+        );
+      })
+      .on('mousemove', function(event) {
+        const rect = el.getBoundingClientRect();
+        const x = event.clientX - rect.left, y = event.clientY - rect.top;
+        tooltip.style('left', (x + 12) + 'px').style('top', (y - 8) + 'px');
+      })
+      .on('mouseleave', function(event, d) {
+        d3.select(this).select('circle').attr('filter', (d.confidence||0) > 0.85 ? 'url(#glow)' : null).attr('r', radius(d));
+        tooltip.style('opacity', 0);
+      })
+      .on('click', (event, d) => { window.location.href = '/signals'; });
+
+    // Glow ring for high-confidence nodes
+    node.filter(d => (d.confidence||0) > 0.85)
+      .append('circle')
+      .attr('r', d => radius(d) + 10)
+      .attr('fill', 'none')
+      .attr('stroke', d => stageHex(d.stage))
+      .attr('stroke-width', 1)
+      .attr('stroke-opacity', 0.25);
+
+    node.append('circle')
+      .attr('r', radius)
+      .attr('fill', d => stageHex(d.stage))
+      .attr('fill-opacity', 0.9)
+      .attr('filter', d => (d.confidence||0) > 0.85 ? 'url(#glow)' : null);
+
+    // Labels for larger nodes
+    node.append('text')
+      .text(d => d.label && d.label.length > 14 ? d.label.slice(0, 13) + '…' : (d.label || d.id))
+      .attr('text-anchor', 'middle')
+      .attr('y', d => radius(d) + 16)
+      .attr('fill', '#8B949E')
+      .attr('font-size', 11)
+      .attr('font-family', 'Inter,sans-serif');
+
+    // Tooltip
+    const tooltipEl = document.createElement('div');
+    tooltipEl.style.cssText = 'position:absolute;background:#161B22;border:1px solid #30363D;border-radius:8px;padding:8px 12px;font-size:12px;color:#E6EDF3;pointer-events:none;opacity:0;transition:opacity 120ms;font-family:Inter,sans-serif;z-index:10;line-height:1.6;white-space:nowrap;';
+    el.parentElement.style.position = 'relative';
+    el.parentElement.appendChild(tooltipEl);
+    const tooltip = d3.select(tooltipEl);
+
+    // Tick
+    let tickCount = 0;
+    sim.on('tick', () => {
+      tickCount++;
+      link
+        .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x).attr('y2', d => d.target.y);
+      node.attr('transform', d => `translate(${d.x},${d.y})`);
+      if (tickCount > 150) sim.stop();
+    });
+
+  } catch (e) {
+    console.warn('Graph fetch failed:', e.message);
   }
 }
 
-async function loadTrends() {
-  try {
-    const r = await fetch(`${API}/api/trends`);
-    const d = await r.json();
-    const trends = (d.trends || []).slice(0,7);
-    const list = document.getElementById('trend-list');
-    if (!trends.length) { list.innerHTML = '<div class="empty">No trends</div>'; return; }
-    list.innerHTML = trends.map((t,i) => `
-      <div class="signal-card" ${t.source_url?`onclick="openUrl('${t.source_url}')"`:''}">
-        <div class="rank">#${i+1}</div>
-        <div class="signal-info">
-          <div class="name">${t.topic}</div>
-          <div class="meta">
-            ${stageBadge(t.stage||'forming')}
-            <span class="ev-count">score ${((t.trend_score||0)*100).toFixed(0)}</span>
-          </div>
-        </div>
-        <div class="signal-score">
-          <div style="font-weight:700;font-size:.85rem">${t.stage||'—'}</div>
-          <div class="score-bar-wrap"><div class="score-bar" style="width:${Math.round((t.trend_score||0)*100)}%"></div></div>
-        </div>
-      </div>
-    `).join('');
-  } catch(e) {
-    document.getElementById('trend-list').innerHTML = '<div class="empty">Failed to load trends</div>';
-  }
+/* ── Live Signal Cards ───────────────────────────────── */
+function buildStageClass(stage) {
+  const map = { weak:'stage-weak', emerging:'stage-emerging', forming:'stage-forming',
+                accelerating:'stage-accelerating', peak:'stage-peak', fading:'stage-fading', dead:'stage-dead' };
+  return map[stage] || 'stage-weak';
 }
 
-let watchlist = [];
+function buildSignalCard(s) {
+  const conf = s.confidence || 0;
+  const confPct = Math.round(conf * 100);
+  const sources = (s.sources || []).slice(0, 3);
+  const stage = s.stage || s.lifecycle_state || 'unknown';
 
-async function loadWatchlist() {
-  try {
-    const r = await fetch(`${API}/api/watchlist`);
-    const d = await r.json();
-    watchlist = d.watchlist || [];
-    renderWatchlist();
-    loadTriggers();
-  } catch {}
-}
-
-async function loadTriggers() {
-  try {
-    const r = await fetch(`${API}/api/watchlist/triggers`);
-    const d = await r.json();
-    const triggers = d.triggers || [];
-    if (!triggers.length) return;
-    document.getElementById('trigger-log').innerHTML = `
-      <div class="section-title" style="margin-top:.5rem">Recent Triggers</div>
-      ${triggers.slice(-5).reverse().map(t=>`
-        <div class="watch-item">
-          <span><strong>${t.topic}</strong> — ${t.stage} at ${Math.round(t.confidence*100)}%</span>
-          <span class="trigger-badge">TRIGGERED</span>
-        </div>
-      `).join('')}`;
-  } catch {}
-}
-
-function renderWatchlist() {
-  const el = document.getElementById('watch-list');
-  if (!watchlist.length) { el.innerHTML = '<div class="empty">No watches yet</div>'; return; }
-  el.innerHTML = watchlist.map(w=>`
-    <div class="watch-item">
-      <span><strong>${w.topic}</strong></span>
-      <span style="color:var(--muted);font-size:.8rem">threshold ≥ ${w.threshold}</span>
+  return `<article class="signal-card" tabindex="0" role="button" aria-label="${s.topic}">
+    <div class="signal-card-header">
+      <div class="signal-topic">${s.topic}</div>
+      <span class="stage-badge ${buildStageClass(stage)}">${stage}</span>
     </div>
-  `).join('');
+    <div class="signal-conf-row">
+      <span class="conf-label">Confidence</span>
+      <div class="conf-bar"><div class="conf-fill" style="width:${confPct}%;background:${stageHex(stage)};"></div></div>
+      <span class="conf-value">${formatConf(conf)}</span>
+    </div>
+    <div class="signal-meta">
+      <span class="signal-meta-item">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <circle cx="6" cy="6" r="5" stroke="#484F58" stroke-width="1.5"/>
+          <path d="M6 3v3l2 1.5" stroke="#484F58" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        ${s.evidenceCount || 1} source${(s.evidenceCount || 1) !== 1 ? 's' : ''}
+      </span>
+      ${s.first_seen ? `<span class="signal-meta-item">First seen: ${s.first_seen}</span>` : ''}
+    </div>
+    ${sources.length ? `<div class="signal-sources">${sources.map(src =>
+      `<span class="source-chip">${formatSource(src)}</span>`
+    ).join('')}</div>` : ''}
+  </article>`;
 }
 
-async function addWatch() {
-  const topic = document.getElementById('watch-topic').value.trim();
-  const threshold = parseFloat(document.getElementById('watch-threshold').value) || 0.8;
-  if (!topic) return;
+async function renderSignals() {
   try {
-    const r = await fetch(`${API}/api/watchlist`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ topic, threshold })
+    const signals = await fetchSignals({ limit: 8 });
+    const grid    = document.getElementById('signals-grid');
+    const skel    = document.getElementById('signals-grid-skeleton');
+    const shown   = document.getElementById('signals-shown');
+    const total   = document.getElementById('signals-total');
+    const ts      = document.getElementById('signals-ts');
+    const statSig = document.getElementById('stat-signals');
+
+    const preview = signals.slice(0, 5);
+    grid.innerHTML = preview.map(buildSignalCard).join('');
+
+    skel.style.display   = 'none';
+    grid.style.display   = 'grid';
+    shown.textContent    = preview.length;
+    total.textContent    = signals.length;
+    statSig.textContent  = signals.length;
+    ts.textContent       = 'just now';
+
+    // Animate confidence bars
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.conf-fill').forEach(el => {
+        const w = el.style.width;
+        el.style.width = '0';
+        requestAnimationFrame(() => { el.style.width = w; });
+      });
     });
-    const d = await r.json();
-    if (d.success) {
-      watchlist.push(d.watch);
-      renderWatchlist();
-      document.getElementById('watch-topic').value = '';
-      if (d.triggered && d.triggers?.length) {
-        loadTriggers();
-        alert(`🔔 Watch triggered immediately! ${d.triggers[0].topic} at ${Math.round(d.triggers[0].confidence*100)}%`);
-      }
-    }
-  } catch(e) { console.error(e); }
-}
 
-function openUrl(url) {
-  if (url) window.open(url, '_blank');
-}
+    // Click → signals page
+    grid.querySelectorAll('.signal-card').forEach(card => {
+      card.addEventListener('click', () => window.location.href = '/signals');
+      card.addEventListener('keydown', e => { if (e.key === 'Enter') window.location.href = '/signals'; });
+    });
 
-// Init
-loadSignals();
-    loadGraph();
-loadTrends();
-loadWatchlist();
-// Refresh every 5 min
-setInterval(loadSignals, 300000);
-setInterval(loadTrends, 300000);
-
-async function loadPlans() {
-  try {
-    const r = await fetch(`${API}/api/billing`);
-    const d = await r.json();
-    const plans = d.plans || [];
-    const grid = document.getElementById('plans-grid');
-    grid.innerHTML = plans.map(p => `
-      <div style="background:var(--surface);border:1px solid ${p.id==='pro'?'var(--accent)':'var(--border)'};
-        border-radius:var(--radius);padding:1.5rem;${p.id==='pro'?'box-shadow:0 0 20px rgba(232,58,87,.15)':''}">
-        ${p.id==='pro' ? '<div style="color:var(--accent);font-size:.75rem;font-weight:700;margin-bottom:.5rem">MOST POPULAR</div>' : ''}
-        <div style="font-size:1.1rem;font-weight:700;margin-bottom:.25rem">${p.name}</div>
-        <div style="font-size:2rem;font-weight:800;margin-bottom:1rem">
-          ${p.price===0 ? 'Free' : `$${p.price}<span style="font-size:.9rem;font-weight:400;color:var(--muted)">/mo</span>`}
-        </div>
-        <div style="color:var(--muted);font-size:.8rem;margin-bottom:1rem">
-          ${p.req_per_day ? `${p.req_per_day.toLocaleString()} req/day` : 'Unlimited requests'}
-        </div>
-        <ul style="list-style:none;margin-bottom:1.5rem">
-          ${(p.features||[]).map(f=>`<li style="font-size:.85rem;padding:4px 0;color:var(--muted)">✓ ${f}</li>`).join('')}
-        </ul>
-        <button class="btn" style="width:100%;${p.id==='pro'?'':'background:var(--surface2);color:var(--text)'}"
-          onclick="${p.price===0?'showModal()':"startCheckout('"+ p.id +"')"}">
-          ${p.price===0 ? 'Get Started Free' : `Upgrade to ${p.name}`}
-        </button>
-      </div>
-    `).join('');
-  } catch(e) {
-    document.getElementById('plans-grid').innerHTML = '<div class="empty">Failed to load plans</div>';
+  } catch (e) {
+    console.warn('Signals fetch failed:', e.message);
+    document.getElementById('signals-grid-skeleton').innerHTML =
+      '<div class="signal-card" style="grid-column:1/-1;text-align:center;padding:var(--sp-12);"><p>Could not load live signals. <a href="/signals">Try the signals page →</a></p></div>';
   }
 }
 
-function showModal() {
-  const el = document.getElementById('modal-overlay');
-  el.style.display = 'flex';
-}
-function closeModal() {
-  document.getElementById('modal-overlay').style.display = 'none';
-}
-
-async function register() {
-  const email = document.getElementById('reg-email').value.trim();
-  const name  = document.getElementById('reg-name').value.trim();
-  if (!email) return alert('Email required');
-  try {
-    const r = await fetch(`${API}/api/auth/register`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email, name })
-    });
-    const d = await r.json();
-    document.getElementById('reg-form').style.display = 'none';
-    document.getElementById('reg-result').style.display = 'block';
-    document.getElementById('reg-result').innerHTML = d.success ? `
-      <div style="color:var(--green);font-weight:700;margin-bottom:.75rem">✅ Account created!</div>
-      <div style="font-size:.85rem;color:var(--muted);margin-bottom:.5rem">Your API key:</div>
-      <code style="background:var(--surface2);padding:.5rem .75rem;border-radius:4px;font-size:.8rem;display:block;word-break:break-all;color:var(--accent)">${d.api_key}</code>
-      <div style="color:var(--muted);font-size:.75rem;margin-top:.5rem">Save this key — it won't be shown again.</div>
-    ` : `<div style="color:var(--accent)">${d.error}</div>`;
-  } catch(e) { alert('Error: ' + e.message); }
-}
-
-async function startCheckout(planId) {
-  const email = prompt('Enter your email for checkout:');
-  if (!email) return;
-  try {
-    const r = await fetch(`${API}/api/billing/checkout`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ plan_id: planId, email })
-    });
-    const d = await r.json();
-    if (d.checkout_url) window.open(d.checkout_url, '_blank');
-  } catch(e) { alert('Checkout error: ' + e.message); }
-}
-
-loadPlans();
-
-
-// ── Signal Graph (P3-3) — pure SVG force-directed layout ──────────────────
-
-let graphData = null;
-let graphSim = null;
-let selectedNode = null;
-
-const STAGE_COLOR = {
-  accelerating: '#58a6ff', peak: '#3fb950', forming: '#d29922',
-  emerging: '#bc8cff', fading: '#8b949e', decaying: '#6e7681',
-  dead: '#484f58', unknown: '#8b949e',
-};
-
-function stageColor(stage) { return STAGE_COLOR[stage] || '#8b949e'; }
-
-async function loadGraph() {
-  try {
-    const r = await fetch(`${API}/api/graph`);
-    graphData = await r.json();
-    const stats = await (await fetch(`${API}/api/graph/stats`)).json();
-    document.getElementById('graph-stats').textContent =
-      `${graphData.node_count} topics · ${graphData.edge_count} edges · density ${stats.density?.toFixed(2)} · avg degree ${stats.avg_degree?.toFixed(1)}`;
-    renderGraph(graphData.nodes, graphData.edges);
-  } catch(e) {
-    document.getElementById('graph-stats').textContent = 'Failed to load graph';
-  }
-}
-
-function renderGraph(nodes, edges, highlightIds = null) {
-  const svg = document.getElementById('signal-graph');
-  const W = svg.clientWidth || svg.getBoundingClientRect().width || 700;
-  const H = 420;
-  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-  svg.innerHTML = '';
-
-  if (!nodes || !nodes.length) {
-    svg.innerHTML = `<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#8b949e">No graph data</text>`;
-    return;
-  }
-
-  // Force-directed layout (simple spring simulation)
-  const pos = {};
-  nodes.forEach((n, i) => {
-    const angle = (2 * Math.PI * i) / nodes.length;
-    const r = Math.min(W, H) * 0.35;
-    pos[n.id] = {
-      x: W / 2 + r * Math.cos(angle),
-      y: H / 2 + r * Math.sin(angle),
-      vx: 0, vy: 0,
-    };
-  });
-
-  const nodeById = {};
-  nodes.forEach(n => { nodeById[n.id] = n; });
-
-  // Run simulation
-  for (let iter = 0; iter < 200; iter++) {
-    // Repulsion
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i + 1; j < nodes.length; j++) {
-        const a = pos[nodes[i].id], b = pos[nodes[j].id];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-        const force = 2800 / (dist * dist);
-        a.vx -= force * dx / dist; a.vy -= force * dy / dist;
-        b.vx += force * dx / dist; b.vy += force * dy / dist;
-      }
-    }
-    // Attraction along edges
-    edges.forEach(e => {
-      const a = pos[e.source], b = pos[e.target];
-      if (!a || !b) return;
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-      const target_len = 120 + (1 - e.weight) * 80;
-      const force = (dist - target_len) * 0.04;
-      a.vx += force * dx / dist; a.vy += force * dy / dist;
-      b.vx -= force * dx / dist; b.vy -= force * dy / dist;
-    });
-    // Center gravity
-    nodes.forEach(n => {
-      const p = pos[n.id];
-      p.vx += (W / 2 - p.x) * 0.01;
-      p.vy += (H / 2 - p.y) * 0.01;
-    });
-    // Apply with damping
-    nodes.forEach(n => {
-      const p = pos[n.id];
-      p.x = Math.max(40, Math.min(W - 40, p.x + p.vx));
-      p.y = Math.max(30, Math.min(H - 30, p.y + p.vy));
-      p.vx *= 0.7; p.vy *= 0.7;
-    });
-  }
-
-  const ns = 'http://www.w3.org/2000/svg';
-  const g = document.createElementNS(ns, 'g');
-
-  // Edges
-  const edgeG = document.createElementNS(ns, 'g');
-  edges.forEach(e => {
-    const a = pos[e.source], b = pos[e.target];
-    if (!a || !b) return;
-    const line = document.createElementNS(ns, 'line');
-    const isHighlighted = highlightIds && (highlightIds.has(e.source) && highlightIds.has(e.target));
-    const isDimmed = highlightIds && !isHighlighted;
-    line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
-    line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
-    line.setAttribute('stroke', isDimmed ? '#21262d' : '#30363d');
-    line.setAttribute('stroke-width', isDimmed ? '0.5' : (e.weight * 2.5).toFixed(1));
-    line.setAttribute('opacity', isDimmed ? '0.2' : (0.3 + e.weight * 0.5).toFixed(2));
-    edgeG.appendChild(line);
-  });
-  g.appendChild(edgeG);
-
-  // Nodes
-  const nodeG = document.createElementNS(ns, 'g');
-  nodes.forEach(n => {
-    const p = pos[n.id];
-    const isSelected = n.id === selectedNode;
-    const isDimmed = highlightIds && !highlightIds.has(n.id);
-    const r = 14 + n.centrality * 12;
-    const color = stageColor(n.stage);
-
-    const circle = document.createElementNS(ns, 'circle');
-    circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); circle.setAttribute('r', r);
-    circle.setAttribute('fill', color); circle.setAttribute('fill-opacity', isDimmed ? '0.15' : '0.18');
-    circle.setAttribute('stroke', color); circle.setAttribute('stroke-width', isSelected ? '2.5' : '1.5');
-    circle.setAttribute('stroke-opacity', isDimmed ? '0.2' : '0.7');
-    circle.style.cursor = 'pointer';
-    circle.addEventListener('click', () => onNodeClick(n));
-    nodeG.appendChild(circle);
-
-    // Confidence ring
-    const conf = n.confidence || 0;
-    const circ = 2 * Math.PI * r;
-    const arc = document.createElementNS(ns, 'circle');
-    arc.setAttribute('cx', p.x); arc.setAttribute('cy', p.y); arc.setAttribute('r', r);
-    arc.setAttribute('fill', 'none'); arc.setAttribute('stroke', color);
-    arc.setAttribute('stroke-width', '2.5');
-    arc.setAttribute('stroke-dasharray', `${conf * circ} ${circ}`);
-    arc.setAttribute('stroke-opacity', isDimmed ? '0.1' : '0.9');
-    arc.setAttribute('transform', `rotate(-90 ${p.x} ${p.y})`);
-    nodeG.appendChild(arc);
-
-    // Label
-    const label = document.createElementNS(ns, 'text');
-    label.setAttribute('x', p.x); label.setAttribute('y', p.y + r + 13);
-    label.setAttribute('text-anchor', 'middle');
-    label.setAttribute('fill', isDimmed ? '#484f58' : '#c9d1d9');
-    label.setAttribute('font-size', '11');
-    label.setAttribute('font-family', 'system-ui,sans-serif');
-    label.setAttribute('pointer-events', 'none');
-    label.textContent = n.label.length > 14 ? n.label.slice(0, 13) + '…' : n.label;
-    nodeG.appendChild(label);
-  });
-  g.appendChild(nodeG);
-  svg.appendChild(g);
-}
-
-function onNodeClick(node) {
-  if (selectedNode === node.id) {
-    clearGraphFilter(); return;
-  }
-  selectedNode = node.id;
-  document.getElementById('graph-filter-btn').style.display = 'inline-block';
-
-  const connectedEdges = graphData.edges.filter(e => e.source === node.id || e.target === node.id);
-  const neighborIds = new Set([node.id]);
-  connectedEdges.forEach(e => { neighborIds.add(e.source); neighborIds.add(e.target); });
-
-  renderGraph(graphData.nodes, graphData.edges, neighborIds);
-
-  const rels = connectedEdges.map(e => {
-    const other = e.source === node.id ? e.target_label : e.source_label;
-    return `<span style="opacity:.7">${other}</span> <span style="opacity:.4">[${e.relationships.join('+')}]</span>`;
-  }).join(' &nbsp;·&nbsp; ');
-  document.getElementById('graph-detail').innerHTML =
-    `<b style="color:${stageColor(node.stage)}">${node.label}</b> &nbsp;·&nbsp; conf ${(node.confidence*100).toFixed(0)}% &nbsp;·&nbsp; ${node.stage} &nbsp;·&nbsp; ${connectedEdges.length} connections &nbsp;&nbsp; ${rels}`;
-}
-
-function clearGraphFilter() {
-  selectedNode = null;
-  document.getElementById('graph-filter-btn').style.display = 'none';
-  document.getElementById('graph-detail').textContent = '';
-  if (graphData) renderGraph(graphData.nodes, graphData.edges);
-}
-
-function resetGraph() {
-  clearGraphFilter();
-}
-
-window.addEventListener('resize', () => {
-  if (graphData) renderGraph(graphData.nodes, graphData.edges);
-});
-
+/* ── Init ────────────────────────────────────────────── */
+renderHeroGraph();
+renderSignals();
 </script>
 </body>
 </html>
