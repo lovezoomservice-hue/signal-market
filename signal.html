@@ -306,7 +306,8 @@ function renderDetail(signal, wso, allSignals, causal) {
   const causalConf = c.causal_confidence ? Math.round(c.causal_confidence * 100) : null;
   const causalChain = c.causal_chain || [];
   const accelerants = c.accelerants || [];
-  const inhibitors = c.inhibitors || [];
+  const inhibitors = c.inhibitors || wso?.causal_explanation?.invalidation_conditions || [];
+  const monitoringLive = wso?.causal_explanation?.monitoring_points || wso?.monitoring_points || c?.why_now?.timing_factors || null;
   const whyNow = c.why_now || {};
   const hasCausal = !!c.primary_cause;
 
@@ -423,11 +424,11 @@ function renderDetail(signal, wso, allSignals, causal) {
       </div>
     </div>
 
-    <!-- Monitoring points -->
+    <!-- Monitoring points — live from WorldState causal_explanation -->
     <div class="intel-section">
-      <div class="intel-section-title">Monitoring signals</div>
+      <div class="intel-section-title">Monitoring signals <span style="font-family:var(--font-mono);font-size:9px;color:${monitoringLive ? 'var(--brand)' : 'var(--text-tertiary)'};text-transform:none;letter-spacing:0;margin-left:8px">${monitoringLive ? 'live' : 'default'}</span></div>
       <div class="monitor-list">
-        ${(intel.monitoring || MONITORING_DEFAULTS).map(m => `
+        ${(monitoringLive || intel.monitoring || MONITORING_DEFAULTS).map(m => `
         <div class="mon-item"><span class="mon-icon">→</span>${m}</div>`).join('')}
       </div>
     </div>
