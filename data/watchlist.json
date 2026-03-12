@@ -1,9 +1,39 @@
-[
-  {
-    "id": "test_1772763153742",
-    "topic": "Quantum Computing",
-    "stage": "weak",
-    "confidence": 0.35,
-    "created_at": "2026-03-06T02:12:33.742Z"
-  }
-]
+{
+  "watchlist": [
+    {
+      "id": "test_1772763153742",
+      "topic": "Quantum Computing",
+      "stage": "weak",
+      "confidence": 0.35,
+      "created_at": "2026-03-06T02:12:33.742Z"
+    },
+    {
+      "id": "wl_1773324255221",
+      "topic": "AI Agents",
+      "threshold": 0.7,
+      "stage": null,
+      "email": null,
+      "created_at": "2026-03-12T14:04:15.221Z",
+      "active": true
+    },
+    {
+      "id": "wl_1773324262896",
+      "topic": "AI Agents",
+      "threshold": 0.7,
+      "stage": null,
+      "email": null,
+      "created_at": "2026-03-12T14:04:22.896Z",
+      "active": true
+    },
+    {
+      "id": "wl_1773324295665",
+      "topic": "AI Agents",
+      "threshold": 0.7,
+      "stage": null,
+      "email": null,
+      "created_at": "2026-03-12T14:04:55.665Z",
+      "active": true
+    }
+  ],
+  "updated_at": "2026-03-12T14:04:55.665Z"
+}

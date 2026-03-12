@@ -1,114 +1,110 @@
 /**
- * Watchlist API - Vercel Endpoint
- * GET  /api/watchlist          → list all watches
- * POST /api/watchlist          → create watch (M10)
- * GET  /api/watchlist/triggers → trigger log (M11/M12)
+ * Watchlist API — Vercel Endpoint
+ * GET    /api/watchlist           → list active watches
+ * POST   /api/watchlist           → create watch { topic, threshold?, stage?, email? }
+ * DELETE /api/watchlist/:id       → deactivate watch
+ * GET    /api/watchlist/triggers  → recent trigger log
  */
+import { readFileSync, writeFileSync, existsSync, appendFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-const fs   = require('fs');
-const path = require('path');
-
-// Vercel serverless: use /tmp for writable storage
-const WATCHLIST_FILE = '/tmp/watchlist.json';
-const TRIGGER_LOG    = '/tmp/watchlist_triggers.jsonl';
+const __dir  = dirname(fileURLToPath(import.meta.url));
+const ROOT   = join(__dir, '..');
+const WL_FILE= join(ROOT, 'data', 'watchlist.json');
+const TRG_LOG= join(ROOT, 'data', 'watchlist_triggers.jsonl');
+const SIG_FILE=join(ROOT, 'data', 'signals_history.jsonl');
 
 function loadWatchlist() {
   try {
-    if (fs.existsSync(WATCHLIST_FILE)) return JSON.parse(fs.readFileSync(WATCHLIST_FILE,'utf8'));
-  } catch {}
-  return [];
-}
-
-function saveWatchlist(list) {
-  try { fs.writeFileSync(WATCHLIST_FILE, JSON.stringify(list,null,2)); } catch {}
-}
-
-function logTrigger(entry) {
-  try { fs.appendFileSync(TRIGGER_LOG, JSON.stringify(entry)+'\n'); } catch {}
-}
-
-function loadTriggers() {
-  try {
-    if (!fs.existsSync(TRIGGER_LOG)) return [];
-    return fs.readFileSync(TRIGGER_LOG,'utf8').trim().split('\n').filter(Boolean).map(l=>JSON.parse(l));
+    if (!existsSync(WL_FILE)) return [];
+    const d = JSON.parse(readFileSync(WL_FILE,'utf8'));
+    return Array.isArray(d) ? d : (d.watchlist || []);
   } catch { return []; }
 }
-
-// Check if any existing watchlist items should trigger
-function checkTriggers(watchlist, newWatch) {
-  const triggered = [];
-  const allWatches = [...watchlist, newWatch].filter(Boolean);
-  // Simulate: "accelerating" stage items always trigger if threshold < 0.9
-  const LIVE_SIGNALS = [
-    { topic: 'AI Agents', stage: 'accelerating', confidence: 0.97 },
-    { topic: 'LLM Infrastructure', stage: 'accelerating', confidence: 0.92 },
-    { topic: 'AI Coding', stage: 'accelerating', confidence: 0.93 },
-  ];
-  for (const w of allWatches) {
-    for (const s of LIVE_SIGNALS) {
-      if (s.topic.toLowerCase().includes((w.topic||'').toLowerCase()) &&
-          s.confidence >= (w.threshold || 0.8)) {
-        const entry = { ts: new Date().toISOString(), watch_id: w.id,
-          topic: s.topic, stage: s.stage, confidence: s.confidence,
-          threshold: w.threshold, trigger: 'CONFIDENCE_EXCEEDED' };
-        logTrigger(entry);
-        triggered.push(entry);
-      }
+function saveWatchlist(list) {
+  writeFileSync(WL_FILE, JSON.stringify({ watchlist: list, updated_at: new Date().toISOString() }, null, 2));
+}
+function loadSignals() {
+  if (!existsSync(SIG_FILE)) return [];
+  return readFileSync(SIG_FILE,'utf8').trim().split('\n').filter(Boolean).map(l => {
+    try { const s=JSON.parse(l); return s.topic&&s.signal_id?s:null; } catch { return null; }
+  }).filter(Boolean);
+}
+function loadTriggers(limit=50) {
+  try {
+    if (!existsSync(TRG_LOG)) return [];
+    return readFileSync(TRG_LOG,'utf8').trim().split('\n').filter(Boolean)
+      .map(l=>{ try{return JSON.parse(l);}catch{return null;} }).filter(Boolean).slice(-limit).reverse();
+  } catch { return []; }
+}
+function logTrigger(e) {
+  try { appendFileSync(TRG_LOG, JSON.stringify(e)+'\n'); } catch {}
+}
+function checkTriggers(watchlist, signals) {
+  const today = new Date().toISOString().slice(0,10);
+  const alerted = new Set(
+    loadTriggers(200).filter(t=>t.ts?.startsWith(today)).map(t=>t.watch_id)
+  );
+  const out = [];
+  for (const w of watchlist) {
+    if (!w.active) continue;
+    if (alerted.has(w.id)) continue;
+    const q = (w.topic||'').toLowerCase();
+    const sig = signals.find(s=>s.topic.toLowerCase().includes(q)||q.includes(s.topic.toLowerCase()));
+    if (!sig) continue;
+    const conf_ok  = sig.confidence >= (w.threshold||0.7);
+    const stage_ok = !w.stage || sig.stage === w.stage;
+    if (conf_ok && stage_ok) {
+      const entry = { ts: new Date().toISOString(), watch_id: w.id, topic: sig.topic,
+        stage: sig.stage, confidence: sig.confidence, threshold: w.threshold,
+        email: w.email||null, trigger: 'THRESHOLD_EXCEEDED' };
+      logTrigger(entry);
+      out.push(entry);
     }
   }
-  return triggered;
+  return out;
 }
 
 export default function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  res.setHeader('Access-Control-Allow-Origin','*');
+  res.setHeader('Access-Control-Allow-Methods','GET,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers','Content-Type,Authorization');
+  if (req.method==='OPTIONS') return res.status(200).end();
 
-  const urlParts = (req.url||'').replace(/\?.*$/,'').split('/').filter(Boolean);
-  const subpath = urlParts[2]; // 'triggers' for /api/watchlist/triggers
+  const parts   = (req.url||'').replace(/\?.*$/,'').split('/').filter(Boolean);
+  const subpath = parts[2];
 
-  // GET /api/watchlist/triggers — M11/M12
-  if (req.method === 'GET' && subpath === 'triggers') {
-    const triggers = loadTriggers();
-    return res.status(200).json({ triggers, count: triggers.length, timestamp: new Date().toISOString() });
+  if (req.method==='GET' && subpath==='triggers')
+    return res.status(200).json({ triggers: loadTriggers(), timestamp: new Date().toISOString() });
+
+  if (req.method==='DELETE' && subpath) {
+    const list = loadWatchlist();
+    const idx  = list.findIndex(w=>w.id===subpath);
+    if (idx===-1) return res.status(404).json({ error:'not found' });
+    list[idx].active=false; list[idx].removed_at=new Date().toISOString();
+    saveWatchlist(list);
+    return res.status(200).json({ success:true, id:subpath });
   }
 
-  // GET /api/watchlist
-  if (req.method === 'GET') {
-    const list = loadWatchlist();
+  if (req.method==='GET') {
+    const list = loadWatchlist().filter(w=>w.active!==false);
     return res.status(200).json({ watchlist: list, count: list.length });
   }
 
-  // POST /api/watchlist — M10
-  if (req.method === 'POST') {
-    const body = req.body || {};
-    if (!body.topic) return res.status(400).json({ error: 'topic required' });
-
+  if (req.method==='POST') {
+    const body = req.body||{};
+    if (!body.topic) return res.status(400).json({ error:'topic required' });
     const list = loadWatchlist();
-    const newWatch = {
-      id:        `wl_${Date.now()}`,
-      topic:     body.topic,
-      threshold: body.threshold || 0.7,
-      stage:     body.stage || null,
-      created_at: new Date().toISOString(),
-      active:    true,
-    };
-    list.push(newWatch);
+    const watch = { id:`wl_${Date.now()}`, topic:body.topic,
+      threshold: Number(body.threshold)||0.7, stage:body.stage||null,
+      email:body.email||null, created_at:new Date().toISOString(), active:true };
+    list.push(watch);
     saveWatchlist(list);
-
-    // Check triggers immediately (M11)
-    const triggered = checkTriggers(list, newWatch);
-
-    return res.status(201).json({
-      success:   true,
-      watch:     newWatch,
-      triggered: triggered.length > 0,
-      triggers:  triggered,
-    });
+    const signals   = loadSignals();
+    const triggered = checkTriggers([watch], signals);
+    return res.status(201).json({ success:true, watch, triggered:triggered.length>0, triggers:triggered });
   }
 
-  return res.status(405).json({ error: 'Method not allowed' });
+  return res.status(405).json({ error:'Method not allowed' });
 }

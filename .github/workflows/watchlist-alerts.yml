@@ -1,0 +1,59 @@
+name: Watchlist Push Alerts
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours UTC (03/09/15/21:00 UTC)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no emails sent)'
+        required: false
+        default: 'false'
+
+jobs:
+  check-alerts:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Preflight
+        run: |
+          test -f scripts/send_watchlist_alerts.py \
+            || { echo "::error::MISSING scripts/send_watchlist_alerts.py"; exit 1; }
+          test -f data/watchlist.json \
+            && echo "  watchlist: $(python3 -c \"import json; d=json.load(open('data/watchlist.json')); print(len(d.get('watchlist',d) if isinstance(d,dict) else d), 'watches')\")" \
+            || echo "  watchlist: empty (no watches yet)"
+          echo "Preflight OK"
+
+      - name: Run watchlist alert check
+        run: python3 scripts/send_watchlist_alerts.py
+        env:
+          SMTP_PASS:  ${{ secrets.SMTP_PASS }}
+          API_BASE:   ${{ secrets.API_BASE }}
+          DRY_RUN:    ${{ github.event.inputs.dry_run == 'true' && '1' || '0' }}
+          MAIL_FROM:  aimusk@nstar-live.com
+          SMTP_HOST:  smtp.qiye.163.com
+          SMTP_PORT:  "465"
+
+      - name: Commit updated trigger log
+        run: |
+          git config user.name  "signal-market-bot"
+          git config user.email "bot@signal.market"
+          git add data/watchlist_triggers.jsonl || true
+          git diff --staged --quiet && echo "No trigger changes" && exit 0
+          git commit -m "auto: watchlist trigger log $(date +%Y-%m-%d) [skip ci]"
+          git push
+
+      - name: Annotate on failure
+        if: failure()
+        run: |
+          echo "::error title=Watchlist Alerts Failed::Check SMTP credentials. Run: ${{ github.run_id }}"

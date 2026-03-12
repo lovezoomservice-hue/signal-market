@@ -574,6 +574,13 @@
 <div class="drawer" id="signal-drawer">
   <div class="drawer-header">
     <button class="drawer-close" id="drawer-close" aria-label="Close">×</button>
+    <button id="btn-watch" onclick="addToWatchlist()" style="
+      background:rgba(200,168,240,0.12);border:1px solid rgba(200,168,240,0.35);
+      color:#c8a8f0;font-size:11px;font-weight:600;letter-spacing:.05em;
+      padding:4px 12px;border-radius:6px;cursor:pointer;transition:all .15s;margin-left:8px"
+      title="Watch this signal">
+      ＋ Watch
+    </button>
   </div>
   <div class="drawer-body" id="drawer-content"></div>
 </div>
@@ -878,6 +885,40 @@ function closeDrawer() {
 document.getElementById('drawer-close').addEventListener('click', closeDrawer);
 document.getElementById('drawer-overlay').addEventListener('click', closeDrawer);
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+
+// ── Watchlist ────────────────────────────────────────────────────────────
+let _activeSignalTopic = null;
+const _origOpenDrawer = openDrawer;
+function openDrawer(sig) {
+  _activeSignalTopic = sig?.topic || null;
+  _origOpenDrawer(sig);
+}
+
+async function addToWatchlist() {
+  if (!_activeSignalTopic) return;
+  const btn = document.getElementById('btn-watch');
+  btn.textContent = '…';
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/watchlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: _activeSignalTopic, threshold: 0.7 }),
+    });
+    const d = await r.json();
+    if (r.ok && d.success) {
+      btn.textContent = '✓ Watching';
+      btn.style.color = '#86efac';
+      btn.style.borderColor = 'rgba(134,239,172,0.35)';
+    } else {
+      btn.textContent = 'Error';
+      btn.disabled = false;
+    }
+  } catch {
+    btn.textContent = '＋ Watch';
+    btn.disabled = false;
+  }
+}
 
 fetchSignals();
 setInterval(fetchSignals, 60000);
