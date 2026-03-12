@@ -14,6 +14,11 @@ SIGNALS_FILE = ROOT / 'data' / 'signals_history.jsonl'
 HF_ENDPOINTS = [
     ("https://huggingface.co/api/models?sort=downloads&limit=50&full=false", "download_trending"),
     ("https://huggingface.co/api/models?sort=likes&limit=50&full=false",     "likes_trending"),
+    # Per-tag targeted endpoints — ensures coverage for topics underrepresented in global top-50
+    ("https://huggingface.co/api/models?pipeline_tag=reinforcement-learning&sort=downloads&limit=20&full=false",  "rl_targeted"),
+    ("https://huggingface.co/api/models?pipeline_tag=code-generation&sort=downloads&limit=20&full=false",         "code_targeted"),
+    ("https://huggingface.co/api/models?pipeline_tag=text-generation&sort=downloads&limit=20&full=false&filter=reasoning", "reasoning_targeted"),
+    ("https://huggingface.co/api/models?pipeline_tag=question-answering&sort=downloads&limit=20&full=false",      "qa_targeted"),
 ]
 
 PIPELINE_TAG_TO_SIGNAL = {
@@ -126,10 +131,10 @@ def run():
     written = 0
     with open(SIGNALS_FILE, 'a') as f:
         for s in signals:
-            if s['signal_id'] not in existing_ids:
-                f.write(json.dumps(s) + '\n')
-                written += 1
-    print(f"  HF: wrote {written} new signals", file=sys.stderr)
+            # Always write — pipeline deduplicate_and_crossvalidate merges by topic
+            f.write(json.dumps(s) + '\n')
+            written += 1
+    print(f"  HF: wrote {written} signals", file=sys.stderr)
     return signals
 
 if __name__ == '__main__':

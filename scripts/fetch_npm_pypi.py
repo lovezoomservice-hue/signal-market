@@ -143,9 +143,9 @@ def main():
     new_count = 0
     with open(HIST, 'a') as f:
         for s in signals:
-            if s['topic'] not in existing:
-                f.write(json.dumps(s) + '\n')
-                new_count += 1
+            f.write(json.dumps(s) + '\n')
+
+            new_count += 1
 
     print(f'  npm/PyPI: wrote {new_count} new signals', file=sys.stderr)
     print(json.dumps({'status': 'ok', 'count': new_count}))

@@ -229,7 +229,19 @@ def deduplicate_and_crossvalidate(signals):
         best = max(group, key=lambda x: x.get("confidence", 0))
 
         # Cross-validation boost
-        n_unique_sources = len(set(s.split(":")[0] for s in unique_sources))
+        # Normalize provider aliases before counting — arxiv_rss == arxiv, etc.
+        PROVIDER_ALIASES = {
+            'arxiv_rss':     'arxiv',
+            'arxiv_api':     'arxiv',
+            'hf':            'huggingface',
+            'hf_models':     'huggingface',
+            'hf_trending':   'huggingface',
+            'gh':            'github',
+            'gh_trending':   'github',
+        }
+        raw_providers = set(s.split(":")[0] for s in unique_sources)
+        norm_providers = set(PROVIDER_ALIASES.get(p, p) for p in raw_providers)
+        n_unique_sources = len(norm_providers)
         boost = (n_unique_sources - 1) * 0.04
         new_conf = round(min((best.get("confidence", 0.5) + boost), 0.97), 3)
 
