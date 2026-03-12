@@ -1,19 +1,16 @@
 #!/usr/bin/env python3
 """
-Earnings Transcript AI Keyword Tracker — Signal Market Source Layer L5b
-Scrapes public earnings call summaries/transcripts from Motley Fool to extract AI-mention signals.
-These represent institutional capital deployment decisions — highest quality L5 signals.
+Earnings Signal Tracker — Signal Market Source Layer L5b
+Fetches Yahoo Finance RSS feeds per ticker to detect AI-related news signals.
+These represent market/investor attention signals — high quality L5b signals.
 
 Usage:
   python3 scripts/fetch_earnings_signals.py
   python3 scripts/fetch_earnings_signals.py --dry-run
-  python3 scripts/fetch_earnings_signals.py --companies MSFT,NVDA,AAPL
+  python3 scripts/fetch_earnings_signals.py --tickers MSFT,NVDA,AAPL
 
-Companies tracked: MSFT, NVDA, GOOG, META, AMZN, AAPL, TSM, TSLA
-
-Motley Fool earnings pages (public, no auth):
-- Main listing: https://www.fool.com/earnings-call-transcripts/
-- Company search: https://www.fool.com/search#q={TICKER}+earnings+transcript
+Companies tracked: MSFT, NVDA, GOOG, META, AMZN, AAPL, TSM, TSLA, AMD, INTC, QCOM, CRM
+Yahoo Finance RSS: https://finance.yahoo.com/rss/headline?s={TICKER}
 """
 import sys
 import json
@@ -23,44 +20,38 @@ import urllib.request
 import datetime
 import argparse
 import random
-import time
-from html import unescape
+import xml.etree.ElementTree as ET
 
 _SSL_CTX = ssl.create_default_context()
 _SSL_CTX.check_hostname = False
 _SSL_CTX.verify_mode = ssl.CERT_NONE
 
-# Companies to track
-COMPANIES = [
-    ("MSFT", "Microsoft"),
-    ("NVDA", "NVIDIA"),
-    ("GOOG", "Alphabet"),
-    ("META", "Meta"),
-    ("AMZN", "Amazon"),
-    ("AAPL", "Apple"),
-    ("TSM", "TSMC"),
-    ("TSLA", "Tesla"),
+# Tickers to track
+TICKERS = [
+    ("MSFT", "Microsoft", "AI Investment & Capital"),
+    ("NVDA", "NVIDIA", "AI Chips & Hardware"),
+    ("GOOG", "Alphabet", "AI Investment & Capital"),
+    ("META", "Meta", "AI Investment & Capital"),
+    ("AMZN", "Amazon", "AI Investment & Capital"),
+    ("AAPL", "Apple", "AI Investment & Capital"),
+    ("TSM", "TSMC", "AI Chips & Hardware"),
+    ("TSLA", "Tesla", "AI Investment & Capital"),
+    ("AMD", "AMD", "AI Chips & Hardware"),
+    ("INTC", "Intel", "AI Chips & Hardware"),
+    ("QCOM", "Qualcomm", "AI Chips & Hardware"),
+    ("CRM", "Salesforce", "AI Investment & Capital"),
 ]
 
-# AI keywords to scan for
+# AI keywords for scoring headlines
 AI_KEYWORDS = [
-    "artificial intelligence", "ai ", " ai,", " ai.", " ai!",
-    "machine learning", "llm", "large language model",
-    "generative ai", "gen ai", "copilot", "agentic", "ai agent",
-    "neural network", "gpu", "inference", "foundation model",
-    "openai", "claude", "gemini",
+    "ai", "artificial intelligence", "machine learning", "llm", "large language model",
+    "generative", "gen ai", "copilot", "agentic", "neural", "gpu", "inference",
+    "foundation model", "openai", "claude", "gemini", "chatgpt", "data center",
+    "nvidia", "chips", "semiconductor", "compute"
 ]
 
-# AI keyword density threshold (mentions per 1000 words)
-DENSITY_THRESHOLD = 0.5  # 5+ mentions per 1000 words
-
-
-def strip_html(html: str) -> str:
-    """Remove HTML tags from text."""
-    text = re.sub(r'<[^>]+>', ' ', html)
-    text = unescape(text)
-    text = re.sub(r'\s+', ' ', text)
-    return text.strip()
+# Minimum AI headlines to generate signal
+MIN_AI_HEADLINES = 3
 
 
 def fetch_url(url: str, timeout: int = 15) -> str:
@@ -72,7 +63,7 @@ def fetch_url(url: str, timeout: int = 15) -> str:
     ]
     headers = {
         "User-Agent": random.choice(user_agents),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept": "application/rss+xml,application/xml,text/xml",
         "Accept-Language": "en-US,en;q=0.5",
     }
     req = urllib.request.Request(url, headers=headers)
@@ -84,155 +75,111 @@ def fetch_url(url: str, timeout: int = 15) -> str:
         return ""
 
 
-def count_word_matches(text: str, keywords: list[str]) -> tuple[int, float]:
-    """Count keyword mentions and calculate density per 1000 words."""
+def count_ai_matches(text: str) -> int:
+    """Count AI keyword matches in text."""
     text_lower = text.lower()
-    words = text_lower.split()
-    word_count = len(words)
-
-    if word_count == 0:
-        return 0, 0.0
-
-    mention_count = 0
-    for kw in keywords:
-        mention_count += text_lower.count(kw.lower())
-
-    density = (mention_count / word_count) * 1000
-    return mention_count, round(density, 2)
+    count = 0
+    for kw in AI_KEYWORDS:
+        count += text_lower.count(kw.lower())
+    return count
 
 
-def fetch_motley_fool_transcripts(company_ticker: str) -> list[dict]:
-    """
-    Fetch earnings transcripts from Motley Fool for a given company.
-    Returns list of transcript data dicts.
-    """
-    transcripts = []
-
-    # Try main earnings transcripts listing page
-    main_url = "https://www.fool.com/earnings-call-transcripts/"
-    html = fetch_url(main_url)
+def fetch_yahoo_finance_headlines(ticker: str) -> list[dict]:
+    """Fetch headlines from Yahoo Finance RSS for a ticker."""
+    rss_url = f"https://finance.yahoo.com/rss/headline?s={ticker}"
+    html = fetch_url(rss_url)
 
     if not html:
-        # Try company-specific search page
-        search_url = f"https://www.fool.com/search/#q={company_ticker}+earnings+call+transcript"
-        html = fetch_url(search_url)
+        return []
 
-    if not html:
-        return transcripts
+    headlines = []
+    try:
+        root = ET.fromstring(html)
+        items = root.findall(".//item")[:20]  # Limit to 20 headlines
 
-    # Extract transcript links from HTML
-    # Pattern: look for links containing earnings/transcript keywords
-    pattern = r'href=["\'](https://www\.fool\.com/earnings-call-transcripts/[^"\']+)[\"\']'
-    matches = re.findall(pattern, html, re.IGNORECASE)
+        for item in items:
+            title = (item.findtext("title") or "").strip()
+            link = (item.findtext("link") or "").strip()
+            desc = (item.findtext("description") or "")[:500]
+            pub_date = (item.findtext("pubDate") or "")
 
-    # Also try to find company-specific transcripts
-    company_pattern = rf'href=["\'](https://www\.fool\.com/[^"\']*{company_ticker.lower()}[^"\']*transcript[^"\']*)[\"\']'
-    company_matches = re.findall(company_pattern, html, re.IGNORECASE)
+            if not title or len(title) < 5:
+                continue
 
-    all_urls = list(set(matches + company_matches))[:10]  # Limit to 10
+            headlines.append({
+                "title": title,
+                "link": link,
+                "description": desc,
+                "pub_date": pub_date,
+            })
+    except Exception as e:
+        print(f"  [fetch_earnings] RSS parse failed for {ticker}: {e}", file=sys.stderr)
 
-    for url in all_urls:
-        # Check if this transcript is for our company
-        if company_ticker.lower() not in url.lower():
-            continue
-
-        transcript_html = fetch_url(url)
-        if not transcript_html:
-            continue
-
-        # Extract title
-        title_match = re.search(r'<title>([^<]+)</title>', transcript_html)
-        title = title_match.group(1) if title_match else f"{company_ticker} Earnings Transcript"
-
-        # Extract content (main article body)
-        content_match = re.search(r'<article[^>]*>(.*?)</article>', transcript_html, re.DOTALL)
-        if content_match:
-            content = strip_html(content_match.group(1))
-        else:
-            # Try fallback: extract from main content div
-            content_match = re.search(r'<div[^>]*class="[^"]*content[^"]*"[^>]*>(.*?)</div>', transcript_html, re.DOTALL)
-            content = strip_html(content_match.group(1)) if content_match else strip_html(transcript_html)
-
-        if len(content) < 200:  # Skip very short content
-            continue
-
-        transcripts.append({
-            "url": url,
-            "title": title[:200],
-            "content": content[:10000],  # Limit content length
-        })
-
-    return transcripts
+    return headlines
 
 
-def generate_signal(company_ticker: str, company_name: str, transcript: dict,
-                    mention_count: int, density: float) -> dict:
-    """Generate a signal from earnings transcript analysis."""
+def generate_signal(ticker: str, company: str, topic: str, ai_headline_count: int) -> dict:
+    """Generate a signal from AI headline analysis."""
 
-    # Extract quarter/year from title if possible
-    quarter_match = re.search(r'Q(\d+)\s+(\d{4})', transcript["title"])
-    quarter = quarter_match.group(1) if quarter_match else "Unknown"
-    year = quarter_match.group(2) if quarter_match else "2026"
+    # Calculate confidence based on AI headline count
+    confidence = min(0.50 + (ai_headline_count * 0.08), 0.90)
 
-    # Determine stage based on density
-    stage = "accelerating" if density > 2.0 else "forming"
-
-    # Calculate confidence based on density
-    confidence = min(0.5 + density * 0.3, 0.92)
+    # Determine stage based on count
+    stage = "accelerating" if ai_headline_count >= 5 else "forming"
 
     return {
-        "topic": "AI Investment & Capital",
-        "signal_id": f"earn_{company_ticker}_{hash(transcript['url']) & 0xFFFFFF:06x}",
+        "topic": topic,
+        "signal_id": f"earn_{ticker}_{datetime.date.today().isoformat()}",
         "confidence": round(confidence, 2),
         "stage": stage,
-        "evidence_count": 1,
-        "sources": ["earnings_transcript"],
-        "source_url": transcript["url"],
-        "category": "Earnings Intelligence",
-        "proof_id": f"earn-{company_ticker}-{quarter}-{year}",
-        "title": f"{company_name} Q{quarter} {year} earnings: {mention_count} AI mentions ({density:.1f}/1000 words)",
+        "evidence_count": ai_headline_count,
+        "sources": ["yahoo_finance"],
+        "source_url": f"https://finance.yahoo.com/quote/{ticker}",
+        "category": "Financial Intelligence",
+        "proof_id": f"earn-{ticker}-{datetime.date.today().isoformat()}",
+        "title": f"{ticker}: {ai_headline_count} AI-related news items in current feed",
         "source_layer": "L5b",
-        "source_tag": "earnings",
-        "company": company_ticker,
-        "company_name": company_name,
-        "ai_mention_count": mention_count,
-        "ai_density": density,
-        "quarter": quarter,
-        "year": year,
-        "impact_score": round(min(0.5 + density * 0.15, 0.95), 2),
+        "source_tag": "finance_news",
+        "company": ticker,
+        "ai_headline_count": ai_headline_count,
     }
 
 
-def fetch_earnings_signals(companies: list[tuple] | None = None) -> list[dict]:
+def fetch_earnings_signals(ticker_filter: list[str] | None = None) -> list[dict]:
     """
-    Fetch and analyze earnings transcripts for AI mentions.
-    Returns list of signals where AI density exceeds threshold.
+    Fetch and analyze Yahoo Finance headlines for AI mentions.
+    Returns list of signals where AI headline count >= threshold.
     """
-    if companies is None:
-        companies = COMPANIES
-
     all_signals = []
 
-    for ticker, name in companies:
-        print(f"  Processing {name} ({ticker})...")
+    tickers_to_process = TICKERS
+    if ticker_filter:
+        tickers_to_process = [(t, c, topic) for t, c, topic in TICKERS if t in ticker_filter]
+
+    for ticker, company, topic in tickers_to_process:
+        print(f"  Processing {company} ({ticker})...")
 
         try:
-            transcripts = fetch_motley_fool_transcripts(ticker)
+            headlines = fetch_yahoo_finance_headlines(ticker)
 
-            if not transcripts:
-                print(f"    No transcripts found for {ticker}")
+            if not headlines:
+                print(f"    No headlines found for {ticker}")
                 continue
 
-            for transcript in transcripts:
-                mention_count, density = count_word_matches(transcript["content"], AI_KEYWORDS)
+            # Count AI-related headlines
+            ai_headline_count = 0
+            for headline in headlines:
+                text = f"{headline['title']} {headline['description']}"
+                if count_ai_matches(text) > 0:
+                    ai_headline_count += 1
 
-                if density >= DENSITY_THRESHOLD:
-                    signal = generate_signal(ticker, name, transcript, mention_count, density)
-                    all_signals.append(signal)
-                    print(f"    Signal: {mention_count} mentions, density {density:.1f}/1000 words")
+            print(f"    {ai_headline_count}/{len(headlines)} headlines are AI-related")
 
-            # Rate limiting between companies
-            time.sleep(0.5)
+            # Generate signal if threshold met
+            if ai_headline_count >= MIN_AI_HEADLINES:
+                signal = generate_signal(ticker, company, topic, ai_headline_count)
+                all_signals.append(signal)
+                print(f"    ✓ Signal generated (confidence: {signal['confidence']}, stage: {signal['stage']})")
 
         except Exception as e:
             print(f"  [fetch_earnings] Error processing {ticker}: {e}", file=sys.stderr)
@@ -242,20 +189,19 @@ def fetch_earnings_signals(companies: list[tuple] | None = None) -> list[dict]:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Earnings Transcript AI Keyword Tracker")
+    parser = argparse.ArgumentParser(description="Earnings Signal Tracker (Yahoo Finance)")
     parser.add_argument("--dry-run", action="store_true", help="Fetch but don't write files")
-    parser.add_argument("--companies", default="",
-                        help="Comma-separated company tickers to filter (e.g., MSFT,NVDA)")
+    parser.add_argument("--tickers", default="",
+                        help="Comma-separated ticker symbols to filter (e.g., MSFT,NVDA)")
     args = parser.parse_args()
 
-    # Parse company filter
-    company_filter = None
-    if args.companies:
-        tickers = [t.strip().upper() for t in args.companies.split(",")]
-        company_filter = [(t, n) for t, n in COMPANIES if t in tickers]
+    # Parse ticker filter
+    ticker_filter = None
+    if args.tickers:
+        ticker_filter = [t.strip().upper() for t in args.tickers.split(",")]
 
-    print(f"Earnings Signals Fetcher — {datetime.date.today().isoformat()}")
-    signals = fetch_earnings_signals(companies=company_filter)
+    print(f"Earnings Signals Fetcher (Yahoo Finance) — {datetime.date.today().isoformat()}")
+    signals = fetch_earnings_signals(ticker_filter=ticker_filter)
 
     print(f"\n  Signals generated: {len(signals)}")
 
@@ -270,7 +216,7 @@ def main():
         path.write_text(json.dumps({
             "signals": signals,
             "fetched_at": datetime.datetime.utcnow().isoformat() + "Z",
-            "companies_tracked": [c[0] for c in (company_filter or COMPANIES)],
+            "tickers_tracked": [t[0] for t in ([(t, c, topic) for t, c, topic in TICKERS if ticker_filter is None or t in ticker_filter])],
         }, indent=2, ensure_ascii=False))
         print(f"  ✓ Saved: {path}")
 

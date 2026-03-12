@@ -80,6 +80,23 @@
     .monitor-list { display: flex; flex-direction: column; gap: var(--space-2); }
     .mon-item { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5; }
     .mon-icon { color: #f59e0b; flex-shrink: 0; }
+    .mon-watch-btn {
+      flex-shrink: 0; margin-left: auto; padding: 2px 8px;
+      font-size: 9px; font-family: var(--font-mono); cursor: pointer;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border-subtle);
+      border-radius: 4px; color: var(--text-secondary); transition: all 0.15s;
+    }
+    .mon-watch-btn:hover { background: rgba(45,125,210,0.15); border-color: rgba(45,125,210,0.3); color: var(--brand); }
+    .mon-watch-btn.watching { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.3); color: #22c55e; }
+    .mon-watch-btn.animating { animation: pulse-green 0.3s ease-out; }
+    @keyframes pulse-green { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+    /* Watch badge in header */
+    .watch-badge {
+      font-size: 9px; font-family: var(--font-mono); background: rgba(34,197,94,0.12);
+      color: #22c55e; border: 1px solid rgba(34,197,94,0.25); padding: 2px 8px;
+      border-radius: 99px; display: inline-flex; align-items: center; gap: 4px;
+    }
 
     /* ── Sidebar ─────────────────────────────────────────────── */
     .sidebar-card {
@@ -317,6 +334,83 @@ function copySignalUrl() {
   });
 }
 
+function getWatchlistCount(signalId) {
+  try {
+    const data = localStorage.getItem('watchlist_monitors');
+    if (!data) return 0;
+    const items = JSON.parse(data);
+    return items.filter(item => item.signal_id === signalId).length;
+  } catch {
+    return 0;
+  }
+}
+
+function toggleMonitorWatch(monitorPoint, topic, signalId, btn) {
+  try {
+    const data = localStorage.getItem('watchlist_monitors');
+    const items = data ? JSON.parse(data) : [];
+    const existingIndex = items.findIndex(item => item.point === monitorPoint && item.signal_id === signalId);
+
+    if (existingIndex >= 0) {
+      // Already watching — remove
+      items.splice(existingIndex, 1);
+      btn.textContent = '+ Watch';
+      btn.classList.remove('watching', 'animating');
+    } else {
+      // Add to watchlist
+      items.push({
+        point: monitorPoint,
+        topic: topic,
+        signal_id: signalId,
+        added_at: new Date().toISOString(),
+      });
+      btn.textContent = '✓ Watching';
+      btn.classList.add('watching', 'animating');
+      // Remove animation class after animation completes
+      setTimeout(() => btn.classList.remove('animating'), 300);
+    }
+
+    localStorage.setItem('watchlist_monitors', JSON.stringify(items));
+
+    // Update badge if present
+    updateWatchBadge(signalId);
+  } catch (e) {
+    console.error('Watchlist error:', e);
+  }
+}
+
+function updateWatchBadge(signalId) {
+  const badge = document.getElementById('watch-count-badge');
+  const count = getWatchlistCount(signalId);
+  if (badge) {
+    if (count > 0) {
+      badge.style.display = 'inline-flex';
+      badge.textContent = `✓ ${count} watching`;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+function initMonitorButtons(signalId) {
+  // Initialize all monitor buttons state
+  try {
+    const data = localStorage.getItem('watchlist_monitors');
+    if (!data) return;
+    const items = JSON.parse(data);
+    document.querySelectorAll('.mon-watch-btn').forEach(btn => {
+      const point = btn.dataset.monitorPoint;
+      const isWatching = items.some(item => item.point === point && item.signal_id === signalId);
+      if (isWatching) {
+        btn.textContent = '✓ Watching';
+        btn.classList.add('watching');
+      }
+    });
+  } catch (e) {
+    console.error('Init monitor buttons error:', e);
+  }
+}
+
 function getConfidenceFactors(signal) {
   const ev = signal.evidenceCount || 0;
   const srcCount = (signal.sources || []).length;
@@ -357,6 +451,7 @@ function renderDetail(signal, wso, allSignals, causal) {
         <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-tertiary)">${signal.signal_id}</span>
         <a href="/api/v2/world-state/${signal.signal_id}" class="wso-badge" target="_blank">WorldState v2 ↗</a>
         ${crossVal ? '<span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.3)">✓ Cross-validated</span>' : ''}
+        <span id="watch-count-badge" class="watch-badge" style="display:none">✓ 0 watching</span>
         <button id="copy-url-btn" onclick="copySignalUrl()" style="margin-left:auto;font-size:10px;font-family:var(--font-mono);background:rgba(45,125,210,0.12);color:var(--brand);border:1px solid rgba(45,125,210,0.25);padding:4px 10px;border-radius:6px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:6px;">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           <span id="copy-url-text">Copy URL</span>
@@ -489,7 +584,11 @@ function renderDetail(signal, wso, allSignals, causal) {
       <div class="intel-section-title">Monitoring signals <span style="font-family:var(--font-mono);font-size:9px;color:${monitoringLive ? 'var(--brand)' : 'var(--text-tertiary)'};text-transform:none;letter-spacing:0;margin-left:8px">${monitoringLive ? 'live' : 'default'}</span></div>
       <div class="monitor-list">
         ${(monitoringLive || intel.monitoring || MONITORING_DEFAULTS).map(m => `
-        <div class="mon-item"><span class="mon-icon">→</span>${m}</div>`).join('')}
+        <div class="mon-item">
+          <span class="mon-icon">→</span>
+          <span style="flex:1">${m}</span>
+          <button class="mon-watch-btn" data-monitor-point="${m.replace(/"/g, '&quot;')}" onclick="toggleMonitorWatch(this.dataset.monitorPoint, '${signal.topic}', '${signal.signal_id}', this)">+ Watch</button>
+        </div>`).join('')}
       </div>
     </div>
 
@@ -618,6 +717,10 @@ function renderDetail(signal, wso, allSignals, causal) {
 
   document.getElementById('detail-root').innerHTML = mainHtml + sidebarHtml;
   document.title = `${signal.topic} — Signal Market`;
+
+  // Initialize watchlist buttons
+  updateWatchBadge(signal.signal_id);
+  setTimeout(() => initMonitorButtons(signal.signal_id), 50);
 }
 
 async function loadSignal() {

@@ -31,30 +31,31 @@ _SSL_CTX.verify_mode = ssl.CERT_NONE
 
 # ── Political RSS Feeds ───────────────────────────────────────────────────────
 POLITICAL_FEEDS = [
-    ("https://www.whitehouse.gov/feed/",                    "whitehouse",    "White House"),
-    ("https://www.congress.gov/rss/legislation.xml",        "congress",      "Congress.gov"),
-    ("https://feeds.reuters.com/reuters/politicsNews",      "reuters_pol",   "Reuters Politics"),
-    ("https://rsshub.app/apnews/topics/politics",           "ap_politics",   "AP Politics"),
+    ("https://thehill.com/policy/technology/feed/",         "thehill_tech",  "The Hill Tech Policy"),
+    ("https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=19854910", "cnbc_tech", "CNBC Technology"),
+    ("https://api.axios.com/feed/",                         "axios",         "Axios"),
+    ("https://feeds.marketwatch.com/marketwatch/topstories/", "marketwatch", "MarketWatch"),
 ]
 
 # ── Topic keyword matching for political signals ──────────────────────────────
 POLITICAL_TOPIC_KEYWORDS = {
     "AI Policy & Governance": [
-        "ai", "artificial intelligence", "technology", "chips", "semiconductor",
-        "export", "china tech", "algorithm", "tech regulation", "digital policy"
+        "ai", "artificial intelligence", "openai", "anthropic", "chip", "semiconductor",
+        "export control", "regulation", "legislation", "executive order", "microsoft",
+        "google", "nvidia", "tech", "technology", "tariff"
+    ],
+    "Macro & Geopolitics": [
+        "tariff", "trade", "china", "fed", "federal reserve", "rate", "inflation",
+        "gdp", "recession", "deficit", "debt", "sanction", "war", "geopolitical",
+        "oil", "energy"
     ],
     "AI Investment & Capital": [
-        "tariff", "trade", "china", "manufacturing", "investment", "sanctions",
-        "supply chain", "economic policy", "trade deal", "industrial policy"
+        "ipo", "funding", "raise", "acquisition", "merger", "deal", "billion",
+        "million", "venture", "nasdaq", "stock", "market", "earnings"
     ],
     "Commercial Space": [
         "space", "faa", "spacex", "satellite", "launch", "nasa", "rocket",
         "space force", "orbital", "space economy"
-    ],
-    "Macro & Geopolitics": [
-        "federal reserve", "interest rate", "inflation", "trade war", "sanction",
-        "tariff", "executive order", "budget", "fiscal policy", "geopolitics",
-        "diplomatic", "foreign policy", "national security"
     ],
 }
 
