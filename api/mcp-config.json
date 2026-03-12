@@ -1,0 +1,104 @@
+{
+  "name": "signal-market",
+  "description": "Global AI technology signal intelligence for human and agent decision systems",
+  "version": "2.0",
+  "api_base": "https://signal-market-z14d.vercel.app",
+  "tools": [
+    {
+      "name": "get_signals",
+      "description": "Fetch all AI/tech signals with stage, confidence, evidence count, and sources",
+      "endpoint": "GET /api/signals",
+      "parameters": {
+        "stage": "Optional: filter by stage (weak|forming|emerging|accelerating|peak)",
+        "limit": "Optional: number of signals to return (default: 50)"
+      }
+    },
+    {
+      "name": "get_causal",
+      "description": "Get causal chain for a signal — why it's happening, primary causes, accelerants, inhibitors",
+      "endpoint": "GET /api/v2/causal/:signal_id",
+      "parameters": {
+        "signal_id": "Signal ID (evt_001) or topic name (AI Agents)"
+      }
+    },
+    {
+      "name": "get_brief",
+      "description": "Get decision brief for signals — executive summary with recommendations and watchlist candidates",
+      "endpoint": "GET /api/v2/brief",
+      "parameters": {
+        "limit": "Optional: number of top signals to include (default: 5)"
+      }
+    },
+    {
+      "name": "get_world_state",
+      "description": "Get world state for a signal — full causal + action layer merged",
+      "endpoint": "GET /api/v2/world-state/:signal_id",
+      "parameters": {
+        "signal_id": "Signal ID or topic name"
+      }
+    },
+    {
+      "name": "rank_signals",
+      "description": "Get signals ranked by agent actionability score — what to act on RIGHT NOW. Score = (urgency × 0.4) + (confidence × 0.35) + (impact × 0.25) + stage_boost",
+      "endpoint": "GET /api/v2/rank",
+      "parameters": {
+        "limit": "Optional: number of signals (default: 10, max: 50)",
+        "min_confidence": "Optional: minimum confidence threshold (0-1)",
+        "stage": "Optional: filter by stage(s), comma-separated",
+        "urgency": "Optional: filter by urgency (high|medium|low), comma-separated",
+        "topic": "Optional: filter by topic (partial match)"
+      }
+    },
+    {
+      "name": "compare_signals",
+      "description": "Compare 2-5 signals side-by-side with verdict on which is more urgent/actionable",
+      "endpoint": "GET /api/v2/compare",
+      "parameters": {
+        "ids": "Comma-separated signal IDs (evt_001,evt_002) — up to 5",
+        "topics": "Comma-separated topic names (AI Agents,LLM Infrastructure) — up to 5"
+      }
+    },
+    {
+      "name": "filter_signals",
+      "description": "Structured filter for signals by stage, urgency, confidence, topic, source with sorting",
+      "endpoint": "GET /api/v2/filter",
+      "parameters": {
+        "stage": "Optional: comma-separated stages (accelerating,forming,emerging)",
+        "urgency": "Optional: comma-separated urgency levels (high,medium,low)",
+        "min_confidence": "Optional: minimum confidence (0-1)",
+        "max_confidence": "Optional: maximum confidence (0-1)",
+        "topic": "Optional: topic partial match",
+        "source": "Optional: comma-separated sources (arxiv,github,hackernews)",
+        "limit": "Optional: result limit (default: 20, max: 100)",
+        "sort": "Optional: sort field (urgency|confidence|stage|evidence, default: urgency)"
+      }
+    },
+    {
+      "name": "get_health",
+      "description": "Health check endpoint",
+      "endpoint": "GET /api/health",
+      "parameters": {}
+    },
+    {
+      "name": "get_topics",
+      "description": "List all tracked topics with their stages and confidence levels",
+      "endpoint": "GET /api/topics",
+      "parameters": {
+        "category": "Optional: filter by category",
+        "stage": "Optional: filter by stage"
+      }
+    },
+    {
+      "name": "get_stats",
+      "description": "Get platform statistics — signal counts, sources, pipeline status, data freshness",
+      "endpoint": "GET /api/stats",
+      "parameters": {}
+    },
+    {
+      "name": "get_pipeline_status",
+      "description": "Get per-source pipeline status, items collected, data age",
+      "endpoint": "GET /api/pipeline/status",
+      "parameters": {}
+    }
+  ]
+}

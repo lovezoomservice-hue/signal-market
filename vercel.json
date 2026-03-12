@@ -272,6 +272,18 @@
       "dest": "/api/v2/causal.js"
     },
     {
+      "src": "/api/v2/rank",
+      "dest": "/api/v2/rank.js"
+    },
+    {
+      "src": "/api/v2/compare",
+      "dest": "/api/v2/compare.js"
+    },
+    {
+      "src": "/api/v2/filter",
+      "dest": "/api/v2/filter.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
     },
