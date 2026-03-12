@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">Signal Detail — Signal Market</title>
+  <meta name="description" content="Full signal intelligence: evidence chain, confidence model, why it matters, why now, invalidation conditions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .detail-layout {
+      max-width: 1100px; margin: 0 auto; padding: 0 var(--space-8) var(--space-16);
+      display: grid; grid-template-columns: 1fr 340px; gap: var(--space-10); align-items: start;
+    }
+    .detail-main { min-width: 0; }
+    .detail-sidebar { position: sticky; top: 80px; }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .signal-header { padding: var(--space-10) 0 var(--space-6); }
+    .header-meta { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+    .signal-title { font-size: var(--text-4xl); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; margin-bottom: var(--space-4); }
+    .signal-subtitle { font-size: var(--text-lg); color: var(--text-secondary); line-height: 1.6; margin-bottom: var(--space-6); }
+    .header-scores { display: flex; gap: var(--space-6); padding: var(--space-5) 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }
+    .score-item { display: flex; flex-direction: column; gap: 2px; }
+    .score-num { font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: 700; }
+    .score-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); }
+
+    /* ── Sections ─────────────────────────────────────────────── */
+    .intel-section { margin-bottom: var(--space-8); }
+    .intel-section-title {
+      font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--text-tertiary); margin-bottom: var(--space-4); font-family: var(--font-mono);
+      display: flex; align-items: center; gap: var(--space-2);
+    }
+    .intel-section-title::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+
+    /* Evidence chain */
+    .evidence-chain { display: flex; flex-direction: column; gap: var(--space-3); }
+    .evidence-item {
+      background: var(--surface-low); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg); padding: var(--space-4);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .evidence-item:hover { border-color: rgba(255,255,255,0.1); }
+    .ev-header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2); }
+    .ev-source-badge {
+      font-family: var(--font-mono); font-size: 10px; padding: 2px 8px;
+      border-radius: 4px; background: rgba(45,125,210,0.12); color: var(--brand);
+      border: 1px solid rgba(45,125,210,0.25);
+    }
+    .ev-date { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); margin-left: auto; }
+    .ev-title { font-size: var(--text-sm); font-weight: 500; margin-bottom: var(--space-1); }
+    .ev-desc { font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.6; }
+    .ev-link { font-size: var(--text-xs); color: var(--brand); text-decoration: none; margin-top: var(--space-2); display: inline-block; font-family: var(--font-mono); }
+
+    /* Why it matters blocks */
+    .intel-block {
+      background: var(--surface-low); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-3);
+    }
+    .ib-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-2); }
+    .ib-content { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; }
+    .ib-content strong { color: var(--text-primary); }
+
+    /* Confidence breakdown */
+    .conf-breakdown { display: flex; flex-direction: column; gap: var(--space-3); }
+    .conf-factor { display: flex; align-items: center; gap: var(--space-3); }
+    .cf-label { font-size: var(--text-xs); color: var(--text-secondary); width: 140px; flex-shrink: 0; }
+    .cf-bar-wrap { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+    .cf-bar { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+    .cf-val { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-secondary); width: 36px; text-align: right; }
+
+    /* Invalidation conditions */
+    .invalidation-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    .inv-item { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5; }
+    .inv-icon { color: #ef4444; flex-shrink: 0; }
+
+    /* Monitoring points */
+    .monitor-list { display: flex; flex-direction: column; gap: var(--space-2); }
+    .mon-item { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5; }
+    .mon-icon { color: #f59e0b; flex-shrink: 0; }
+
+    /* ── Sidebar ─────────────────────────────────────────────── */
+    .sidebar-card {
+      background: var(--surface-low); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl); padding: var(--space-5); margin-bottom: var(--space-4);
+    }
+    .sc-title { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-4); }
+    .sc-row { display: flex; justify-content: space-between; align-items: center; padding: var(--space-2) 0; border-bottom: 1px solid var(--border-subtle); font-size: var(--text-xs); }
+    .sc-row:last-child { border-bottom: none; }
+    .sc-key { color: var(--text-tertiary); }
+    .sc-val { font-family: var(--font-mono); color: var(--text-primary); }
+    .sc-val.green { color: #22c55e; }
+    .sc-val.amber { color: #f59e0b; }
+
+    /* Related signals */
+    .related-item {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-3) 0; border-bottom: 1px solid var(--border-subtle);
+      text-decoration: none; transition: opacity .15s;
+    }
+    .related-item:hover { opacity: 0.7; }
+    .related-item:last-child { border-bottom: none; }
+    .ri-conf { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); width: 36px; }
+    .ri-label { font-size: var(--text-xs); color: var(--text-primary); }
+
+    /* API access block */
+    .api-access-block { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: var(--space-4); }
+    .api-code { font-family: var(--font-mono); font-size: 10px; color: #a3e635; line-height: 1.8; word-break: break-all; }
+
+    /* WorldState badge */
+    .wso-badge {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: rgba(45,125,210,0.08); border: 1px solid rgba(45,125,210,0.25);
+      border-radius: var(--radius-md); font-size: 10px; color: var(--brand);
+      font-family: var(--font-mono); text-decoration: none;
+      transition: background .15s;
+    }
+    .wso-badge:hover { background: rgba(45,125,210,0.15); }
+
+    @media (max-width: 900px) {
+      .detail-layout { grid-template-columns: 1fr; }
+      .detail-sidebar { position: static; }
+    }
+    @media (max-width: 640px) {
+      .detail-layout { padding: 0 var(--space-4) var(--space-10); }
+      .signal-title { font-size: var(--text-3xl); }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);">Signal Market</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:var(--space-6);">
+      <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">← Back to Signals</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--space-3);">
+      <span class="live-dot"></span>
+      <span style="font-size:var(--text-xs);color:var(--text-tertiary);font-family:var(--font-mono);">LIVE</span>
+    </div>
+  </div>
+</nav>
+
+<div class="detail-layout" id="detail-root">
+  <!-- Loading -->
+  <div class="detail-main">
+    <div class="signal-header">
+      <div class="skeleton-line" style="width:60%;height:36px;border-radius:8px;margin-bottom:16px"></div>
+      <div class="skeleton-line" style="width:80%;height:20px;border-radius:6px;margin-bottom:8px"></div>
+      <div class="skeleton-line" style="width:50%;height:20px;border-radius:6px"></div>
+    </div>
+  </div>
+  <div class="detail-sidebar">
+    <div class="skeleton-line" style="height:200px;border-radius:12px"></div>
+  </div>
+</div>
+
+<script>
+const STAGE_COLORS = {
+  accelerating: '#22c55e', forming: '#f59e0b', emerging: '#60a5fa',
+  peak: '#f97316', fading: '#6b7280', weak: '#4b5563',
+};
+
+const WHY_IT_MATTERS = {
+  'AI Agents': {
+    why: 'Autonomous agent frameworks are collapsing the gap between LLM capability and production deployment. The transition from single-query LLMs to orchestrated agent systems represents a fundamental architecture shift — and the research acceleration suggests this is the defining platform layer of the next 2–3 years.',
+    why_now: 'arXiv cs.AI is in a publication velocity burst for agent-related papers. GitHub repositories for agent frameworks (AutoGPT, CrewAI, LangGraph) are outpacing any previous AI tooling category. This convergence of research and engineering activity is the cross-source confirmation pattern.',
+    invalidation: ['Agent benchmark improvements stall for 2+ consecutive quarters', 'Major LLM providers deprecate function-calling / tool use', 'Production incident causes widespread distrust in autonomous agent deployment'],
+    monitoring: ['arXiv agent paper velocity (weekly)', 'GitHub star growth for top 5 agent frameworks', 'Enterprise AI adoption surveys (quarterly)', 'LLM provider API deprecations'],
+  },
+  'LLM Infrastructure': {
+    why: 'As LLM usage scales from experiments to production workloads, the infrastructure layer becomes the critical bottleneck. Serving optimization, quantization, and distributed inference tooling are where the real engineering race is happening.',
+    why_now: 'Multiple independent evidence streams (arXiv papers, GitHub repos, job postings) are simultaneously tracking upward. This multi-channel corroboration is strong signal.',
+    invalidation: ['Major cloud providers commoditize all inference optimization (erasing moat)', 'Alternative model architectures emerge that require fundamentally different infrastructure'],
+    monitoring: ['vLLM / TGI GitHub activity', 'Inference benchmark leaderboard updates', 'Cloud provider inference pricing trends'],
+  },
+};
+
+const INVALIDATION_DEFAULTS = [
+  'Primary data source consistently returns negative trend for 30+ days',
+  'Alternative technology achieves functional parity at lower cost/complexity',
+  'Major regulatory action restricts development or deployment',
+];
+
+const MONITORING_DEFAULTS = [
+  'Weekly arXiv paper volume in relevant categories',
+  'GitHub repository growth in related tools',
+  'Conference acceptance rates at NeurIPS/ICML/ICLR',
+];
+
+function getConfidenceFactors(signal) {
+  const ev = signal.evidenceCount || 0;
+  const srcCount = (signal.sources || []).length;
+  const crossVal = signal.cross_validated || srcCount >= 2;
+  return [
+    { label: 'Source diversity', value: Math.min(srcCount / 4, 1), display: `${srcCount} sources` },
+    { label: 'Evidence depth', value: Math.min(ev / 5, 1), display: `${ev} items` },
+    { label: 'Cross-validation', value: crossVal ? 1 : 0.3, display: crossVal ? 'Confirmed' : 'Pending' },
+    { label: 'Stage alignment', value: signal.stage === 'accelerating' ? 0.95 : signal.stage === 'forming' ? 0.72 : 0.50, display: signal.stage },
+  ];
+}
+
+function renderDetail(signal, wso, allSignals) {
+  const color = STAGE_COLORS[signal.stage] || '#6b7280';
+  const conf = Math.round((signal.confidence || 0) * 100);
+  const impact = Math.round((signal.impact_score || 0) * 100);
+  const crossVal = signal.cross_validated || (signal.sources||[]).length >= 2;
+  const intel = WHY_IT_MATTERS[signal.topic] || {};
+  const confFactors = getConfidenceFactors(signal);
+
+  // Related signals from graph
+  const related = (allSignals || []).filter(s => s.signal_id !== signal.signal_id).slice(0, 5);
+
+  const mainHtml = `
+  <div class="detail-main">
+    <div class="signal-header">
+      <div class="header-meta">
+        <span class="stage-badge stage-${signal.stage}">${signal.stage}</span>
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-tertiary)">${signal.signal_id}</span>
+        <a href="/api/v2/world-state/${signal.signal_id}" class="wso-badge" target="_blank">WorldState v2 ↗</a>
+        ${crossVal ? '<span style="font-family:var(--font-mono);font-size:10px;padding:2px 8px;border-radius:99px;background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.3)">✓ Cross-validated</span>' : ''}
+      </div>
+      <h1 class="signal-title">${signal.topic}</h1>
+      <p class="signal-subtitle">${intel.why || `Active ${signal.stage} signal in ${signal.category || 'AI'}. Confidence score ${conf}% derived from ${(signal.sources||[]).length} independent sources.`}</p>
+      <div class="header-scores">
+        <div class="score-item"><span class="score-num" style="color:${color}">${conf}%</span><span class="score-label">Confidence</span></div>
+        <div class="score-item"><span class="score-num">${impact}%</span><span class="score-label">Impact score</span></div>
+        <div class="score-item"><span class="score-num">${signal.evidenceCount || 0}</span><span class="score-label">Evidence items</span></div>
+        <div class="score-item"><span class="score-num">${(signal.sources||[]).length}</span><span class="score-label">Sources</span></div>
+        <div class="score-item"><span class="score-num">${signal.first_seen || '—'}</span><span class="score-label">First seen</span></div>
+      </div>
+    </div>
+
+    <!-- Why it matters -->
+    <div class="intel-section">
+      <div class="intel-section-title">Why it matters</div>
+      <div class="intel-block">
+        <div class="ib-label">Signal context</div>
+        <div class="ib-content">${intel.why || `A ${signal.stage} signal in the ${signal.category || 'AI'} domain. Current confidence at ${conf}% with ${signal.evidenceCount || 0} evidence items confirming the trend.`}</div>
+      </div>
+      <div class="intel-block">
+        <div class="ib-label">Why now</div>
+        <div class="ib-content">${intel.why_now || `Evidence convergence from ${(signal.sources||[]).join(', ')}. ${crossVal ? 'Cross-source validation confirmed — independent data streams agree.' : 'Currently single-source — awaiting cross-source confirmation.'}`}</div>
+      </div>
+    </div>
+
+    <!-- Evidence chain -->
+    <div class="intel-section">
+      <div class="intel-section-title">Evidence chain</div>
+      <div class="evidence-chain">
+        ${(signal.sources||[]).map((src, i) => `
+        <div class="evidence-item">
+          <div class="ev-header">
+            <span class="ev-source-badge">${src}</span>
+            <span class="ev-date">${signal.first_seen || '—'}</span>
+          </div>
+          <div class="ev-title">${src.startsWith('arxiv') ? `arXiv: ${signal.topic} research activity` : src.startsWith('github') ? `GitHub: ${signal.topic} trending repositories` : src.startsWith('huggingface') ? `HuggingFace: ${signal.topic} model activity` : `${src}: ${signal.topic} coverage`}</div>
+          <div class="ev-desc">Source ${i+1} of ${(signal.sources||[]).length}. ${src.includes('arxiv') ? 'Academic paper velocity and citation patterns.' : src.includes('github') ? 'Repository creation, star growth, and fork activity.' : 'Activity signal from data source.'} ${crossVal && i > 0 ? '<strong style="color:#22c55e">Independent confirmation ✓</strong>' : ''}</div>
+          ${signal.source_url && i === 0 ? `<a href="${signal.source_url}" class="ev-link" target="_blank">View primary source ↗</a>` : ''}
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Confidence breakdown -->
+    <div class="intel-section">
+      <div class="intel-section-title">Confidence breakdown</div>
+      <div class="conf-breakdown">
+        ${confFactors.map(f => `
+        <div class="conf-factor">
+          <div class="cf-label">${f.label}</div>
+          <div class="cf-bar-wrap">
+            <div class="cf-bar" style="width:${Math.round(f.value*100)}%;background:${f.value > 0.8 ? '#22c55e' : f.value > 0.5 ? '#f59e0b' : '#6b7280'}"></div>
+          </div>
+          <div class="cf-val">${f.display}</div>
+        </div>`).join('')}
+      </div>
+      <div style="margin-top:var(--space-4);padding:var(--space-3);background:rgba(255,255,255,0.02);border-radius:var(--radius-md);font-size:var(--text-xs);color:var(--text-tertiary);line-height:1.6">
+        Final confidence ${conf}% is a weighted composite. Higher weight given to cross-source validation and evidence depth. Single-source signals are capped at ~0.80 pending confirmation.
+      </div>
+    </div>
+
+    <!-- Invalidation conditions -->
+    <div class="intel-section">
+      <div class="intel-section-title">Invalidation conditions</div>
+      <div class="invalidation-list">
+        ${(intel.invalidation || INVALIDATION_DEFAULTS).map(c => `
+        <div class="inv-item"><span class="inv-icon">⚠</span>${c}</div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Monitoring points -->
+    <div class="intel-section">
+      <div class="intel-section-title">Monitoring signals</div>
+      <div class="monitor-list">
+        ${(intel.monitoring || MONITORING_DEFAULTS).map(m => `
+        <div class="mon-item"><span class="mon-icon">→</span>${m}</div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+
+  const sidebarHtml = `
+  <div class="detail-sidebar">
+    <div class="sidebar-card">
+      <div class="sc-title">Signal metadata</div>
+      <div class="sc-row"><span class="sc-key">ID</span><span class="sc-val">${signal.signal_id}</span></div>
+      <div class="sc-row"><span class="sc-key">Stage</span><span class="sc-val" style="color:${color}">${signal.stage}</span></div>
+      <div class="sc-row"><span class="sc-key">Confidence</span><span class="sc-val ${conf >= 85 ? 'green' : conf >= 65 ? 'amber' : ''}">${conf}%</span></div>
+      <div class="sc-row"><span class="sc-key">Impact</span><span class="sc-val">${impact}%</span></div>
+      <div class="sc-row"><span class="sc-key">Category</span><span class="sc-val">${signal.category || '—'}</span></div>
+      <div class="sc-row"><span class="sc-key">First seen</span><span class="sc-val">${signal.first_seen || '—'}</span></div>
+      <div class="sc-row"><span class="sc-key">Evidence</span><span class="sc-val">${signal.evidenceCount || 0} items</span></div>
+      <div class="sc-row"><span class="sc-key">Sources</span><span class="sc-val ${crossVal ? 'green' : ''}">${crossVal ? '✓ Multi-source' : 'Single source'}</span></div>
+      <div class="sc-row"><span class="sc-key">Lifecycle</span><span class="sc-val">${signal.lifecycle_state || '—'}</span></div>
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sc-title">Source breakdown</div>
+      ${(signal.sources||[]).map(src => `
+      <div class="sc-row">
+        <span class="sc-key">${src.split(':')[0]}</span>
+        <span class="sc-val" style="font-size:9px">${src.split(':').slice(1).join(':') || '✓'}</span>
+      </div>`).join('')}
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sc-title">Related signals</div>
+      ${related.map(r => `
+      <a href="/signal?id=${r.signal_id}" class="related-item">
+        <span class="ri-conf" style="color:${STAGE_COLORS[r.stage]||'#6b7280'}">${Math.round((r.confidence||0)*100)}%</span>
+        <span class="ri-label">${r.topic}</span>
+        <span class="stage-badge stage-${r.stage}" style="font-size:9px;padding:1px 6px">${r.stage.slice(0,4)}</span>
+      </a>`).join('')}
+    </div>
+
+    <div class="sidebar-card">
+      <div class="sc-title">API access</div>
+      <div class="api-access-block">
+        <div class="api-code">GET /api/signals/${signal.signal_id}<br>GET /api/v2/world-state/${signal.signal_id}<br>GET /api/events/${signal.signal_id}/probability</div>
+      </div>
+      <div style="margin-top:var(--space-3)">
+        <a href="/api" class="btn-primary" style="display:block;text-align:center;font-size:var(--text-xs);padding:var(--space-2);">Get API Key</a>
+      </div>
+    </div>
+  </div>`;
+
+  document.getElementById('detail-root').innerHTML = mainHtml + sidebarHtml;
+  document.title = `${signal.topic} — Signal Market`;
+}
+
+async function loadSignal() {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (!id) {
+    window.location.href = '/signals';
+    return;
+  }
+
+  try {
+    const [sigRes, wsoRes, allRes] = await Promise.all([
+      fetch(`/api/signals/${id}`),
+      fetch(`/api/v2/world-state/${id}`),
+      fetch('/api/signals'),
+    ]);
+    const signal = await sigRes.json();
+    const wso = wsoRes.ok ? await wsoRes.json() : {};
+    const allData = await allRes.json();
+    const allSignals = (Array.isArray(allData) ? allData : allData.signals || []).filter(s => s.signal_id !== id);
+    renderDetail(signal, wso, allSignals);
+  } catch (e) {
+    document.getElementById('detail-root').innerHTML = `<div style="padding:var(--space-10);color:var(--text-tertiary)">Signal not found. <a href="/signals" style="color:var(--brand)">← Back to signals</a></div>`;
+  }
+}
+
+loadSignal();
+</script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API & Developer Access — Signal Market</title>
+  <meta name="description" content="Signal Market API. Machine-native intelligence infrastructure for humans and AI agents. RESTful JSON, versioned, real-time.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .docs-layout { display: grid; grid-template-columns: 240px 1fr; min-height: calc(100vh - 60px); max-width: 1200px; margin: 0 auto; gap: 0; }
+    .docs-sidebar { padding: var(--space-8) var(--space-6); border-right: 1px solid var(--border-subtle); position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; }
+    .docs-content { padding: var(--space-8) var(--space-8) var(--space-16); max-width: 760px; }
+    .sidebar-group { margin-bottom: var(--space-6); }
+    .sidebar-group-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); margin-bottom: var(--space-2); font-family: var(--font-mono); }
+    .sidebar-link { display: block; padding: var(--space-2) var(--space-2); font-size: var(--text-sm); color: var(--text-secondary); text-decoration: none; border-radius: var(--radius-sm); transition: all .15s; margin-bottom: 1px; }
+    .sidebar-link:hover { color: var(--text-primary); background: var(--surface-low); }
+    .sidebar-link.active { color: var(--text-primary); background: rgba(45,125,210,0.08); }
+
+    /* Content */
+    .docs-section { margin-bottom: var(--space-12); }
+    .docs-section-title { font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-3); }
+    .docs-section-sub { font-size: var(--text-xl); font-weight: 600; letter-spacing: -0.01em; margin-bottom: var(--space-3); margin-top: var(--space-8); }
+    .docs-p { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; margin-bottom: var(--space-4); }
+    .docs-p strong { color: var(--text-primary); }
+
+    /* Code */
+    .code-block {
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5);
+      font-family: var(--font-mono); font-size: var(--text-xs);
+      line-height: 1.9; overflow-x: auto; margin-bottom: var(--space-4);
+      position: relative;
+    }
+    .code-lang { position: absolute; top: var(--space-3); right: var(--space-3); font-size: 10px; color: var(--text-tertiary); }
+    .code-comment { color: #6b7280; }
+    .code-key { color: #93c5fd; }
+    .code-val { color: #a3e635; }
+    .code-str { color: #f9a8d4; }
+    .code-kw { color: #c084fc; }
+    .code-url { color: #67e8f9; }
+
+    /* Endpoint cards */
+    .endpoint-card {
+      border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4); overflow: hidden;
+    }
+    .ep-header {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      background: var(--surface-low); cursor: pointer;
+      transition: background .15s;
+    }
+    .ep-header:hover { background: var(--surface-mid); }
+    .ep-method {
+      font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 600;
+      padding: 2px 8px; border-radius: 4px;
+      background: rgba(34,197,94,0.15); color: #22c55e;
+    }
+    .ep-path { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--text-primary); flex: 1; }
+    .ep-desc { font-size: var(--text-xs); color: var(--text-tertiary); }
+    .ep-body { padding: var(--space-4); border-top: 1px solid var(--border-subtle); display: none; }
+    .ep-body.open { display: block; }
+    .ep-field { display: flex; gap: var(--space-4); padding: var(--space-2) 0; border-bottom: 1px solid var(--border-subtle); font-size: var(--text-xs); }
+    .ep-field:last-child { border-bottom: none; }
+    .ef-name { font-family: var(--font-mono); color: var(--brand); width: 160px; flex-shrink: 0; }
+    .ef-type { color: var(--text-tertiary); width: 80px; flex-shrink: 0; }
+    .ef-desc { color: var(--text-secondary); }
+
+    /* Plan comparison */
+    .plan-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); margin-bottom: var(--space-4); }
+    .plan-table th { text-align: left; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); color: var(--text-tertiary); font-size: var(--text-xs); font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; }
+    .plan-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); font-size: var(--text-xs); }
+    .plan-table tr:last-child td { border-bottom: none; }
+    .check { color: #22c55e; }
+    .dash { color: var(--text-tertiary); }
+
+    /* API Key callout */
+    .api-key-box {
+      background: rgba(45,125,210,0.06); border: 1px solid rgba(45,125,210,0.2);
+      border-radius: var(--radius-lg); padding: var(--space-5);
+      margin-bottom: var(--space-6);
+    }
+    .akb-title { font-size: var(--text-sm); font-weight: 600; margin-bottom: var(--space-2); }
+    .akb-key { font-family: var(--font-mono); font-size: var(--text-xs); background: rgba(0,0,0,0.3); padding: var(--space-3); border-radius: var(--radius-md); color: #a3e635; letter-spacing: 0.05em; }
+    .akb-note { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-2); }
+
+    @media (max-width: 768px) {
+      .docs-layout { grid-template-columns: 1fr; }
+      .docs-sidebar { display: none; }
+      .docs-content { padding: var(--space-6) var(--space-4); }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);">Signal Market</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:var(--space-6);">
+      <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Signals</a>
+      <a href="/graph" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Graph</a>
+      <a href="/brief" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Brief</a>
+      <a href="/api" style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500;text-decoration:none;border-bottom:2px solid var(--brand);padding-bottom:2px;">API</a>
+    </div>
+    <a href="/pricing" class="btn-primary" style="font-size:var(--text-xs);">Get API Key</a>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <!-- Sidebar -->
+  <div class="docs-sidebar">
+    <div class="sidebar-group">
+      <div class="sidebar-group-title">Overview</div>
+      <a href="#introduction" class="sidebar-link active">Introduction</a>
+      <a href="#auth" class="sidebar-link">Authentication</a>
+      <a href="#rate-limits" class="sidebar-link">Rate Limits</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-title">Signals API</div>
+      <a href="#get-signals" class="sidebar-link">GET /signals</a>
+      <a href="#get-signal" class="sidebar-link">GET /signals/:id</a>
+      <a href="#get-graph" class="sidebar-link">GET /graph</a>
+      <a href="#get-trends" class="sidebar-link">GET /trends</a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-title">Intelligence API v2</div>
+      <a href="#v2-world-state" class="sidebar-link">GET /v2/world-state</a>
+      <a href="#v2-brief" class="sidebar-link">GET /v2/brief</a>
+      <a href="#v2-causal" class="sidebar-link">GET /v2/causal <span style="font-size:9px;color:var(--text-tertiary)">(planned)</span></a>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-group-title">Agent Integration</div>
+      <a href="#agent-quick" class="sidebar-link">Quick Start</a>
+      <a href="#agent-schema" class="sidebar-link">Schema Reference</a>
+      <a href="#agent-examples" class="sidebar-link">Code Examples</a>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="docs-content">
+
+    <!-- Introduction -->
+    <div class="docs-section" id="introduction">
+      <h1 class="docs-section-title">Signal Market API</h1>
+      <p class="docs-p">
+        The Signal Market API provides programmatic access to the world's most structured AI technology intelligence layer.
+        Designed for both <strong>human developers</strong> and <strong>AI agents</strong> that need machine-readable world state.
+      </p>
+      <p class="docs-p">
+        Base URL: <code style="font-family:var(--font-mono);color:var(--brand)">https://signal-market.vercel.app/api</code>
+        &nbsp;·&nbsp; Local: <code style="font-family:var(--font-mono);color:var(--text-secondary)">http://localhost:3001/api</code>
+      </p>
+      <div class="code-block">
+        <span class="code-comment"># Get all signals in 30 seconds</span><br>
+        <span class="code-url">curl</span> https://signal-market.vercel.app/api/signals<br><br>
+        <span class="code-comment"># Get intelligence brief</span><br>
+        <span class="code-url">curl</span> https://signal-market.vercel.app/api/v2/brief<br><br>
+        <span class="code-comment"># Get WorldStateObject for a signal</span><br>
+        <span class="code-url">curl</span> https://signal-market.vercel.app/api/v2/world-state/evt_001
+      </div>
+    </div>
+
+    <!-- Authentication -->
+    <div class="docs-section" id="auth">
+      <h2 class="docs-section-sub">Authentication</h2>
+      <p class="docs-p">Pass your API key in the <code style="font-family:var(--font-mono);font-size:var(--text-xs);color:var(--brand)">Authorization</code> header or as a query parameter.</p>
+      <div class="api-key-box">
+        <div class="akb-title">Your API Key (demo)</div>
+        <div class="akb-key">sm_founder_95d12139a6c22bd5bdd33720462ad743</div>
+        <div class="akb-note">Replace with your personal key from the dashboard. <a href="/pricing" style="color:var(--brand);text-decoration:none">Get a production key →</a></div>
+      </div>
+      <div class="code-block">
+        <span class="code-comment"># Header (recommended)</span><br>
+        curl -H <span class="code-str">"Authorization: Bearer sm_your_key_here"</span> /api/signals<br><br>
+        <span class="code-comment"># Query parameter</span><br>
+        curl /api/signals?api_key=sm_your_key_here
+      </div>
+    </div>
+
+    <!-- Rate Limits -->
+    <div class="docs-section" id="rate-limits">
+      <h2 class="docs-section-sub">Rate Limits</h2>
+      <table class="plan-table">
+        <tr><th>Plan</th><th>Requests/min</th><th>Requests/day</th><th>History</th></tr>
+        <tr><td>Free</td><td>10</td><td>1,000</td><td>7 days</td></tr>
+        <tr><td>Pro</td><td>60</td><td>50,000</td><td>90 days</td></tr>
+        <tr><td>Agent</td><td>300</td><td>Unlimited</td><td>Full</td></tr>
+      </table>
+      <p class="docs-p">Rate limit headers are returned with every response: <code style="font-family:var(--font-mono);font-size:11px;color:var(--brand)">X-RateLimit-Remaining</code>, <code style="font-family:var(--font-mono);font-size:11px;color:var(--brand)">X-RateLimit-Reset</code>.</p>
+    </div>
+
+    <!-- GET /signals -->
+    <div class="docs-section" id="get-signals">
+      <h2 class="docs-section-sub">GET /api/signals</h2>
+      <p class="docs-p">Returns all active signals, sorted by confidence. The primary intelligence feed.</p>
+      <div class="endpoint-card">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/api/signals</span>
+          <span class="ep-desc">All active signals</span>
+        </div>
+        <div class="ep-body">
+          <div style="margin-bottom:var(--space-3);font-size:var(--text-xs);color:var(--text-tertiary)">QUERY PARAMETERS</div>
+          <div class="ep-field"><span class="ef-name">stage</span><span class="ef-type">string</span><span class="ef-desc">Filter by stage: accelerating | forming | emerging | peak | fading</span></div>
+          <div class="ep-field"><span class="ef-name">limit</span><span class="ef-type">integer</span><span class="ef-desc">Max results (default: 50, max: 200)</span></div>
+          <div class="ep-field"><span class="ef-name">min_confidence</span><span class="ef-type">float</span><span class="ef-desc">Minimum confidence threshold (0–1)</span></div>
+        </div>
+      </div>
+      <div class="code-block">
+        <span class="code-comment"># Response</span><br>
+        {<br>
+        &nbsp;&nbsp;<span class="code-key">"signals"</span>: [<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"signal_id"</span>: <span class="code-str">"evt_001"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"topic"</span>: <span class="code-str">"AI Agents"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"stage"</span>: <span class="code-str">"accelerating"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"confidence"</span>: <span class="code-val">0.97</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"impact_score"</span>: <span class="code-val">0.92</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"sources"</span>: [<span class="code-str">"arxiv:cs.AI"</span>, <span class="code-str">"huggingface:trending"</span>],<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"cross_validated"</span>: <span class="code-val">true</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+        &nbsp;&nbsp;],<br>
+        &nbsp;&nbsp;<span class="code-key">"meta"</span>: { <span class="code-key">"total"</span>: <span class="code-val">9</span>, <span class="code-key">"sources_monitored"</span>: <span class="code-val">6</span> }<br>
+        }
+      </div>
+    </div>
+
+    <!-- GET /v2/world-state -->
+    <div class="docs-section" id="v2-world-state">
+      <h2 class="docs-section-sub">GET /api/v2/world-state</h2>
+      <p class="docs-p">Returns <strong>WorldStateObject v2</strong> — the structured, agent-native representation of each signal. Includes event classification, related domains, causal phase, and propagation metadata.</p>
+      <div class="endpoint-card">
+        <div class="ep-header" onclick="toggle(this)">
+          <span class="ep-method">GET</span>
+          <span class="ep-path">/api/v2/world-state/:signal_id</span>
+          <span class="ep-desc">WorldStateObject v2</span>
+        </div>
+        <div class="ep-body">
+          <div class="ep-field"><span class="ef-name">signal_id</span><span class="ef-type">path param</span><span class="ef-desc">Signal ID (e.g. evt_001)</span></div>
+          <div class="ep-field"><span class="ef-name">state_version</span><span class="ef-type">response</span><span class="ef-desc">Schema version ("2.0.0")</span></div>
+          <div class="ep-field"><span class="ef-name">event.event_type</span><span class="ef-type">response</span><span class="ef-desc">research_breakthrough | adoption_signal | technology_emergence | technology_acceleration</span></div>
+          <div class="ep-field"><span class="ef-name">event.related_domains</span><span class="ef-type">response</span><span class="ef-desc">Adjacent topics from graph topology</span></div>
+          <div class="ep-field"><span class="ef-name">null fields</span><span class="ef-type">response</span><span class="ef-desc">actors, propagation, scenario_sensitivity (P1/P2, not yet implemented)</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GET /v2/brief -->
+    <div class="docs-section" id="v2-brief">
+      <h2 class="docs-section-sub">GET /api/v2/brief</h2>
+      <p class="docs-p">Compiled intelligence brief — structured for both human reading and agent consumption. Includes narrative, sections by stage, graph topology insight, and agent action items.</p>
+      <div class="code-block">
+        <span class="code-comment"># Python: fetch brief for agent</span><br>
+        <span class="code-kw">import</span> requests<br><br>
+        brief = requests.get(<span class="code-str">"https://signal-market.vercel.app/api/v2/brief"</span>).json()<br><br>
+        <span class="code-comment"># Accelerating signals</span><br>
+        <span class="code-kw">for</span> section <span class="code-kw">in</span> brief[<span class="code-str">"sections"</span>]:<br>
+        &nbsp;&nbsp;<span class="code-kw">if</span> section[<span class="code-str">"title"</span>] == <span class="code-str">"Accelerating"</span>:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">for</span> s <span class="code-kw">in</span> section[<span class="code-str">"signals"</span>]:<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(s[<span class="code-str">"topic"</span>], s[<span class="code-str">"confidence"</span>])
+      </div>
+    </div>
+
+    <!-- Agent Quick Start -->
+    <div class="docs-section" id="agent-quick">
+      <h2 class="docs-section-sub">Agent Quick Start</h2>
+      <p class="docs-p">Signal Market is designed as a <strong>world-state interface for AI agents</strong>. Agents can query the current state of technology trends and receive structured, confidence-scored intelligence.</p>
+      <div class="code-block">
+        <span class="code-comment">// LangChain / agent tool definition</span><br>
+        <span class="code-kw">const</span> signalTool = {<br>
+        &nbsp;&nbsp;name: <span class="code-str">"get_technology_signals"</span>,<br>
+        &nbsp;&nbsp;description: <span class="code-str">"Get current AI technology trend signals with confidence scores"</span>,<br>
+        &nbsp;&nbsp;func: <span class="code-kw">async</span> (stage) => {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">const</span> r = <span class="code-kw">await</span> fetch(<span class="code-str">`/api/signals?stage=${stage}`</span>);<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-kw">return</span> r.json();<br>
+        &nbsp;&nbsp;}<br>
+        };<br><br>
+        <span class="code-comment">// WorldState for deep context</span><br>
+        <span class="code-kw">const</span> wsTools = await fetch(<span class="code-str">"/api/v2/world-state"</span>).then(r => r.json());<br>
+        <span class="code-comment">// Returns: event_type, related_domains, causal phase, agent action items</span>
+      </div>
+    </div>
+
+    <!-- Schema Reference -->
+    <div class="docs-section" id="agent-schema">
+      <h2 class="docs-section-sub">WorldStateObject v2 Schema</h2>
+      <p class="docs-p">The v2 schema is designed to be agent-parseable: typed fields, explicit nulls with explanation, versioned.</p>
+      <div class="code-block">
+        {<br>
+        &nbsp;&nbsp;<span class="code-key">"signal_id"</span>: <span class="code-str">"evt_001"</span>, <span class="code-comment">// stable identifier</span><br>
+        &nbsp;&nbsp;<span class="code-key">"state_version"</span>: <span class="code-str">"2.0.0"</span>, <span class="code-comment">// schema version</span><br>
+        &nbsp;&nbsp;<span class="code-key">"event"</span>: {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"event_type"</span>: <span class="code-str">"research_breakthrough"</span>, <span class="code-comment">// derived from sources</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"entities"</span>: [<span class="code-str">"AI Agents"</span>],<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"related_domains"</span>: [<span class="code-str">"LLM Infrastructure"</span>, <span class="code-str">"AI Coding"</span>], <span class="code-comment">// from graph</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"first_order_effects"</span>: [<span class="code-str">"tooling demand"</span>, <span class="code-str">"talent surge"</span>],<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"actors"</span>: <span class="code-val">null</span>, <span class="code-comment">// P1: requires actor data pipeline</span><br>
+        &nbsp;&nbsp;},<br>
+        &nbsp;&nbsp;<span class="code-key">"confidence"</span>: <span class="code-val">0.97</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"causal_explanation"</span>: {<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"current_phase"</span>: <span class="code-str">"growing"</span>,<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-key">"core_drivers"</span>: <span class="code-val">null</span> <span class="code-comment">// P0-B: implementing next</span><br>
+        &nbsp;&nbsp;},<br>
+        &nbsp;&nbsp;<span class="code-key">"propagation"</span>: <span class="code-val">null</span>, <span class="code-comment">// P1: blocked on actor data</span><br>
+        &nbsp;&nbsp;<span class="code-key">"lifecycle_stage"</span>: <span class="code-str">"accelerating"</span>,<br>
+        &nbsp;&nbsp;<span class="code-key">"time_horizon"</span>: <span class="code-str">"months"</span><br>
+        }
+      </div>
+      <p class="docs-p">Null fields are <strong>intentionally null</strong> — not missing. Each null has a documented implementation milestone. This is a commitment to honesty over fake completeness.</p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggle(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// Sidebar link highlighting
+document.querySelectorAll('.sidebar-link').forEach(link => {
+  link.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    link.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Status — Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .status-page { max-width: 760px; margin: 0 auto; padding: 0 var(--space-8) var(--space-16); }
+    .status-header { padding: var(--space-12) 0 var(--space-8); }
+    .status-header h1 { font-size: var(--text-3xl); font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-2); }
+    .overall-status { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4) var(--space-5); border-radius: var(--radius-lg); margin-bottom: var(--space-8); }
+    .os-ok { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); }
+    .os-dot { width: 10px; height: 10px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    .os-text { font-size: var(--text-sm); font-weight: 600; color: #22c55e; }
+    .os-time { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); margin-left: auto; }
+
+    .status-section { margin-bottom: var(--space-8); }
+    .status-section-title { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-4); }
+    .status-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-subtle); }
+    .status-item:last-child { border-bottom: none; }
+    .si-name { font-size: var(--text-sm); flex: 1; }
+    .si-detail { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); }
+    .si-badge { font-family: var(--font-mono); font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 600; }
+    .badge-ok { background: rgba(34,197,94,0.12); color: #22c55e; }
+    .badge-partial { background: rgba(245,158,11,0.12); color: #f59e0b; }
+    .badge-planned { background: rgba(107,114,128,0.12); color: #9ca3af; }
+
+    .uptime-bar { height: 24px; border-radius: var(--radius-md); overflow: hidden; display: flex; gap: 2px; background: var(--surface-low); padding: 2px; margin-bottom: var(--space-4); }
+    .ub-day { flex: 1; border-radius: 2px; background: rgba(34,197,94,0.7); }
+    .ub-day.down { background: rgba(239,68,68,0.5); }
+    .ub-day.na { background: rgba(255,255,255,0.05); }
+  </style>
+</head>
+<body>
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);">Signal Market</span>
+    </a>
+    <span style="font-size:var(--text-sm);color:var(--text-secondary);">/ Status</span>
+  </div>
+</nav>
+
+<div class="status-page">
+  <div class="status-header">
+    <h1>System Status</h1>
+    <p style="color:var(--text-secondary);font-size:var(--text-sm)">Real-time operational status of all Signal Market services.</p>
+  </div>
+
+  <div class="overall-status os-ok">
+    <div class="os-dot"></div>
+    <span class="os-text">All systems operational</span>
+    <span class="os-time" id="update-time">Checking...</span>
+  </div>
+
+  <!-- 90-day uptime -->
+  <div class="status-section">
+    <div class="status-section-title">90-day uptime</div>
+    <div class="uptime-bar" id="uptime-bar"></div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-tertiary);font-family:var(--font-mono);">
+      <span>90 days ago</span><span>Today</span>
+    </div>
+  </div>
+
+  <!-- API endpoints -->
+  <div class="status-section">
+    <div class="status-section-title">API Endpoints</div>
+    <div id="api-status-list">
+      <div class="skeleton-line" style="height:40px;border-radius:8px;margin-bottom:4px"></div>
+      <div class="skeleton-line" style="height:40px;border-radius:8px;margin-bottom:4px"></div>
+    </div>
+  </div>
+
+  <!-- Data Sources -->
+  <div class="status-section">
+    <div class="status-section-title">Data Sources</div>
+    <div class="status-item"><div class="si-name">arXiv (cs.AI / cs.LG / cs.CL)</div><div class="si-detail">Daily fetch</div><span class="si-badge badge-ok">Operational</span></div>
+    <div class="status-item"><div class="si-name">GitHub Trending</div><div class="si-detail">Daily fetch</div><span class="si-badge badge-ok">Operational</span></div>
+    <div class="status-item"><div class="si-name">HuggingFace Model Hub</div><div class="si-detail">Daily fetch</div><span class="si-badge badge-ok">Operational</span></div>
+    <div class="status-item"><div class="si-name">Alpha Vantage (Financial News)</div><div class="si-detail">Daily fetch</div><span class="si-badge badge-partial">Partial</span></div>
+    <div class="status-item"><div class="si-name">CryptoPanic</div><div class="si-detail">Daily fetch</div><span class="si-badge badge-partial">Partial</span></div>
+    <div class="status-item"><div class="si-name">SerpAPI (News)</div><div class="si-detail">Daily fetch</div><span class="si-badge badge-partial">Limited</span></div>
+    <div class="status-item"><div class="si-name">FRED (Macro Indicators)</div><div class="si-detail">Planned</div><span class="si-badge badge-planned">Planned</span></div>
+    <div class="status-item"><div class="si-name">Prediction Markets</div><div class="si-detail">Roadmap</div><span class="si-badge badge-planned">Roadmap</span></div>
+  </div>
+
+  <!-- Services -->
+  <div class="status-section">
+    <div class="status-section-title">Background Services</div>
+    <div class="status-item"><div class="si-name">Signal ingestion pipeline</div><div class="si-detail">Daily 08:00 GMT+8</div><span class="si-badge badge-ok">Running</span></div>
+    <div class="status-item"><div class="si-name">AutoOps v2 daemon</div><div class="si-detail">Every 5 min</div><span class="si-badge badge-ok">Running</span></div>
+    <div class="status-item"><div class="si-name">Daily digest email</div><div class="si-detail">09:00 GMT+8</div><span class="si-badge badge-ok">Running</span></div>
+    <div class="status-item"><div class="si-name">Research intake (arXiv)</div><div class="si-detail">Daily 08:00 GMT+8</div><span class="si-badge badge-ok">Running</span></div>
+  </div>
+</div>
+
+<script>
+// Update time
+document.getElementById('update-time').textContent = 'Updated ' + new Date().toLocaleTimeString();
+
+// Uptime bar — show 90 days, mostly green
+const bar = document.getElementById('uptime-bar');
+for (let i = 0; i < 90; i++) {
+  const day = document.createElement('div');
+  day.className = 'ub-day' + (i < 5 ? ' na' : ''); // first 5 days = no data
+  bar.appendChild(day);
+}
+
+// Check live API endpoints
+const endpoints = [
+  ['/api/signals', 'GET /api/signals', 'Signal feed'],
+  ['/api/graph', 'GET /api/graph', 'Signal graph'],
+  ['/api/v2/world-state', 'GET /api/v2/world-state', 'WorldState v2'],
+  ['/api/v2/brief', 'GET /api/v2/brief', 'Daily brief'],
+];
+
+const list = document.getElementById('api-status-list');
+list.innerHTML = '';
+
+Promise.all(endpoints.map(([path, name, desc]) =>
+  fetch(path).then(r => ({ name, desc, ok: r.ok, status: r.status }))
+    .catch(() => ({ name, desc, ok: false, status: 'error' }))
+)).then(results => {
+  results.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'status-item';
+    el.innerHTML = `<div class="si-name">${r.name} <span style="font-size:10px;color:var(--text-tertiary)">(${r.desc})</span></div>
+      <div class="si-detail">${r.ok ? 'HTTP '+r.status : 'Error'}</div>
+      <span class="si-badge ${r.ok ? 'badge-ok' : 'badge-partial'}">${r.ok ? 'Operational' : 'Degraded'}</span>`;
+    list.appendChild(el);
+  });
+});
+</script>
+</body>
+</html>

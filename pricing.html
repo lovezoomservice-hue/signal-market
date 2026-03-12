@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing — Signal Market</title>
+  <meta name="description" content="Signal Market pricing. Free tier for exploration, Pro for professionals, Agent tier for AI systems.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .pricing-page { max-width: 1100px; margin: 0 auto; padding: 0 var(--space-8) var(--space-16); }
+
+    /* ── Header ────────────────────────────────────────────── */
+    .pricing-header { text-align: center; padding: var(--space-16) 0 var(--space-12); }
+    .pricing-header h1 { font-size: var(--text-5xl); font-weight: 700; letter-spacing: -0.03em; margin-bottom: var(--space-4); }
+    .pricing-header p { font-size: var(--text-lg); color: var(--text-secondary); max-width: 520px; margin: 0 auto; line-height: 1.6; }
+    .pricing-toggle { display: flex; align-items: center; justify-content: center; gap: var(--space-3); margin-top: var(--space-6); }
+    .toggle-label { font-size: var(--text-sm); color: var(--text-secondary); }
+    .toggle-switch {
+      width: 44px; height: 24px; background: var(--surface-mid); border-radius: 12px;
+      cursor: pointer; position: relative; border: 1px solid var(--border-subtle); transition: background .2s;
+    }
+    .toggle-switch.on { background: var(--brand); }
+    .toggle-knob {
+      position: absolute; top: 3px; left: 3px; width: 16px; height: 16px;
+      background: white; border-radius: 50%; transition: transform .2s;
+    }
+    .toggle-switch.on .toggle-knob { transform: translateX(20px); }
+    .discount-badge {
+      font-family: var(--font-mono); font-size: 10px; padding: 2px 8px;
+      background: rgba(34,197,94,0.15); color: #22c55e;
+      border-radius: 99px; border: 1px solid rgba(34,197,94,0.3);
+    }
+
+    /* ── Plans grid ────────────────────────────────────────── */
+    .plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-bottom: var(--space-12); }
+    .plan-card {
+      background: var(--surface-low); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-2xl); padding: var(--space-7); position: relative;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .plan-card:hover { border-color: rgba(255,255,255,0.1); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+    .plan-card.featured {
+      border-color: var(--brand); background: rgba(45,125,210,0.04);
+      box-shadow: 0 0 0 1px var(--brand), 0 16px 48px rgba(45,125,210,0.15);
+    }
+    .plan-badge {
+      position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+      background: var(--brand); color: white; font-size: 10px; font-weight: 600;
+      padding: 3px 12px; border-radius: 99px; text-transform: uppercase; letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .plan-name { font-size: var(--text-sm); font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); margin-bottom: var(--space-4); font-family: var(--font-mono); }
+    .plan-price { margin-bottom: var(--space-2); }
+    .plan-price .amount { font-size: var(--text-5xl); font-weight: 700; letter-spacing: -0.03em; }
+    .plan-price .currency { font-size: var(--text-2xl); font-weight: 600; color: var(--text-secondary); vertical-align: top; margin-top: 8px; display: inline-block; }
+    .plan-price .period { font-size: var(--text-sm); color: var(--text-tertiary); margin-left: 4px; }
+    .plan-tagline { font-size: var(--text-sm); color: var(--text-secondary); margin-bottom: var(--space-6); line-height: 1.5; min-height: 42px; }
+    .plan-cta { display: block; text-align: center; padding: var(--space-3) var(--space-4); border-radius: var(--radius-lg); font-size: var(--text-sm); font-weight: 600; text-decoration: none; transition: all .2s; margin-bottom: var(--space-6); }
+    .plan-cta.primary { background: var(--brand); color: white; }
+    .plan-cta.primary:hover { background: #1e6bbf; }
+    .plan-cta.secondary { background: transparent; border: 1px solid var(--border-subtle); color: var(--text-primary); }
+    .plan-cta.secondary:hover { border-color: rgba(255,255,255,0.2); background: var(--surface-mid); }
+    .plan-cta.ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+    .plan-cta.ghost:hover { color: var(--text-primary); border-color: rgba(255,255,255,0.15); }
+
+    .plan-features { display: flex; flex-direction: column; gap: var(--space-3); }
+    .feat-item { display: flex; align-items: flex-start; gap: var(--space-2); font-size: var(--text-xs); }
+    .feat-check { width: 14px; height: 14px; color: #22c55e; flex-shrink: 0; margin-top: 1px; font-size: 12px; }
+    .feat-dash { width: 14px; height: 14px; color: var(--text-tertiary); flex-shrink: 0; margin-top: 1px; }
+    .feat-text { color: var(--text-secondary); line-height: 1.4; }
+    .feat-text strong { color: var(--text-primary); }
+    .feat-divider { height: 1px; background: var(--border-subtle); margin: var(--space-2) 0; }
+
+    /* ── Feature comparison table ──────────────────────────── */
+    .compare-section { margin-bottom: var(--space-12); }
+    .compare-title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-6); text-align: center; }
+    .compare-table { width: 100%; border-collapse: collapse; }
+    .compare-table th { padding: var(--space-4); text-align: center; font-size: var(--text-sm); font-weight: 600; border-bottom: 2px solid var(--border-subtle); }
+    .compare-table th:first-child { text-align: left; color: var(--text-tertiary); font-size: var(--text-xs); }
+    .compare-table .th-plan { display: flex; flex-direction: column; gap: 2px; align-items: center; }
+    .compare-table .th-name { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); }
+    .compare-table .th-price { font-size: var(--text-base); font-weight: 700; color: var(--text-primary); }
+    .compare-table td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle); text-align: center; font-size: var(--text-xs); }
+    .compare-table td:first-child { text-align: left; color: var(--text-secondary); font-size: var(--text-xs); }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table .section-row td { background: rgba(255,255,255,0.02); font-weight: 600; color: var(--text-tertiary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; text-align: left; padding-top: var(--space-4); }
+    .compare-check { color: #22c55e; font-size: 14px; }
+    .compare-dash { color: var(--text-tertiary); }
+    .compare-val { font-family: var(--font-mono); color: var(--text-primary); }
+
+    /* ── FAQ ────────────────────────────────────────────────── */
+    .faq-section { max-width: 680px; margin: 0 auto var(--space-12); }
+    .faq-title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-6); text-align: center; }
+    .faq-item { border-bottom: 1px solid var(--border-subtle); padding: var(--space-4) 0; }
+    .faq-q { font-size: var(--text-sm); font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .faq-a { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; margin-top: var(--space-3); display: none; }
+    .faq-a.open { display: block; }
+    .faq-icon { font-size: 18px; color: var(--text-tertiary); transition: transform .2s; }
+    .faq-icon.open { transform: rotate(45deg); }
+
+    /* ── Enterprise CTA ──────────────────────────────────────── */
+    .enterprise-cta {
+      background: linear-gradient(135deg, rgba(45,125,210,0.08) 0%, rgba(45,125,210,0.03) 100%);
+      border: 1px solid rgba(45,125,210,0.2); border-radius: var(--radius-2xl);
+      padding: var(--space-10); text-align: center; margin-bottom: var(--space-8);
+    }
+    .enterprise-cta h3 { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; margin-bottom: var(--space-2); }
+    .enterprise-cta p { color: var(--text-secondary); font-size: var(--text-sm); margin-bottom: var(--space-6); }
+
+    @media (max-width: 768px) {
+      .plans-grid { grid-template-columns: 1fr; }
+      .pricing-page { padding: 0 var(--space-4) var(--space-10); }
+      .pricing-header h1 { font-size: var(--text-4xl); }
+      .compare-table { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);">Signal Market</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:var(--space-6);">
+      <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Signals</a>
+      <a href="/brief" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Brief</a>
+      <a href="/api" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">API</a>
+      <a href="/pricing" style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500;text-decoration:none;border-bottom:2px solid var(--brand);padding-bottom:2px;">Pricing</a>
+    </div>
+  </div>
+</nav>
+
+<div class="pricing-page">
+
+  <div class="pricing-header">
+    <h1>Intelligence, not subscription noise</h1>
+    <p>Start free. Upgrade when Signal Market becomes load-bearing for your decisions.</p>
+    <div class="pricing-toggle">
+      <span class="toggle-label">Monthly</span>
+      <div class="toggle-switch" id="billing-toggle" onclick="toggleBilling()"><div class="toggle-knob"></div></div>
+      <span class="toggle-label">Annual</span>
+      <span class="discount-badge">Save 20%</span>
+    </div>
+  </div>
+
+  <div class="plans-grid">
+    <!-- Free -->
+    <div class="plan-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">
+        <span class="currency">$</span><span class="amount">0</span>
+        <span class="period">/ month</span>
+      </div>
+      <p class="plan-tagline">Explore the intelligence layer. No credit card required.</p>
+      <a href="/api" class="plan-cta ghost">Start Free</a>
+      <div class="plan-features">
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text"><strong>10 signals</strong> per query</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Daily brief (read-only)</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Signal graph (view)</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">1,000 API requests / day</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">7-day signal history</span></div>
+        <div class="feat-divider"></div>
+        <div class="feat-item"><span class="feat-dash">–</span><span class="feat-text">No WorldState v2 access</span></div>
+        <div class="feat-item"><span class="feat-dash">–</span><span class="feat-text">No email brief</span></div>
+        <div class="feat-item"><span class="feat-dash">–</span><span class="feat-text">No custom filters</span></div>
+      </div>
+    </div>
+
+    <!-- Pro (featured) -->
+    <div class="plan-card featured">
+      <div class="plan-badge">Most Popular</div>
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">
+        <span class="currency">$</span>
+        <span class="amount" id="pro-price">49</span>
+        <span class="period">/ month</span>
+      </div>
+      <p class="plan-tagline">For founders, researchers, and investors who need signal advantage over noise.</p>
+      <a href="/api" class="plan-cta primary">Start Pro Trial</a>
+      <div class="plan-features">
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text"><strong>All signals</strong> + full history</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Daily brief by email (09:00 GMT+8)</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">WorldState v2 API access</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Signal graph + insights export</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">50,000 API requests / day</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">90-day signal history</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Custom stage + confidence filters</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Watchlist + alerts (5 topics)</span></div>
+        <div class="feat-divider"></div>
+        <div class="feat-item"><span class="feat-dash">–</span><span class="feat-text">No bulk export</span></div>
+        <div class="feat-item"><span class="feat-dash">–</span><span class="feat-text">No agent-tier rate limits</span></div>
+      </div>
+    </div>
+
+    <!-- Agent -->
+    <div class="plan-card">
+      <div class="plan-name">Agent</div>
+      <div class="plan-price">
+        <span class="currency">$</span>
+        <span class="amount" id="agent-price">199</span>
+        <span class="period">/ month</span>
+      </div>
+      <p class="plan-tagline">For AI systems and teams that embed Signal Market as a world-state layer.</p>
+      <a href="/api" class="plan-cta secondary">Contact Sales</a>
+      <div class="plan-features">
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text"><strong>Everything in Pro</strong></span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">300 requests/min (agent-safe rate)</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Unlimited API requests</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">WorldState v2 + causal layer (P0-B)</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Webhook: real-time signal updates</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Bulk export (JSONL/CSV)</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Full signal history</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Team seats (up to 10)</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">SLA + dedicated support</span></div>
+        <div class="feat-item"><span class="feat-check">✓</span><span class="feat-text">Custom signal domains</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <div class="compare-section">
+    <h2 class="compare-title">Full comparison</h2>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th><div class="th-plan"><span class="th-name">Free</span><span class="th-price">$0</span></div></th>
+          <th><div class="th-plan"><span class="th-name">Pro</span><span class="th-price" id="pro-th">$49/mo</span></div></th>
+          <th><div class="th-plan"><span class="th-name">Agent</span><span class="th-price" id="agent-th">$199/mo</span></div></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="section-row"><td colspan="4">Core Intelligence</td></tr>
+        <tr><td>Active signals</td><td class="compare-val">10</td><td class="compare-val">All</td><td class="compare-val">All</td></tr>
+        <tr><td>Signal history</td><td class="compare-val">7d</td><td class="compare-val">90d</td><td class="compare-val">Full</td></tr>
+        <tr><td>Signal graph</td><td class="compare-check">✓</td><td class="compare-check">✓</td><td class="compare-check">✓</td></tr>
+        <tr><td>WorldState v2 API</td><td class="compare-dash">–</td><td class="compare-check">✓</td><td class="compare-check">✓</td></tr>
+        <tr><td>Cross-validated signals</td><td class="compare-check">✓</td><td class="compare-check">✓</td><td class="compare-check">✓</td></tr>
+
+        <tr class="section-row"><td colspan="4">Delivery</td></tr>
+        <tr><td>Daily brief (web)</td><td class="compare-check">✓</td><td class="compare-check">✓</td><td class="compare-check">✓</td></tr>
+        <tr><td>Daily brief (email)</td><td class="compare-dash">–</td><td class="compare-check">✓</td><td class="compare-check">✓</td></tr>
+        <tr><td>Webhook</td><td class="compare-dash">–</td><td class="compare-dash">–</td><td class="compare-check">✓</td></tr>
+        <tr><td>Bulk export</td><td class="compare-dash">–</td><td class="compare-dash">–</td><td class="compare-check">✓</td></tr>
+
+        <tr class="section-row"><td colspan="4">API</td></tr>
+        <tr><td>Requests / day</td><td class="compare-val">1,000</td><td class="compare-val">50,000</td><td class="compare-val">Unlimited</td></tr>
+        <tr><td>Requests / min</td><td class="compare-val">10</td><td class="compare-val">60</td><td class="compare-val">300</td></tr>
+
+        <tr class="section-row"><td colspan="4">Account</td></tr>
+        <tr><td>Watchlist topics</td><td class="compare-val">0</td><td class="compare-val">5</td><td class="compare-val">Unlimited</td></tr>
+        <tr><td>Team seats</td><td class="compare-val">1</td><td class="compare-val">1</td><td class="compare-val">10</td></tr>
+        <tr><td>SLA</td><td class="compare-dash">–</td><td class="compare-dash">–</td><td class="compare-check">✓</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-section">
+    <h2 class="faq-title">Frequently asked</h2>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What makes Signal Market different from Google Alerts or RSS feeds? <span class="faq-icon">+</span></div>
+      <div class="faq-a">Google Alerts surfaces documents. Signal Market surfaces <em>patterns</em>. Every signal here has survived multi-source cross-validation — the confidence score tells you not just that something was mentioned, but whether independent data streams agree it matters. You don't get that from a feed.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">Can I use Signal Market in my AI agent? <span class="faq-icon">+</span></div>
+      <div class="faq-a">Yes. The API v2 returns WorldStateObjects designed for agent consumption: typed fields, explicit nulls with documentation, confidence intervals, event classification. See the <a href="/api" style="color:var(--brand)">API docs</a> for agent integration examples.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What data sources are monitored? <span class="faq-icon">+</span></div>
+      <div class="faq-a">Currently: arXiv (cs.AI, cs.LG, cs.CL), GitHub Trending, HuggingFace model trends, Alpha Vantage news sentiment, and arXiv RSS. Expanding to: Crypto signals, financial intelligence, and prediction market data in Q2 2026.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What does "cross-validated" mean? <span class="faq-icon">+</span></div>
+      <div class="faq-a">A signal is cross-validated when multiple independent sources confirm the same trend. An arXiv paper about AI Agents is one signal. When GitHub trending, HuggingFace model downloads, and arXiv all point to the same topic, the confidence rises and the signal is marked cross-validated. This is Signal Market's core value add.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">What is the WorldState v2 API? <span class="faq-icon">+</span></div>
+      <div class="faq-a">WorldState v2 is an enhanced signal format designed for AI agent consumption. It adds: event classification, related domain mapping (from graph topology), causal phase estimation, and structured null fields that document what's coming next. It's an honest API — null fields mean "not yet computed" not "doesn't exist".</div>
+    </div>
+  </div>
+
+  <!-- Enterprise CTA -->
+  <div class="enterprise-cta">
+    <h3>Running a team or large AI system?</h3>
+    <p>Custom signal domains, higher rate limits, dedicated support, and white-label options available. Talk to the team.</p>
+    <div style="display:flex;gap:var(--space-3);justify-content:center;flex-wrap:wrap;">
+      <a href="mailto:aimusk@nstar-live.com" class="btn-primary">Contact Sales</a>
+      <a href="/api" class="btn-secondary">Read the docs first</a>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let annual = false;
+function toggleBilling() {
+  annual = !annual;
+  const toggle = document.getElementById('billing-toggle');
+  toggle.classList.toggle('on', annual);
+  const proMo = annual ? 39 : 49;
+  const agentMo = annual ? 159 : 199;
+  document.getElementById('pro-price').textContent = proMo;
+  document.getElementById('agent-price').textContent = agentMo;
+  document.getElementById('pro-th').textContent = `$${proMo}/mo`;
+  document.getElementById('agent-th').textContent = `$${agentMo}/mo`;
+}
+
+function toggleFaq(q) {
+  const a = q.nextElementSibling;
+  const icon = q.querySelector('.faq-icon');
+  a.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+</script>
+</body>
+</html>

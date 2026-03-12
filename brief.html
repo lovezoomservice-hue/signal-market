@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Intelligence Brief — Signal Market</title>
+  <meta name="description" content="Your daily AI intelligence brief. Scored, sourced, explained. Not a newsletter — an intelligence layer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .brief-layout { max-width: 760px; margin: 0 auto; padding: 0 var(--space-6); }
+
+    /* ── Header ─────────────────────────────────────────────── */
+    .brief-header { padding: var(--space-16) 0 var(--space-8); }
+    .brief-date {
+      font-family: var(--font-mono); font-size: var(--text-xs);
+      color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: var(--space-3);
+      display: flex; align-items: center; gap: var(--space-2);
+    }
+    .brief-headline {
+      font-size: var(--text-4xl); font-weight: 700; letter-spacing: -0.03em;
+      line-height: 1.15; margin-bottom: var(--space-4);
+    }
+    .brief-lead {
+      font-size: var(--text-lg); color: var(--text-secondary); line-height: 1.7;
+      margin-bottom: var(--space-6);
+    }
+    .brief-meta-row {
+      display: flex; gap: var(--space-6); flex-wrap: wrap;
+      padding: var(--space-4) 0;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: var(--space-10);
+    }
+    .bm-item { display: flex; flex-direction: column; gap: 2px; }
+    .bm-num { font-family: var(--font-mono); font-size: var(--text-xl); font-weight: 600; color: var(--brand); }
+    .bm-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); }
+
+    /* ── Section ─────────────────────────────────────────────── */
+    .brief-section { margin-bottom: var(--space-10); }
+    .section-header {
+      display: flex; align-items: center; gap: var(--space-3);
+      margin-bottom: var(--space-5);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .section-title { font-size: var(--text-sm); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+    .section-count { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); }
+
+    /* ── Signal entry ────────────────────────────────────────── */
+    .signal-entry {
+      display: grid; grid-template-columns: auto 1fr auto;
+      gap: var(--space-4) var(--space-5);
+      padding: var(--space-5) 0;
+      border-bottom: 1px solid var(--border-subtle);
+      align-items: start;
+    }
+    .signal-entry:last-child { border-bottom: none; }
+    .se-conf {
+      font-family: var(--font-mono); font-size: var(--text-2xl); font-weight: 700;
+      width: 52px; text-align: right; padding-top: 2px; line-height: 1;
+      flex-shrink: 0;
+    }
+    .se-body { min-width: 0; }
+    .se-topic { font-size: var(--text-base); font-weight: 600; margin-bottom: var(--space-1); }
+    .se-context { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; margin-bottom: var(--space-3); }
+    .se-tags { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+    .se-tag {
+      font-family: var(--font-mono); font-size: 10px; padding: 2px 8px;
+      border-radius: 99px; border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text-tertiary); background: rgba(255,255,255,0.03);
+    }
+    .se-tag.validated { border-color: rgba(34,197,94,0.3); color: #22c55e; background: rgba(34,197,94,0.05); }
+    .se-actions { display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-end; }
+
+    /* ── Graph insight box ───────────────────────────────────── */
+    .graph-insight-box {
+      background: linear-gradient(135deg, rgba(45,125,210,0.06) 0%, rgba(45,125,210,0.02) 100%);
+      border: 1px solid rgba(45,125,210,0.2);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      margin-bottom: var(--space-10);
+    }
+    .gib-title { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--brand); font-family: var(--font-mono); margin-bottom: var(--space-3); }
+    .gib-text { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.7; }
+    .gib-stats { display: flex; gap: var(--space-5); margin-top: var(--space-4); flex-wrap: wrap; }
+    .gib-stat { text-align: center; }
+    .gib-stat .n { font-family: var(--font-mono); font-size: var(--text-xl); font-weight: 600; color: var(--text-primary); }
+    .gib-stat .l { font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; }
+
+    /* ── Subscribe CTA ───────────────────────────────────────── */
+    .subscribe-cta {
+      background: var(--surface-low);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-8);
+      text-align: center;
+      margin-bottom: var(--space-10);
+    }
+    .subscribe-cta h3 { font-size: var(--text-2xl); font-weight: 700; margin-bottom: var(--space-2); letter-spacing: -0.02em; }
+    .subscribe-cta p { color: var(--text-secondary); margin-bottom: var(--space-6); font-size: var(--text-sm); }
+    .subscribe-form { display: flex; gap: var(--space-3); max-width: 420px; margin: 0 auto; flex-wrap: wrap; justify-content: center; }
+    .subscribe-input {
+      flex: 1; min-width: 220px;
+      padding: var(--space-3) var(--space-4);
+      background: var(--surface-mid);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: var(--text-sm);
+      font-family: var(--font-sans);
+    }
+    .subscribe-input:focus { outline: none; border-color: var(--brand); }
+    .subscribe-note { font-size: var(--text-xs); color: var(--text-tertiary); margin-top: var(--space-3); }
+
+    /* ── Agent API box ───────────────────────────────────────── */
+    .agent-api-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-bottom: var(--space-10);
+    }
+    .aab-title { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--text-tertiary); margin-bottom: var(--space-3); text-transform: uppercase; letter-spacing: 0.08em; }
+    .code-block {
+      font-family: var(--font-mono); font-size: var(--text-xs);
+      color: #a3e635; background: rgba(0,0,0,0.3);
+      border-radius: var(--radius-md); padding: var(--space-3);
+      line-height: 1.8; overflow-x: auto;
+    }
+
+    @media (max-width: 640px) {
+      .brief-layout { padding: 0 var(--space-4); }
+      .brief-header { padding: var(--space-10) 0 var(--space-6); }
+      .brief-headline { font-size: var(--text-3xl); }
+      .signal-entry { grid-template-columns: 1fr; }
+      .se-conf { font-size: var(--text-xl); width: auto; text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);letter-spacing:-0.01em;">Signal Market</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:var(--space-6);">
+      <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Signals</a>
+      <a href="/graph" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">Graph</a>
+      <a href="/brief" style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500;text-decoration:none;border-bottom:2px solid var(--brand);padding-bottom:2px;">Brief</a>
+      <a href="/api" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;transition:color .15s" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-secondary)'">API</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--space-3);">
+      <span class="live-dot"></span>
+      <span style="font-size:var(--text-xs);color:var(--text-tertiary);font-family:var(--font-mono);">LIVE</span>
+    </div>
+  </div>
+</nav>
+
+<div class="brief-layout">
+  <div id="brief-root">
+    <!-- Loading state -->
+    <div class="brief-header">
+      <div class="brief-date"><span class="live-dot"></span> Loading brief...</div>
+      <div class="skeleton-line" style="width:80%;height:40px;border-radius:8px"></div>
+      <div class="skeleton-line" style="width:60%;height:24px;border-radius:6px;margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STAGE_COLORS = {
+  accelerating: '#22c55e', forming: '#f59e0b', emerging: '#60a5fa',
+  peak: '#f97316', fading: '#6b7280',
+};
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+}
+
+function renderSignalEntry(s) {
+  const conf = Math.round((s.confidence || 0) * 100);
+  const color = STAGE_COLORS[s.stage] || '#6b7280';
+  const validated = s.cross_validated || (s.sources||[]).length >= 2;
+  const relatedTo = (s.related_to || []).slice(0, 2);
+
+  return `
+  <div class="signal-entry">
+    <div class="se-conf" style="color:${color}">${conf}%</div>
+    <div class="se-body">
+      <div class="se-topic">${s.topic}</div>
+      <div class="se-context">${s.why_it_matters || ''}</div>
+      <div class="se-tags">
+        <span class="se-tag ${validated?'validated':''}">${validated?'✓ Multi-source':'Single source'}</span>
+        <span class="se-tag">${s.evidence_count} evidence item${s.evidence_count!==1?'s':''}</span>
+        ${relatedTo.map(r=>`<span class="se-tag">→ ${r}</span>`).join('')}
+        ${(s.sources||[]).map(src=>`<span class="se-tag">${src.split(':')[0]}</span>`).join('')}
+      </div>
+    </div>
+    <div class="se-actions">
+      <span class="stage-badge stage-${s.stage}" style="flex-shrink:0">${s.stage}</span>
+      <a href="/signals" style="font-size:10px;color:var(--text-tertiary);text-decoration:none;font-family:var(--font-mono)">detail →</a>
+    </div>
+  </div>`;
+}
+
+function renderBrief(brief) {
+  const meta = brief.meta || {};
+  const gi = brief.graph_insight;
+
+  const metaHtml = `
+  <div class="brief-meta-row">
+    <div class="bm-item"><span class="bm-num">${meta.signal_count || 0}</span><span class="bm-label">Signals</span></div>
+    <div class="bm-item"><span class="bm-num">${meta.sources_monitored || 0}</span><span class="bm-label">Sources</span></div>
+    <div class="bm-item"><span class="bm-num">${meta.high_confidence || 0}</span><span class="bm-label">High conf ≥85%</span></div>
+    <div class="bm-item"><span class="bm-num">${meta.cross_validated || 0}</span><span class="bm-label">Cross-validated</span></div>
+    <div class="bm-item"><span class="bm-num">${meta.accelerating || 0}</span><span class="bm-label">Accelerating</span></div>
+  </div>`;
+
+  const sectionsHtml = (brief.sections || []).map(section => `
+  <div class="brief-section">
+    <div class="section-header">
+      <span class="section-title">${section.title}</span>
+      <span class="section-count">${section.signal_count} signal${section.signal_count!==1?'s':''}</span>
+    </div>
+    ${section.signals.map(renderSignalEntry).join('')}
+  </div>`).join('');
+
+  const giHtml = gi ? `
+  <div class="graph-insight-box">
+    <div class="gib-title">Topology Insight</div>
+    <div class="gib-text">${gi.topology_insight}</div>
+    <div class="gib-stats">
+      <div class="gib-stat"><div class="n">${gi.hub_signal?.split(' ')[0] || '—'}</div><div class="l">Hub signal</div></div>
+      <div class="gib-stat"><div class="n">${gi.hub_connections}</div><div class="l">Hub connections</div></div>
+      <div class="gib-stat"><div class="n">${gi.graph_density}</div><div class="l">Graph density</div></div>
+    </div>
+    <div style="margin-top:var(--space-4)"><a href="/graph" style="font-size:var(--text-xs);color:var(--brand);text-decoration:none;font-family:var(--font-mono)">Explore full topology →</a></div>
+  </div>` : '';
+
+  const agentHtml = `
+  <div class="agent-api-box">
+    <div class="aab-title">Agent API — Machine-readable brief</div>
+    <div class="code-block">curl https://signal-market.vercel.app/api/v2/brief<br>→ GET /api/v2/brief  # structured JSON for agent consumption<br>→ GET /api/v2/world-state  # WorldStateObject v2 per signal</div>
+  </div>`;
+
+  const subscribeHtml = `
+  <div class="subscribe-cta">
+    <h3>Get the brief in your inbox</h3>
+    <p>Daily intelligence delivered at 09:00 GMT+8. Scored, sourced, and ready to act on.</p>
+    <div class="subscribe-form">
+      <input type="email" class="subscribe-input" placeholder="your@email.com" id="email-input">
+      <button class="btn-primary" onclick="subscribe()">Subscribe</button>
+    </div>
+    <div class="subscribe-note" id="sub-note">No noise. Just intelligence. Unsubscribe anytime.</div>
+  </div>`;
+
+  document.getElementById('brief-root').innerHTML = `
+  <div class="brief-header">
+    <div class="brief-date">
+      <span class="live-dot"></span>
+      ${formatDate(brief.generated_at)} · ${brief.brief_id}
+    </div>
+    <h1 class="brief-headline">${brief.headline}</h1>
+    <p class="brief-lead">${brief.lead}</p>
+    ${metaHtml}
+  </div>
+  ${sectionsHtml}
+  ${giHtml}
+  ${subscribeHtml}
+  ${agentHtml}
+  <div style="height:var(--space-16)"></div>`;
+}
+
+function subscribe() {
+  const email = document.getElementById('email-input')?.value;
+  const note = document.getElementById('sub-note');
+  if (!email || !email.includes('@')) {
+    if (note) { note.textContent = 'Please enter a valid email.'; note.style.color = '#ef4444'; }
+    return;
+  }
+  if (note) { note.textContent = `✓ ${email} subscribed. Brief arrives daily at 09:00 GMT+8.`; note.style.color = '#22c55e'; }
+}
+
+async function loadBrief() {
+  try {
+    const r = await fetch('/api/v2/brief');
+    const brief = await r.json();
+    renderBrief(brief);
+  } catch (e) {
+    document.getElementById('brief-root').innerHTML = `<div style="padding:var(--space-16);color:var(--text-tertiary)">Unable to load brief. Is the server running?</div>`;
+  }
+}
+
+loadBrief();
+</script>
+</body>
+</html>

@@ -16,6 +16,30 @@
     {
       "src": "graph.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "brief.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api-docs.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "pricing.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "about.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "signal.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "status.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -174,6 +198,34 @@
     {
       "src": "/api/watchlist/triggers",
       "dest": "/api/watchlist.js"
+    },
+    {
+      "src": "/brief",
+      "dest": "/brief.html"
+    },
+    {
+      "src": "/api-docs",
+      "dest": "/api-docs.html"
+    },
+    {
+      "src": "/pricing",
+      "dest": "/pricing.html"
+    },
+    {
+      "src": "/about",
+      "dest": "/about.html"
+    },
+    {
+      "src": "/api/v2/brief",
+      "dest": "/api/v2/brief.js"
+    },
+    {
+      "src": "/signal",
+      "dest": "/signal.html"
+    },
+    {
+      "src": "/status",
+      "dest": "/status.html"
     },
     {
       "src": "/api/(.*)",
