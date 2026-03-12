@@ -7,7 +7,16 @@
       "source": "brief",
       "subscribed_at": "2026-03-12T06:31:22.526Z",
       "active": true
+    },
+    "sub_25c3cb0c55eb6618": {
+      "id": "sub_25c3cb0c55eb6618",
+      "email": "digest-test2@example.com",
+      "plan": "free",
+      "source": "test",
+      "subscribed_at": "2026-03-12T06:37:45.387Z",
+      "active": false,
+      "unsubscribed_at": "2026-03-12T06:38:15.067Z"
     }
   },
-  "_updated": "2026-03-12T06:31:22.526Z"
+  "_updated": "2026-03-12T06:38:15.067Z"
 }

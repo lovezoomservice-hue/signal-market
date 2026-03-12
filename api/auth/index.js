@@ -192,6 +192,39 @@ function handleSubscribe(req, res) {
   });
 }
 
+function handleUnsubscribe(req, res) {
+  // GET /api/auth/unsubscribe?email=x&token=y  (link in email footer)
+  // POST /api/auth/unsubscribe { email, token }
+  const email = req.query?.email || '';
+  const token = req.query?.token || '';
+  if (!email || !token) return res.status(400).json({ error: 'email and token required' });
+
+  const store = loadJSON(SUBS_PATH, { subscribers: {} });
+  const entry = Object.entries(store.subscribers).find(([, s]) => s.email === email);
+  if (!entry) return res.status(404).json({ error: 'Subscriber not found' });
+
+  // Verify token (same derivation as send_digest.py)
+  const smtpPass = loadJSON(join(process.cwd(), 'security', 'vault', 'store.json'), { items: {} });
+  const vaultItem = smtpPass.items?.['sec_smtp_pass'];
+  const secret = vaultItem ? Buffer.from(vaultItem.ciphertext_b64, 'base64').toString() : 'fallback-secret';
+  const expected = crypto.createHash('sha256').update(`${email}:${secret}:unsubscribe`).digest('hex').slice(0, 32);
+
+  if (token !== expected) return res.status(403).json({ error: 'Invalid unsubscribe token' });
+
+  store.subscribers[entry[0]].active = false;
+  store.subscribers[entry[0]].unsubscribed_at = new Date().toISOString();
+  store._updated = new Date().toISOString();
+  saveJSON(SUBS_PATH, store);
+
+  // If HTML request (browser link), redirect to a confirmation page
+  const accept = req.headers?.accept || '';
+  if (accept.includes('text/html')) {
+    res.setHeader('Content-Type', 'text/html');
+    return res.status(200).send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Unsubscribed</title><style>body{font-family:system-ui;background:#0d1117;color:#e6edf3;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style></head><body><div style="text-align:center"><div style="font-size:32px;margin-bottom:16px">✓</div><h2>Unsubscribed</h2><p style="color:#8b949e">${email} has been removed from Signal Market digest.</p><a href="https://signal-market.pages.dev" style="color:#2d7dd2">← Back to Signal Market</a></div></body></html>`);
+  }
+  return res.status(200).json({ message: 'Unsubscribed', email });
+}
+
 function handleSubscriberList(req, res) {
   const key = req.headers['x-api-key'] || '';
   const store = loadJSON(join(process.cwd(), 'data', 'auth_store.json'), {});
@@ -217,13 +250,15 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key');
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const action = req.query?.action || (req.url || '').split('/').pop();
+  const rawSegment = (req.url || '').split('/').pop() || '';
+  const action = req.query?.action || rawSegment.split('?')[0];
 
   if (req.method === 'POST' && action === 'register')  return handleRegister(req, res);
   if (req.method === 'POST' && action === 'login')     return handleLogin(req, res);
   if (req.method === 'GET'  && action === 'me')         return handleMe(req, res);
   if (req.method === 'POST' && action === 'rotate')    return handleRotate(req, res);
-  if (req.method === 'POST' && action === 'subscribe') return handleSubscribe(req, res);
-  if (req.method === 'GET'  && action === 'subscribers') return handleSubscriberList(req, res);
+  if (req.method === 'POST' && action === 'subscribe')    return handleSubscribe(req, res);
+  if ((req.method === 'GET' || req.method === 'POST') && action === 'unsubscribe') return handleUnsubscribe(req, res);
+  if (req.method === 'GET'  && action === 'subscribers')  return handleSubscriberList(req, res);
   return handleInfo(req, res);
 }

@@ -1,3 +1,9 @@
 {
-  "items": {}
+  "items": {
+    "sec_smtp_pass": {
+      "ciphertext_b64": "JHZ3NkQ1JXAyZUhqZ21ZSw==",
+      "checksum_sha256": "05811dc3169e95e3cce21d2cbef83f97e21485e0923c60a6c6b2e41269c0e48d",
+      "updated_at": "2026-03-12T06:36:03.803152"
+    }
+  }
 }
