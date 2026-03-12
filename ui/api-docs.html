@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation | Signal Market</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #6366f1;
+            --accent-green: #22c55e;
+            --accent-cyan: #22d3ee;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(46, 46, 58, 0.6);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none; z-index: 0;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0; background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+            text-decoration: none; color: var(--text-primary);
+        }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--accent); }
+        main { position: relative; z-index: 1; padding-top: 80px; }
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; margin-bottom: 8px; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 32px; }
+        h2 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+        h3 { font-size: 18px; margin: 24px 0 12px; color: var(--accent-cyan); }
+        code, pre { font-family: 'JetBrains Mono', monospace; }
+        .endpoint-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; margin-bottom: 16px;
+        }
+        .endpoint-header {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap;
+        }
+        .method {
+            padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .method-get { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+        .method-post { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+        .method-delete { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .endpoint-path { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--accent-cyan); }
+        .endpoint-desc { color: var(--text-secondary); font-size: 14px; margin-bottom: 12px; }
+        .param-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        .param-table th, .param-table td {
+            text-align: left; padding: 10px; border-bottom: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .param-table th { color: var(--text-secondary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; font-size: 11px; }
+        .param-name { font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan); }
+        .param-type { color: var(--text-secondary); font-size: 12px; }
+        .response-box {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; margin-top: 12px;
+            overflow-x: auto;
+        }
+        .response-box pre { font-size: 12px; margin: 0; white-space: pre-wrap; }
+        .tag {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 11px; background: var(--bg-secondary); color: var(--text-secondary);
+            margin-right: 6px;
+        }
+        .loading { text-align: center; padding: 48px; color: var(--text-secondary); }
+        .spinner {
+            width: 32px; height: 32px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .quick-start {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.05));
+            border: 1px solid var(--accent); border-radius: 12px; padding: 24px; margin-bottom: 32px;
+        }
+        .quick-start h3 { margin-top: 0; color: var(--text-primary); }
+        .quick-start code { background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; }
+        .auth-note {
+            background: var(--bg-secondary); border-left: 3px solid var(--warning);
+            padding: 16px; margin: 16px 0; border-radius: 0 8px 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">Signal Market</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/brief.html">Brief</a>
+                <a href="/status.html">Status</a>
+                <a href="/about.html">About</a>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <h1>API Documentation</h1>
+        <p class="subtitle">Complete reference for Signal Market APIs</p>
+
+        <div class="quick-start">
+            <h3>Quick Start</h3>
+            <p style="margin-bottom: 12px;">Get started with Signal Market APIs in seconds:</p>
+            <pre style="background: var(--bg-primary); padding: 16px; border-radius: 8px; overflow-x: auto;">
+# Fetch today's intelligence brief
+curl https://signal-market-z14d.vercel.app/api/v2/agent-brief
+
+# Get ranked signals with urgency filter
+curl "https://signal-market-z14d.vercel.app/api/v2/rank?urgency=high&limit=5"
+
+# Register for notifications (requires API key for auth endpoints)
+curl -X POST https://signal-market-z14d.vercel.app/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "plan": "free"}'</pre>
+        </div>
+
+        <div class="auth-note">
+            <strong>Authentication:</strong> Most endpoints are public. Auth endpoints (<code>/api/auth/*</code>) require registration.
+            Include your API key with <code>X-API-Key</code> header for authenticated requests.
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading API documentation...</p>
+        </div>
+
+        <div id="docs-content" style="display: none;">
+            <h2>v2 Endpoints — Agent Native</h2>
+            <div id="v2-endpoints"></div>
+
+            <h2>Core Endpoints</h2>
+            <div id="core-endpoints"></div>
+
+            <h2>Auth Endpoints</h2>
+            <div id="auth-endpoints"></div>
+
+            <h2>System Endpoints</h2>
+            <div id="system-endpoints"></div>
+        </div>
+    </main>
+    <script>
+        const ENDPOINTS = {
+            v2: [
+                {
+                    method: 'GET',
+                    path: '/api/v2/agent-brief',
+                    description: 'Get consolidated intelligence brief with top signals, causal context, and action recommendations. Primary entry point for AI agents.',
+                    params: [
+                        { name: 'limit', type: 'integer', required: false, default: 5, desc: 'Number of top signals (max 20)' },
+                        { name: 'urgency', type: 'string', required: false, desc: 'Filter by urgency: high, medium, low' },
+                        { name: 'topic', type: 'string', required: false, desc: 'Filter by topic (partial match)' },
+                        { name: 'format', type: 'string', required: false, desc: 'Use "minimal" for reduced response size' },
+                    ],
+                    response: `{
+  "generated_at": "2026-03-13T00:00:00Z",
+  "top_signals": [
+    {
+      "rank": 1,
+      "topic": "AI Agents",
+      "urgency": "high",
+      "decision_question": "Which agent frameworks will become the production standard?",
+      "next_best_action": "Monitor top 5 agent framework GitHub stars weekly."
+    }
+  ],
+  "meta": { "total_signals": 15, "high_urgency_count": 5 }
+}`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v2/rank',
+                    description: 'Get signals ranked by agent actionability score. Score = (urgency × 0.4) + (confidence × 0.35) + (impact × 0.25) + stage boost.',
+                    params: [
+                        { name: 'limit', type: 'integer', required: false, default: 10, desc: 'Number of signals (max 50)' },
+                        { name: 'urgency', type: 'string', required: false, desc: 'Filter: high, medium, low' },
+                        { name: 'stage', type: 'string', required: false, desc: 'Filter by lifecycle stage' },
+                        { name: 'topic', type: 'string', required: false, desc: 'Filter by topic' },
+                        { name: 'min_confidence', type: 'float', required: false, desc: 'Minimum confidence threshold' },
+                    ],
+                    response: `{
+  "ranked": [
+    {
+      "rank": 1,
+      "signal_id": "evt_001",
+      "topic": "AI Agents",
+      "stage": "accelerating",
+      "urgency": "high",
+      "confidence": 0.92,
+      "agent_score": 0.876
+    }
+  ],
+  "total": 15,
+  "generated_at": "2026-03-13T00:00:00Z"
+}`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v2/compare',
+                    description: 'Compare 2+ signals side-by-side with verdict on which is more actionable.',
+                    params: [
+                        { name: 'ids', type: 'string', required: false, desc: 'Comma-separated signal IDs: evt_001,evt_002' },
+                        { name: 'topics', type: 'string', required: false, desc: 'Comma-separated topics: AI Agents,LLM Infrastructure' },
+                    ],
+                    response: `{
+  "comparison": [...],
+  "verdict": {
+    "recommended": "evt_001",
+    "reason": "AI Agents has higher urgency-confidence product"
+  }
+}`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v2/filter',
+                    description: 'Filter signals with structured query parameters.',
+                    params: [
+                        { name: 'stage', type: 'string', required: false, desc: 'Filter by stage (comma-separated)' },
+                        { name: 'urgency', type: 'string', required: false, desc: 'Filter by urgency' },
+                        { name: 'min_confidence', type: 'float', required: false, desc: 'Minimum confidence' },
+                        { name: 'topic', type: 'string', required: false, desc: 'Topic filter (partial match)' },
+                        { name: 'source', type: 'string', required: false, desc: 'Source filter' },
+                        { name: 'sort', type: 'string', required: false, default: 'urgency', desc: 'Sort by: urgency, confidence, stage, evidence' },
+                        { name: 'limit', type: 'integer', required: false, default: 20, desc: 'Max results (max 100)' },
+                    ],
+                    response: `{
+  "signals": [...],
+  "filters_applied": { "urgency": ["high"] },
+  "count": 5,
+  "total_unfiltered": 15
+}`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v2/causal/:signal_id',
+                    description: 'Get causal chain analysis for a specific signal — why is this happening now?',
+                    params: [],
+                    response: `{
+  "signal_id": "evt_001",
+  "topic": "AI Agents",
+  "primary_cause": "LLM capability crossing threshold for reliable tool use",
+  "causal_chain": [...],
+  "causal_confidence": 0.88
+}`
+                },
+                {
+                    method: 'POST',
+                    path: '/api/v2/subscribe',
+                    description: 'Create a subscription for signal notifications on a topic.',
+                    params: [
+                        { name: 'topic', type: 'string', required: true, desc: 'Topic to subscribe to' },
+                        { name: 'urgency_threshold', type: 'string', required: false, default: 'medium', desc: 'Minimum urgency' },
+                        { name: 'webhook_url', type: 'string', required: false, desc: 'Webhook for notifications' },
+                        { name: 'email', type: 'string', required: false, desc: 'Email for notifications' },
+                    ],
+                    body: `{ "topic": "AI Agents", "urgency_threshold": "high" }`,
+                    response: `{
+  "subscription_id": "sub_abc123",
+  "topic": "AI Agents",
+  "status": "active",
+  "persistence_mode": "in_memory"
+}`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v2/subscribe',
+                    description: 'Get subscription by ID or topic.',
+                    params: [
+                        { name: 'subscription_id', type: 'string', required: false, desc: 'Get by ID' },
+                        { name: 'topic', type: 'string', required: false, desc: 'Get by topic' },
+                    ],
+                    response: `{
+  "topic": "AI Agents",
+  "subscription_count": 1,
+  "subscriptions": [...]
+}`
+                },
+                {
+                    method: 'DELETE',
+                    path: '/api/v2/subscribe',
+                    description: 'Cancel a subscription.',
+                    params: [
+                        { name: 'subscription_id', type: 'string', required: true, desc: 'Subscription ID to cancel' },
+                    ],
+                    response: `{
+  "subscription_id": "sub_abc123",
+  "status": "cancelled"
+}`
+                },
+            ],
+            core: [
+                {
+                    method: 'GET',
+                    path: '/api/signals',
+                    description: 'Get all detected signals with full metadata.',
+                    params: [],
+                    response: `{ "signals": [...], "count": 15 }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/v2/brief',
+                    description: 'Get daily intelligence brief with causal enrichment.',
+                    params: [],
+                    response: `{ "brief_id": "brief-2026-03-13", "sections": [...], "agent_summary": {...} }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/topics',
+                    description: 'Get detected topic taxonomy.',
+                    params: [],
+                    response: `{ "topics": ["AI Agents", "LLM Infrastructure", ...] }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/trends',
+                    description: 'Get trend analysis across signals.',
+                    params: [],
+                    response: `{ "trends": [...] }`
+                },
+            ],
+            auth: [
+                {
+                    method: 'POST',
+                    path: '/api/auth/register',
+                    description: 'Register a new user account.',
+                    params: [],
+                    body: `{ "email": "user@example.com", "plan": "free", "name": "User" }`,
+                    response: `{
+  "message": "Account created",
+  "api_key": "sm_xxxxx",
+  "user_id": "usr_xxxxx",
+  "plan": "free"
+}`
+                },
+                {
+                    method: 'POST',
+                    path: '/api/auth/login',
+                    description: 'Login and retrieve API key.',
+                    params: [],
+                    body: `{ "email": "user@example.com" }`,
+                    response: `{ "api_key": "sm_xxxxx", "user_id": "usr_xxxxx", "plan": "free" }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/auth/me',
+                    description: 'Get current user info. Requires X-API-Key header.',
+                    params: [],
+                    response: `{ "user_id": "usr_xxx", "email": "...", "plan": "pro", "req_count": 42 }`
+                },
+                {
+                    method: 'POST',
+                    path: '/api/auth/subscribe',
+                    description: 'Subscribe to daily email digest.',
+                    params: [],
+                    body: `{ "email": "user@example.com" }`,
+                    response: `{ "message": "Subscribed", "digest_time": "09:00 GMT+8" }`
+                },
+            ],
+            system: [
+                {
+                    method: 'GET',
+                    path: '/api/health',
+                    description: 'API health check.',
+                    params: [],
+                    response: `{ "status": "ok", "version": "v2", "timestamp": "..." }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/stats',
+                    description: 'Get system statistics.',
+                    params: [],
+                    response: `{ "total_signals": 15, "sources_active": 7, ... }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/pipeline/status',
+                    description: 'Get pipeline execution status.',
+                    params: [],
+                    response: `{ "last_run": "...", "status": "success", ... }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/watchlist',
+                    description: 'Get watchlist items. POST to add, DELETE /:id to remove.',
+                    params: [],
+                    response: `{ "watchlist": [...], "count": 3, "persistence_mode": "in_memory" }`
+                },
+                {
+                    method: 'GET',
+                    path: '/api/docs',
+                    description: 'Get OpenAPI specification (JSON).',
+                    params: [],
+                    response: `{ "openapi": "3.0.0", "paths": {...} }`
+                },
+            ]
+        };
+
+        function renderEndpoint(ep) {
+            const methodClass = `method-${ep.method.toLowerCase()}`;
+            return `
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method ${methodClass}">${ep.method}</span>
+                        <span class="endpoint-path">${ep.path}</span>
+                    </div>
+                    <p class="endpoint-desc">${ep.description}</p>
+                    ${ep.params.length > 0 ? `
+                        <table class="param-table">
+                            <thead>
+                                <tr><th>Parameter</th><th>Type</th><th>Required</th><th>Description</th></tr>
+                            </thead>
+                            <tbody>
+                                ${ep.params.map(p => `
+                                    <tr>
+                                        <td class="param-name">${p.name}</td>
+                                        <td class="param-type">${p.type}</td>
+                                        <td>${p.required ? '<span style="color: var(--danger)">Yes</span>' : 'No'}</td>
+                                        <td>${p.desc}${p.default !== undefined ? ` (default: ${p.default})` : ''}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    ` : ''}
+                    ${ep.body ? `
+                        <div style="margin-top: 12px;">
+                            <strong style="font-size: 12px; color: var(--text-secondary);">Request Body:</strong>
+                            <div class="response-box"><pre>${ep.body}</pre></div>
+                        </div>
+                    ` : ''}
+                    <div style="margin-top: 12px;">
+                        <strong style="font-size: 12px; color: var(--text-secondary);">Response:</strong>
+                        <div class="response-box"><pre>${ep.response}</pre></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function loadDocs() {
+            document.getElementById('v2-endpoints').innerHTML = ENDPOINTS.v2.map(renderEndpoint).join('');
+            document.getElementById('core-endpoints').innerHTML = ENDPOINTS.core.map(renderEndpoint).join('');
+            document.getElementById('auth-endpoints').innerHTML = ENDPOINTS.auth.map(renderEndpoint).join('');
+            document.getElementById('system-endpoints').innerHTML = ENDPOINTS.system.map(renderEndpoint).join('');
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('docs-content').style.display = 'block';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDocs);
+    </script>
+</body>
+</html>

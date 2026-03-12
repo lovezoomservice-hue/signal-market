@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Status | Signal Market</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #6366f1;
+            --accent-green: #22c55e;
+            --accent-cyan: #22d3ee;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(46, 46, 58, 0.6);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none; z-index: 0;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0; background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+            text-decoration: none; color: var(--text-primary);
+        }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--accent); }
+        main { position: relative; z-index: 1; padding-top: 80px; }
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; margin-bottom: 8px; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 32px; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 32px; }
+        .status-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px;
+        }
+        .status-card h3 { font-size: 14px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .status-value { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+        .status-indicator { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 500; }
+        .status-indicator.healthy { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+        .status-indicator.degraded { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .status-indicator.down { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .status-indicator.loading { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+        .metric-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-label { color: var(--text-secondary); font-size: 14px; }
+        .metric-value { font-weight: 600; }
+        .detail-section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+        .detail-section h2 { font-family: 'Space Grotesk', sans-serif; font-size: 20px; margin-bottom: 16px; }
+        .endpoint-list { list-style: none; }
+        .endpoint-list li { padding: 10px 0; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 13px; }
+        .endpoint-list li:last-child { border-bottom: none; }
+        .endpoint-ok { color: var(--success); }
+        .endpoint-err { color: var(--danger); }
+        .spinner {
+            width: 20px; height: 20px; border: 2px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 1s linear infinite; display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .refresh-btn {
+            background: var(--accent); color: white; border: none;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            font-size: 14px; font-weight: 500; margin-bottom: 20px;
+        }
+        .refresh-btn:hover { opacity: 0.9; }
+        .timestamp { color: var(--text-secondary); font-size: 12px; margin-top: 8px; }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">Signal Market</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/brief.html">Brief</a>
+                <a href="/watchlist.html">Watchlist</a>
+                <a href="/developer.html">API</a>
+                <a href="/about.html">About</a>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <h1>System Status</h1>
+        <p class="subtitle">Real-time API health and system metrics</p>
+        <button class="refresh-btn" onclick="refreshAll()">Refresh Status</button>
+        <div id="loading" class="status-card" style="margin-bottom: 20px;">
+            <div class="status-value"><span class="spinner"></span> Loading...</div>
+        </div>
+        <div id="status-content" style="display: none;">
+            <div class="status-grid">
+                <div class="status-card">
+                    <h3>API Health</h3>
+                    <div id="api-status" class="status-value">
+                        <span class="status-indicator loading">Checking...</span>
+                    </div>
+                    <div id="api-details" style="margin-top: 16px;"></div>
+                </div>
+                <div class="status-card">
+                    <h3>Signal Count</h3>
+                    <div id="signal-count" class="status-value">--</div>
+                    <div class="timestamp">From /api/stats</div>
+                </div>
+                <div class="status-card">
+                    <h3>Last Pipeline Run</h3>
+                    <div id="pipeline-time" class="status-value">--</div>
+                    <div class="timestamp">Automated daily execution</div>
+                </div>
+                <div class="status-card">
+                    <h3>Persistence Mode</h3>
+                    <div id="persistence-mode" class="status-value">--</div>
+                    <div class="timestamp">KV layer status</div>
+                </div>
+            </div>
+            <div class="detail-section">
+                <h2>API Endpoint Health</h2>
+                <ul id="endpoint-list" class="endpoint-list"></ul>
+            </div>
+            <div class="detail-section">
+                <h2>System Information</h2>
+                <div id="system-info"></div>
+            </div>
+        </div>
+    </main>
+    <script>
+        const API_BASE = '';
+        const ENDPOINTS_TO_CHECK = ['/api/health', '/api/stats', '/api/signals', '/api/v2/brief', '/api/watchlist'];
+
+        async function fetchJSON(url) {
+            const res = await fetch(API_BASE + url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+        }
+
+        function formatRelativeTime(isoString) {
+            if (!isoString) return 'Unknown';
+            const date = new Date(isoString);
+            const now = new Date();
+            const diff = now - date;
+            const mins = Math.floor(diff / 60000);
+            const hours = Math.floor(mins / 60);
+            const days = Math.floor(hours / 24);
+            if (days > 0) return `${days}d ago`;
+            if (hours > 0) return `${hours}h ago`;
+            if (mins > 0) return `${mins}m ago`;
+            return 'Just now';
+        }
+
+        function setStatusIndicator(id, status, text) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const className = status === 'ok' ? 'healthy' : status === 'degraded' ? 'degraded' : status === 'down' ? 'down' : 'loading';
+            el.innerHTML = `<span class="status-indicator ${className}">${text}</span>`;
+        }
+
+        async function refreshAll() {
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('status-content');
+            loading.style.display = 'block';
+            content.style.display = 'none';
+
+            try {
+                // Check API health
+                let healthData = null;
+                let apiOk = false;
+                try {
+                    healthData = await fetchJSON('/api/health');
+                    apiOk = true;
+                    setStatusIndicator('api-status', 'ok', 'Operational');
+                    document.getElementById('api-details').innerHTML = `
+                        <div class="metric-row">
+                            <span class="metric-label">Version</span>
+                            <span class="metric-value">${healthData.version || healthData.git_tag || 'v2'}</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Timestamp</span>
+                            <span class="metric-value">${new Date().toLocaleTimeString()}</span>
+                        </div>
+                    `;
+                } catch (e) {
+                    setStatusIndicator('api-status', 'down', 'Unavailable');
+                    document.getElementById('api-details').innerHTML = `<div class="metric-value" style="color: var(--danger)">API unreachable</div>`;
+                }
+
+                // Get stats
+                try {
+                    const stats = await fetchJSON('/api/stats');
+                    document.getElementById('signal-count').textContent = stats.total_signals || stats.count || '--';
+                } catch (e) {
+                    document.getElementById('signal-count').textContent = 'Unavailable';
+                }
+
+                // Get pipeline status
+                try {
+                    const pipeline = await fetchJSON('/api/pipeline/status');
+                    const lastRun = pipeline.last_run || pipeline.last_success || pipeline.timestamp;
+                    document.getElementById('pipeline-time').textContent = lastRun ? formatRelativeTime(lastRun) : 'Unknown';
+                } catch (e) {
+                    document.getElementById('pipeline-time').textContent = 'Unknown';
+                }
+
+                // Get persistence mode from watchlist
+                try {
+                    const wl = await fetchJSON('/api/watchlist');
+                    document.getElementById('persistence-mode').textContent = wl.persistence_mode || 'in_memory';
+                } catch (e) {
+                    document.getElementById('persistence-mode').textContent = 'Unknown';
+                }
+
+                // Check endpoint health
+                const endpointList = document.getElementById('endpoint-list');
+                endpointList.innerHTML = '';
+                for (const ep of ENDPOINTS_TO_CHECK) {
+                    try {
+                        const res = await fetch(API_BASE + ep);
+                        const ok = res.ok || res.status === 401 || res.status === 403;
+                        endpointList.innerHTML += `
+                            <li>
+                                <span class="${ok ? 'endpoint-ok' : 'endpoint-err'}">${ok ? '✓' : '✗'}</span>
+                                ${ep} → ${res.status}
+                            </li>
+                        `;
+                    } catch (e) {
+                        endpointList.innerHTML += `<li><span class="endpoint-err">✗</span> ${ep} → Error</li>`;
+                    }
+                }
+
+                // System info
+                document.getElementById('system-info').innerHTML = `
+                    <div class="metric-row">
+                        <span class="metric-label">Frontend Version</span>
+                        <span class="metric-value">PHASE-1</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Data Refresh</span>
+                        <span class="metric-value">Daily (automated pipeline)</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Last Check</span>
+                        <span class="metric-value">${new Date().toLocaleString()}</span>
+                    </div>
+                `;
+
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            } catch (e) {
+                loading.style.display = 'none';
+                content.style.display = 'block';
+            }
+        }
+
+        // Initial load
+        refreshAll();
+        // Auto-refresh every 30 seconds
+        setInterval(refreshAll, 30000);
+    </script>
+</body>
+</html>

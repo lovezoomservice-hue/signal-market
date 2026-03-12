@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Brief | Signal Market</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #6366f1;
+            --accent-green: #22c55e;
+            --accent-cyan: #22d3ee;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(46, 46, 58, 0.6);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none; z-index: 0;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0; background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+            text-decoration: none; color: var(--text-primary);
+        }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--accent); }
+        main { position: relative; z-index: 1; padding-top: 80px; }
+        .brief-header {
+            text-align: center; padding: 32px 0; border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+        }
+        .brief-title {
+            font-family: 'Space Grotesk', sans-serif; font-size: 28px; margin-bottom: 8px;
+        }
+        .brief-date { color: var(--text-secondary); font-size: 14px; }
+        .brief-meta {
+            display: flex; justify-content: center; gap: 24px; margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .meta-item { font-size: 13px; color: var(--text-secondary); }
+        .meta-item span { color: var(--text-primary); font-weight: 500; }
+        .signal-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; margin-bottom: 16px;
+        }
+        .signal-header {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 12px; flex-wrap: wrap; gap: 12px;
+        }
+        .signal-topic { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 600; }
+        .signal-stage {
+            padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .stage-accelerating { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+        .stage-forming { background: rgba(34, 211, 238, 0.15); color: var(--accent-cyan); }
+        .stage-emerging { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+        .stage-fading { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+        .signal-metrics {
+            display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap;
+        }
+        .metric { font-size: 13px; color: var(--text-secondary); }
+        .metric strong { color: var(--text-primary); }
+        .signal-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .signal-section h4 { font-size: 13px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .signal-section p { font-size: 14px; }
+        .action-box {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 8px; padding: 12px; margin-top: 12px;
+        }
+        .action-item { font-size: 13px; margin-bottom: 8px; }
+        .action-item:last-child { margin-bottom: 0; }
+        .action-label { color: var(--accent-cyan); font-weight: 500; }
+        .loading { text-align: center; padding: 48px; color: var(--text-secondary); }
+        .spinner {
+            width: 32px; height: 32px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .section-header {
+            font-family: 'Space Grotesk', sans-serif; font-size: 20px;
+            margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+        }
+        .print-btn {
+            background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border);
+            padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px;
+            margin-top: 16px;
+        }
+        .print-btn:hover { background: var(--bg-card); }
+        @media print {
+            nav, .print-btn, .nav-links { display: none !important; }
+            body { background: white; color: black; }
+            .signal-card { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">Signal Market</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/status.html">Status</a>
+                <a href="/graph.html">Graph</a>
+                <a href="/watchlist.html">Watchlist</a>
+                <a href="/developer.html">API</a>
+                <a href="/about.html">About</a>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading today's intelligence brief...</p>
+        </div>
+        <div id="brief-content" style="display: none;">
+            <div class="brief-header">
+                <h1 class="brief-title">Daily Intelligence Brief</h1>
+                <div class="brief-date" id="brief-date"></div>
+                <div class="brief-meta" id="brief-meta"></div>
+                <button class="print-btn" onclick="window.print()">Print Brief</button>
+            </div>
+            <div id="sections-container"></div>
+        </div>
+    </main>
+    <script>
+        const STAGE_ORDER = { accelerating: 1, forming: 2, emerging: 3, fading: 4, peak: 5, weak: 6 };
+
+        async function loadBrief() {
+            try {
+                const res = await fetch('/api/v2/agent-brief?limit=10');
+                if (!res.ok) throw new Error('Failed to load brief');
+                const data = await res.json();
+
+                // Set date
+                const date = new Date(data.generated_at);
+                document.getElementById('brief-date').textContent = date.toLocaleDateString('en-US', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                });
+
+                // Set meta
+                const meta = data.meta || {};
+                document.getElementById('brief-meta').innerHTML = `
+                    <div class="meta-item">Total Signals: <span>${meta.total_signals || data.top_signals?.length || 0}</span></div>
+                    <div class="meta-item">High Urgency: <span>${meta.high_urgency_count || 0}</span></div>
+                    <div class="meta-item">Generated: <span>${new Date(data.generated_at).toLocaleTimeString()}</span></div>
+                `;
+
+                // Group signals by stage
+                const signals = data.top_signals || [];
+                const grouped = {};
+                for (const signal of signals) {
+                    const stage = signal.stage || 'emerging';
+                    if (!grouped[stage]) grouped[stage] = [];
+                    grouped[stage].push(signal);
+                }
+
+                // Render sections in order
+                const container = document.getElementById('sections-container');
+                let html = '';
+                const stageOrder = ['accelerating', 'forming', 'emerging', 'fading', 'peak', 'weak'];
+
+                for (const stage of stageOrder) {
+                    const stageSignals = grouped[stage] || [];
+                    if (stageSignals.length === 0) continue;
+
+                    html += `<h2 class="section-header">${stage.charAt(0).toUpperCase() + stage.slice(1)} (${stageSignals.length})</h2>`;
+
+                    for (const signal of stageSignals) {
+                        html += renderSignalCard(signal);
+                    }
+                }
+
+                container.innerHTML = html;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('brief-content').style.display = 'block';
+
+            } catch (e) {
+                console.error('Failed to load brief:', e);
+                document.getElementById('loading').innerHTML = `
+                    <p style="color: var(--danger)">Failed to load brief</p>
+                    <p style="font-size: 13px; margin-top: 8px;">${e.message}</p>
+                `;
+            }
+        }
+
+        function renderSignalCard(signal) {
+            const stageClass = `stage-${signal.stage || 'emerging'}`;
+            const urgencyClass = signal.urgency === 'high' ? 'stage-accelerating' : signal.urgency === 'medium' ? 'stage-forming' : 'stage-emerging';
+
+            return `
+                <div class="signal-card">
+                    <div class="signal-header">
+                        <div class="signal-topic">${signal.topic}</div>
+                        <div class="signal-stage ${stageClass}">${signal.stage || 'Unknown'}</div>
+                    </div>
+                    <div class="signal-metrics">
+                        <div class="metric"><strong>Confidence:</strong> ${Math.round((signal.confidence || 0) * 100)}%</div>
+                        <div class="metric"><strong>Urgency:</strong> <span class="${urgencyClass}" style="padding: 2px 8px; border-radius: 10px; font-size: 11px;">${signal.urgency || 'medium'}</span></div>
+                        <div class="metric"><strong>Window:</strong> ${signal.window || '12-36 months'}</div>
+                        <div class="metric"><strong>Sources:</strong> ${(signal.sources || []).join(', ') || 'N/A'}</div>
+                    </div>
+                    ${signal.decision_question ? `
+                        <div class="signal-section">
+                            <h4>Decision Question</h4>
+                            <p>${signal.decision_question}</p>
+                        </div>
+                    ` : ''}
+                    <div class="action-box">
+                        ${signal.next_best_action ? `
+                            <div class="action-item">
+                                <span class="action-label">Next Best Action:</span> ${signal.next_best_action}
+                            </div>
+                        ` : ''}
+                        ${signal.agent_action ? `
+                            <div class="action-item">
+                                <span class="action-label">Agent Action:</span> ${signal.agent_action}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', loadBrief);
+    </script>
+</body>
+</html>

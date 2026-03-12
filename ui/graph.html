@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Graph | Signal Market</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #6366f1;
+            --accent-green: #22c55e;
+            --accent-cyan: #22d3ee;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(46, 46, 58, 0.6);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none; z-index: 0;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0; background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+            text-decoration: none; color: var(--text-primary);
+        }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--accent); }
+        main { position: relative; z-index: 1; padding-top: 80px; }
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; margin-bottom: 8px; }
+        .subtitle { color: var(--text-secondary); margin-bottom: 24px; }
+        .coming-soon {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 400px; text-align: center; padding: 48px;
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+        }
+        .coming-soon-icon {
+            font-size: 64px; margin-bottom: 24px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-cyan));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .coming-soon h2 { font-family: 'Space Grotesk', sans-serif; font-size: 28px; margin-bottom: 16px; }
+        .coming-soon p { color: var(--text-secondary); max-width: 600px; margin-bottom: 24px; line-height: 1.8; }
+        .feature-list {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px; width: 100%; max-width: 800px; margin-top: 32px;
+        }
+        .feature-item {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px; text-align: left;
+        }
+        .feature-item h4 { font-size: 16px; margin-bottom: 8px; color: var(--accent-cyan); }
+        .feature-item p { font-size: 13px; color: var(--text-secondary); }
+        .notify-form {
+            display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; justify-content: center;
+        }
+        .notify-form input {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            color: var(--text-primary); padding: 12px 16px; border-radius: 8px;
+            font-size: 14px; width: 280px;
+        }
+        .notify-form button {
+            background: var(--accent); color: white; border: none;
+            padding: 12px 24px; border-radius: 8px; cursor: pointer;
+            font-size: 14px; font-weight: 500;
+        }
+        .notify-form button:hover { opacity: 0.9; }
+        .graph-placeholder {
+            width: 100%; max-width: 800px; height: 300px;
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 12px; margin: 32px auto;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-secondary); font-size: 14px;
+        }
+        .stage-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: 500; margin: 4px;
+        }
+        .stage-accelerating { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+        .stage-forming { background: rgba(34, 211, 238, 0.15); color: var(--accent-cyan); }
+        .stage-emerging { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">Signal Market</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/brief.html">Brief</a>
+                <a href="/status.html">Status</a>
+                <a href="/watchlist.html">Watchlist</a>
+                <a href="/developer.html">API</a>
+                <a href="/about.html">About</a>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <h1>Signal Relationship Graph</h1>
+        <p class="subtitle">Visualizing causal connections between AI technology signals</p>
+        <div class="coming-soon">
+            <div class="coming-soon-icon">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="3"/><circle cx="6" cy="6" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/><line x1="9" y1="9" x2="6" y2="6"/><line x1="15" y1="15" x2="18" y2="18"/>
+                    <line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="9" y1="9" x2="9" y2="15"/>
+                </svg>
+            </div>
+            <h2>Coming Soon</h2>
+            <p>
+                The Signal Graph will visualize the causal relationships and dependencies between
+                detected technology signals. See how trends in AI Agents connect to LLM Infrastructure,
+                how Diffusion Models relate to Efficient AI, and identify hub signals that influence
+                multiple downstream developments.
+            </p>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h4>Causal Connections</h4>
+                    <p>See which signals drive or enable other trends in the AI ecosystem.</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Hub Detection</h4>
+                    <p>Identify central signals that connect to many others — disruption here propagates widely.</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Cluster Analysis</h4>
+                    <p>Visual grouping of related signals reveals technology ecosystems and co-movement patterns.</p>
+                </div>
+                <div class="feature-item">
+                    <h4>Interactive Exploration</h4>
+                    <p>Click nodes to explore individual signals, filter by stage or category.</p>
+                </div>
+            </div>
+            <div class="notify-form">
+                <input type="email" id="notify-email" placeholder="Enter your email for launch updates" />
+                <button onclick="subscribeToUpdates()">Notify Me</button>
+            </div>
+            <div id="notify-status" style="margin-top: 16px; font-size: 14px;"></div>
+        </div>
+        <div style="margin-top: 48px;">
+            <h3 style="margin-bottom: 16px;">Current Signal Stages</h3>
+            <div id="stage-legend"></div>
+        </div>
+    </main>
+    <script>
+        async function loadSignals() {
+            try {
+                const res = await fetch('/api/v2/brief');
+                if (!res.ok) return;
+                const data = await res.json();
+                const sections = data.sections || [];
+                const legend = document.getElementById('stage-legend');
+                let html = '<div style="display: flex; flex-wrap: wrap; gap: 16px;">';
+                for (const section of sections) {
+                    const stageClass = section.title.toLowerCase().replace(' ', '-');
+                    html += `
+                        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 200px;">
+                            <h4 style="font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                                <span class="stage-badge stage-${stageClass}">${section.title}</span>
+                                <span style="color: var(--text-secondary); font-size: 12px;">${section.signal_count}</span>
+                            </h4>
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                ${(section.signals || []).slice(0, 8).map(s => `
+                                    <span style="font-size: 12px; color: var(--text-secondary); background: var(--bg-secondary); padding: 4px 8px; border-radius: 4px;">${s.topic}</span>
+                                `).join('')}
+                                ${(section.signals || []).length > 8 ? `<span style="font-size: 12px; color: var(--text-secondary);">+${(section.signals || []).length - 8} more</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+                legend.innerHTML = html;
+            } catch (e) {
+                console.error('Failed to load signals:', e);
+            }
+        }
+
+        async function subscribeToUpdates() {
+            const email = document.getElementById('notify-email').value;
+            const status = document.getElementById('notify-status');
+            if (!email || !email.includes('@')) {
+                status.innerHTML = '<span style="color: var(--danger)">Please enter a valid email</span>';
+                return;
+            }
+            try {
+                const res = await fetch('/api/auth/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, plan: 'free', source: 'graph-notify' })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    status.innerHTML = '<span style="color: var(--success)">Thanks! You will be notified when the Graph feature launches.</span>';
+                    document.getElementById('notify-email').value = '';
+                } else {
+                    status.innerHTML = `<span style="color: var(--warning)">${data.message || 'Already subscribed'}</span>`;
+                }
+            } catch (e) {
+                status.innerHTML = '<span style="color: var(--danger)">Failed to subscribe. Please try again.</span>';
+            }
+        }
+
+        loadSignals();
+    </script>
+</body>
+</html>

@@ -1,24 +1,28 @@
 /**
- * Signal Subscription Manager — Stateles Demo Implementation
+ * Signal Subscription Manager — Persistent Implementation
  *
  * Allows users and agents to register signal topic subscriptions.
- * In-memory storage (resets on cold start) — acceptable for MVP.
+ * Uses KV persistence layer: Vercel KV in production, in-memory fallback for demo.
  *
  * Endpoints:
  *   POST /api/v2/subscribe — Create subscription
  *   GET /api/v2/subscribe?topic=AI+Agents — Get subscription by topic
+ *   GET /api/v2/subscribe?subscription_id=sub_xxxxx — Get subscription by ID
  *   DELETE /api/v2/subscribe?subscription_id=sub_xxxxx — Cancel subscription
  */
 
-// In-memory subscription store (resets on cold start)
-const subscriptions = new Map();
+import persistence from '../lib/kv.js';
 
 function generateSubscriptionId() {
   return 'sub_' + crypto.randomUUID().slice(0, 8);
 }
 
+// Key patterns:
+// sub:{subscription_id} → stores full subscription object
+// sub_topic:{topic} → stores subscription_id for lookup by topic
+
 // ── Handlers ────────────────────────────────────────────────────────────────
-export default function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
@@ -50,17 +54,18 @@ export default function handler(req, res) {
         status: 'active',
         created_at,
         note: 'Webhook/email delivery via notify endpoint',
+        persistence_mode: persistence.mode,
       };
 
       // Store by subscription_id (primary key)
-      subscriptions.set(subscription_id, subscription);
+      await persistence.set(`sub:${subscription_id}`, JSON.stringify(subscription));
 
-      // Also store index by topic for lookup
-      const topicIndexKey = `topic:${topic}`;
-      if (!subscriptions.has(topicIndexKey)) {
-        subscriptions.set(topicIndexKey, []);
-      }
-      subscriptions.get(topicIndexKey).push(subscription_id);
+      // Also store index by topic for lookup (append to list)
+      const topicKey = `sub_topic:${topic.toLowerCase()}`;
+      let topicIds = await persistence.get(topicKey);
+      topicIds = topicIds ? JSON.parse(topicIds) : [];
+      topicIds.push(subscription_id);
+      await persistence.set(topicKey, JSON.stringify(topicIds));
 
       return res.status(201).json(subscription);
     }
@@ -73,25 +78,30 @@ export default function handler(req, res) {
 
       if (subscription_id) {
         // Direct lookup by ID
-        const subscription = subscriptions.get(subscription_id);
-        if (!subscription || subscription.subscription_id) {
-          // Check if it's actually a subscription (not a topic index)
-          const sub = subscriptions.get(subscription_id);
-          if (!sub || sub.topic === undefined) {
-            return res.status(404).json({ error: 'Subscription not found' });
-          }
-          return res.status(200).json(sub);
+        const subData = await persistence.get(`sub:${subscription_id}`);
+        if (!subData) {
+          return res.status(404).json({ error: 'Subscription not found' });
         }
+        const subscription = JSON.parse(subData);
         return res.status(200).json(subscription);
       }
 
       if (topic) {
         // Lookup by topic index
-        const topicIndexKey = `topic:${topic}`;
-        const subscriptionIds = subscriptions.get(topicIndexKey) || [];
-        const subs = subscriptionIds
-          .map(id => subscriptions.get(id))
-          .filter(s => s && s.status === 'active');
+        const topicKey = `sub_topic:${topic.toLowerCase()}`;
+        const topicIdsData = await persistence.get(topicKey);
+        const subscriptionIds = topicIdsData ? JSON.parse(topicIdsData) : [];
+
+        const subs = [];
+        for (const id of subscriptionIds) {
+          const subData = await persistence.get(`sub:${id}`);
+          if (subData) {
+            const sub = JSON.parse(subData);
+            if (sub && sub.status === 'active') {
+              subs.push(sub);
+            }
+          }
+        }
 
         if (subs.length === 0) {
           return res.status(404).json({ error: 'No active subscriptions found for topic' });
@@ -101,16 +111,29 @@ export default function handler(req, res) {
           topic,
           subscription_count: subs.length,
           subscriptions: subs,
+          persistence_mode: persistence.mode,
         });
       }
 
       // No params — return all active subscriptions (for admin/debug)
-      const allSubs = Array.from(subscriptions.values())
-        .filter(s => s.subscription_id && s.status === 'active');
+      const allKeys = await persistence.keys('sub:');
+      const allSubs = [];
+      for (const key of allKeys) {
+        if (!key.startsWith('sub_topic:')) {
+          const subData = await persistence.get(key);
+          if (subData) {
+            const sub = JSON.parse(subData);
+            if (sub && sub.subscription_id && sub.status === 'active') {
+              allSubs.push(sub);
+            }
+          }
+        }
+      }
 
       return res.status(200).json({
         total_active: allSubs.length,
         subscriptions: allSubs,
+        persistence_mode: persistence.mode,
       });
     }
 
@@ -123,29 +146,36 @@ export default function handler(req, res) {
         return res.status(400).json({ error: 'Missing required parameter: subscription_id' });
       }
 
-      const subscription = subscriptions.get(subscription_id);
-      if (!subscription || subscription.topic === undefined) {
+      const subData = await persistence.get(`sub:${subscription_id}`);
+      if (!subData) {
         return res.status(404).json({ error: 'Subscription not found' });
       }
+
+      const subscription = JSON.parse(subData);
 
       // Mark as cancelled (don't delete to preserve audit trail)
       subscription.status = 'cancelled';
       subscription.cancelled_at = new Date().toISOString();
+      await persistence.set(`sub:${subscription_id}`, JSON.stringify(subscription));
 
       // Remove from topic index
-      const topicIndexKey = `topic:${subscription.topic}`;
-      const topicIndex = subscriptions.get(topicIndexKey) || [];
-      const updatedIndex = topicIndex.filter(id => id !== subscription_id);
-      if (updatedIndex.length === 0) {
-        subscriptions.delete(topicIndexKey);
-      } else {
-        subscriptions.set(topicIndexKey, updatedIndex);
+      const topicKey = `sub_topic:${subscription.topic.toLowerCase()}`;
+      const topicIdsData = await persistence.get(topicKey);
+      if (topicIdsData) {
+        const topicIds = JSON.parse(topicIdsData);
+        const updatedIndex = topicIds.filter(id => id !== subscription_id);
+        if (updatedIndex.length === 0) {
+          await persistence.delete(topicKey);
+        } else {
+          await persistence.set(topicKey, JSON.stringify(updatedIndex));
+        }
       }
 
       return res.status(200).json({
         subscription_id,
         status: 'cancelled',
         cancelled_at: subscription.cancelled_at,
+        persistence_mode: persistence.mode,
       });
     }
 

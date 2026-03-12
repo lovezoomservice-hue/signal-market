@@ -69,8 +69,8 @@ else
 fi
 
 # ── 2. API Health ─────────────────────────────────────────────────────────────
-section "[2/5] API Endpoints"
-ENDPOINTS=(
+section "[2/5] API Endpoints (Core)"
+ENDPOINTS_CORE=(
   "/api/health"
   "/api/signals"
   "/api/trends"
@@ -82,7 +82,7 @@ ENDPOINTS=(
   "/api/auth/me"
   "/api/docs"
 )
-for ep in "${ENDPOINTS[@]}"; do
+for ep in "${ENDPOINTS_CORE[@]}"; do
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${API}${ep}" 2>/dev/null || echo "000")
   if [[ "$CODE" == "200" || "$CODE" == "401" || "$CODE" == "403" ]]; then
     pass "GET ${ep} → $CODE"
@@ -90,6 +90,35 @@ for ep in "${ENDPOINTS[@]}"; do
     fail "GET ${ep} → $CODE"
   fi
 done
+
+# ── 2b. New v2 Endpoints ──────────────────────────────────────────────────────
+section "[2b/5] API Endpoints (v2 — New)"
+ENDPOINTS_V2=(
+  "/api/v2/rank"
+  "/api/v2/rank?urgency=high&limit=3"
+  "/api/v2/compare?topics=AI%20Agents,LLM%20Infrastructure"
+  "/api/v2/filter?urgency=high"
+  "/api/v2/agent-brief"
+  "/api/v2/agent-brief?format=minimal"
+  "/api/v2/causal/evt_001"
+)
+for ep in "${ENDPOINTS_V2[@]}"; do
+  CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${API}${ep}" 2>/dev/null || echo "000")
+  if [[ "$CODE" == "200" || "$CODE" == "400" || "$CODE" == "404" ]]; then
+    pass "GET ${ep} → $CODE"
+  else
+    fail "GET ${ep} → $CODE"
+  fi
+done
+
+# ── 2c. Subscribe Endpoint (special case — expect 400/404 without params) ────
+section "[2c/5] API Endpoints (Subscribe)"
+CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${API}/api/v2/subscribe" 2>/dev/null || echo "000")
+if [[ "$CODE" == "200" || "$CODE" == "400" || "$CODE" == "404" ]]; then
+  pass "GET /api/v2/subscribe (no params) → $CODE"
+else
+  fail "GET /api/v2/subscribe (no params) → $CODE"
+fi
 
 # ── 3. Causal Coverage ────────────────────────────────────────────────────────
 section "[3/5] Brief Causal Coverage"

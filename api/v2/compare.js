@@ -94,13 +94,15 @@ export default function handler(req, res) {
         stage: signal.stage,
         confidence: signal.confidence,
         urgency,
+        impact_score: signal.impact_score,
+        sources: signal.sources || [],
+        source_url: signal.source_url || null,
+        evidence_count: signal.evidenceCount || 0,
+        updated_at: signal.updated_at || new Date().toISOString(),
         window: actionFields.window,
         agent_action: actionFields.agent_action,
         next_best_action: actionFields.next_best_action,
         decision_question: actionFields.decision_question,
-        sources: signal.sources || [],
-        evidence_count: signal.evidenceCount || 0,
-        impact_score: signal.impact_score,
         _verdict_score: computeVerdictScore(signal),
       };
     });

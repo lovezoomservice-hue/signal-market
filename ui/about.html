@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About | Signal Market</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --accent: #6366f1;
+            --accent-green: #22c55e;
+            --accent-cyan: #22d3ee;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(46, 46, 58, 0.6);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 24px; }
+        .bg-grid {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-image: linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px; pointer-events: none; z-index: 0;
+        }
+        nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 16px 0; background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+        }
+        nav .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo {
+            font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+            text-decoration: none; color: var(--text-primary);
+        }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover { color: var(--accent); }
+        main { position: relative; z-index: 1; padding-top: 80px; }
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: 32px; margin-bottom: 24px; }
+        h2 { font-family: 'Space Grotesk', sans-serif; font-size: 22px; margin: 32px 0 16px; }
+        h3 { font-size: 18px; margin: 24px 0 12px; color: var(--accent-cyan); }
+        p { margin-bottom: 16px; color: var(--text-secondary); }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 12px; padding: 24px; margin-bottom: 20px;
+        }
+        .feature-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px; margin: 24px 0;
+        }
+        .feature-item {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px;
+        }
+        .feature-item h4 { font-size: 16px; margin-bottom: 8px; color: var(--text-primary); }
+        .feature-item p { font-size: 14px; margin-bottom: 0; }
+        .highlight { color: var(--accent-cyan); }
+        .data-sources { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .source-tag {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            padding: 6px 12px; border-radius: 20px; font-size: 13px;
+        }
+        ul { margin: 16px 0 16px 24px; color: var(--text-secondary); }
+        li { margin-bottom: 8px; }
+        .audience-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px; margin: 24px 0;
+        }
+        .audience-item {
+            background: var(--bg-secondary); border: 1px solid var(--border);
+            border-radius: 12px; padding: 20px;
+        }
+        .audience-item h4 { color: var(--accent); margin-bottom: 8px; }
+        .audience-item p { font-size: 14px; margin-bottom: 0; }
+        .cta-box {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(34, 211, 238, 0.05));
+            border: 1px solid var(--accent); border-radius: 12px; padding: 24px;
+            text-align: center; margin-top: 32px;
+        }
+        .cta-box h3 { color: var(--text-primary); margin: 0 0 12px; }
+        .cta-box p { margin-bottom: 16px; }
+        .cta-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 500;
+            text-decoration: none; cursor: pointer; border: none;
+        }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <nav>
+        <div class="container">
+            <a href="/" class="logo">Signal Market</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/brief.html">Brief</a>
+                <a href="/status.html">Status</a>
+                <a href="/graph.html">Graph</a>
+                <a href="/watchlist.html">Watchlist</a>
+                <a href="/developer.html">API</a>
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        <h1>About Signal Market</h1>
+
+        <div class="card">
+            <h2>What is Signal Market?</h2>
+            <p>
+                Signal Market is an <span class="highlight">intelligence layer for AI agents and humans</span> navigating
+                the rapidly evolving technology landscape. We detect, track, and analyze emerging technology signals
+                across multiple data sources to provide actionable intelligence for decision-making.
+            </p>
+            <p>
+                Think of Signal Market as your early-warning system for technology trends — we monitor research papers,
+                code repositories, industry news, and financial signals to identify what's accelerating, what's fading,
+                and what deserves your attention right now.
+            </p>
+        </div>
+
+        <h2>Who Is It For?</h2>
+        <div class="audience-grid">
+            <div class="audience-item">
+                <h4>AI Agents</h4>
+                <p>
+                    Autonomous systems use Signal Market APIs to prioritize attention, allocate resources,
+                    and make informed decisions about which technologies to adopt, monitor, or avoid.
+                    Our agent-native endpoints provide decision-ready intelligence in a single API call.
+                </p>
+            </div>
+            <div class="audience-item">
+                <h4>Technology Investors</h4>
+                <p>
+                    VCs, analysts, and corporate development teams use Signal Market to identify
+                    emerging opportunities, track competitive landscapes, and validate investment
+                    theses with cross-validated evidence from multiple independent sources.
+                </p>
+            </div>
+            <div class="audience-item">
+                <h4>Product Leaders</h4>
+                <p>
+                    PMs and strategy teams leverage Signal Market to inform roadmap decisions,
+                    identify partnership opportunities, and time product launches against
+                    technology adoption curves.
+                </p>
+            </div>
+            <div class="audience-item">
+                <h4>Researchers & Analysts</h4>
+                <p>
+                    Academic and industry researchers use Signal Market to track research velocity,
+                    identify collaboration opportunities, and understand the real-world impact
+                    of published work.
+                </p>
+            </div>
+        </div>
+
+        <h2>How It Works</h2>
+        <div class="card">
+            <h3>1. Data Ingestion (L0)</h3>
+            <p>
+                We continuously ingest data from diverse sources including academic preprints (arXiv),
+                code repositories (GitHub, Hugging Face), industry news, financial filings, and
+                regulatory announcements. Each source is normalized into a common event format.
+            </p>
+
+            <h3>2. Signal Detection (L1-L2)</h3>
+            <p>
+                Events are denoised, clustered by topic, and analyzed for momentum. We detect
+                acceleration patterns — when multiple independent sources confirm the same trend
+                simultaneously, confidence increases.
+            </p>
+
+            <h3>3. Stage Classification (L3)</h3>
+            <p>
+                Each signal is classified into a lifecycle stage:
+            </p>
+            <ul>
+                <li><strong class="highlight">Accelerating</strong> — Multiple sources confirming rapid momentum. Act on these.</li>
+                <li><strong class="highlight">Forming</strong> — Early evidence accumulating. Monitor closely.</li>
+                <li><strong class="highlight">Emerging</strong> — Initial signals detected. Low confidence, watch for escalation.</li>
+                <li><strong class="highlight">Fading/Peak/Weak</strong> — Momentum slowing or plateau reached.</li>
+            </ul>
+
+            <h3>4. Action Intelligence (L4-L5)</h3>
+            <p>
+                For each signal, we provide causal context (why is this happening now?),
+                action recommendations (what should you do?), and decision questions
+                (what determines the outcome?).
+            </p>
+        </div>
+
+        <h2>Data Sources</h2>
+        <div class="card">
+            <p>We monitor these independent data streams for cross-validation:</p>
+            <div class="data-sources">
+                <span class="source-tag">arXiv (Research Papers)</span>
+                <span class="source-tag">GitHub (Code Activity)</span>
+                <span class="source-tag">Hugging Face (Models)</span>
+                <span class="source-tag">Tech News</span>
+                <span class="source-tag">Financial Filings</span>
+                <span class="source-tag">Regulatory Sources</span>
+                <span class="source-tag">Industry Reports</span>
+            </div>
+            <p style="margin-top: 16px;">
+                Cross-validation is key to our confidence scoring. A signal appearing in only one
+                source category is treated with lower confidence than the same signal appearing
+                across research, code, and industry sources simultaneously.
+            </p>
+        </div>
+
+        <h2>API-First Design</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <h4>Agent-Native Endpoints</h4>
+                <p>Endpoints like <code>/api/v2/agent-brief</code> and <code>/api/v2/rank</code> provide decision-ready intelligence in a single call.</p>
+            </div>
+            <div class="feature-item">
+                <h4>Structured Filtering</h4>
+                <p>Filter signals by stage, urgency, confidence, topic, or source with <code>/api/v2/filter</code>.</p>
+            </div>
+            <div class="feature-item">
+                <h4>Side-by-Side Comparison</h4>
+                <p>Compare signals with <code>/api/v2/compare</code> to determine which deserves priority attention.</p>
+            </div>
+            <div class="feature-item">
+                <h4>Subscription System</h4>
+                <p>Register webhooks or email alerts for specific topics via <code>/api/v2/subscribe</code>.</p>
+            </div>
+        </div>
+
+        <div class="cta-box">
+            <h3>Ready to Get Started?</h3>
+            <p>Access Signal Market via our web interface or integrate directly with our API.</p>
+            <div class="cta-buttons">
+                <a href="/developer.html" class="btn btn-primary">View API Docs</a>
+                <a href="/brief.html" class="btn btn-secondary">Read Today's Brief</a>
+                <a href="https://github.com/signal-market" class="btn btn-secondary" target="_blank">GitHub</a>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
