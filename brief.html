@@ -284,14 +284,35 @@ function renderBrief(brief) {
   <div style="height:var(--space-16)"></div>`;
 }
 
-function subscribe() {
-  const email = document.getElementById('email-input')?.value;
-  const note = document.getElementById('sub-note');
+async function subscribe() {
+  const input = document.getElementById('email-input');
+  const note  = document.getElementById('sub-note');
+  const btn   = document.querySelector('.subscribe-form .btn-primary');
+  const email = input?.value?.trim();
   if (!email || !email.includes('@')) {
     if (note) { note.textContent = 'Please enter a valid email.'; note.style.color = '#ef4444'; }
     return;
   }
-  if (note) { note.textContent = `✓ ${email} subscribed. Brief arrives daily at 09:00 GMT+8.`; note.style.color = '#22c55e'; }
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try {
+    const r = await fetch('/api/auth/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, source: 'brief' }),
+    });
+    const d = await r.json();
+    if (r.ok) {
+      if (note) { note.textContent = `✓ ${email} — brief arrives daily at ${d.digest_time || '09:00 GMT+8'}.`; note.style.color = '#22c55e'; }
+      if (input) { input.value = ''; input.disabled = true; }
+      if (btn)   { btn.textContent = 'Subscribed ✓'; btn.style.background = '#22c55e'; }
+    } else {
+      if (note) { note.textContent = d.error || 'Subscribe failed — try again.'; note.style.color = '#ef4444'; }
+      if (btn)  { btn.disabled = false; btn.textContent = 'Subscribe'; }
+    }
+  } catch {
+    if (note) { note.textContent = 'Network error — try again.'; note.style.color = '#ef4444'; }
+    if (btn)  { btn.disabled = false; btn.textContent = 'Subscribe'; }
+  }
 }
 
 async function loadBrief() {

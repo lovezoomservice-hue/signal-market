@@ -184,7 +184,7 @@
       "dest": "/api/candidates.js"
     },
     {
-      "src": "/api/auth/(register|login|me|keys)",
+      "src": "/api/auth/(register|login|me|keys|subscribe|subscribers|rotate)",
       "dest": "/api/auth/index.js"
     },
     {

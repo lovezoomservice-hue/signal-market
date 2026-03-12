@@ -1,0 +1,13 @@
+{
+  "subscribers": {
+    "sub_d0943fc19fd5c110": {
+      "id": "sub_d0943fc19fd5c110",
+      "email": "test-digest@example.com",
+      "plan": "free",
+      "source": "brief",
+      "subscribed_at": "2026-03-12T06:31:22.526Z",
+      "active": true
+    }
+  },
+  "_updated": "2026-03-12T06:31:22.526Z"
+}

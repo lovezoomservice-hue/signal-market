@@ -155,6 +155,53 @@ function handleRotate(req, res) {
   return res.status(200).json({ message: 'Key rotated', new_key: newKey });
 }
 
+const SUBS_PATH = join(process.cwd(), 'data', 'subscribers.json');
+
+function handleSubscribe(req, res) {
+  let body = '';
+  req.on('data', chunk => { body += chunk; });
+  req.on('end', () => {
+    try {
+      const { email, plan = 'free', source = 'web' } = JSON.parse(body || '{}');
+      if (!email || !email.includes('@')) {
+        return res.status(400).json({ error: 'Valid email required' });
+      }
+      let store = loadJSON(SUBS_PATH, { subscribers: {} });
+      const existing = Object.values(store.subscribers).find(s => s.email === email);
+      if (existing) {
+        return res.status(200).json({
+          message: 'Already subscribed',
+          email,
+          subscribed_at: existing.subscribed_at,
+          digest_time: '09:00 GMT+8',
+        });
+      }
+      const id = 'sub_' + crypto.randomBytes(8).toString('hex');
+      store.subscribers[id] = { id, email, plan, source, subscribed_at: new Date().toISOString(), active: true };
+      store._updated = new Date().toISOString();
+      saveJSON(SUBS_PATH, store);
+      return res.status(200).json({
+        message: 'Subscribed',
+        email,
+        digest_time: '09:00 GMT+8',
+        note: 'Daily AI intelligence brief. Unsubscribe anytime.',
+      });
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid request body' });
+    }
+  });
+}
+
+function handleSubscriberList(req, res) {
+  const key = req.headers['x-api-key'] || '';
+  const store = loadJSON(join(process.cwd(), 'data', 'auth_store.json'), {});
+  const keyObj = store.api_keys?.[key];
+  const user = keyObj ? store.users?.[keyObj.userId] : null;
+  if (!user || user.plan !== 'enterprise') return res.status(403).json({ error: 'Enterprise plan required' });
+  const subs = loadJSON(SUBS_PATH, { subscribers: {} });
+  return res.status(200).json({ count: Object.keys(subs.subscribers).length, subscribers: Object.values(subs.subscribers) });
+}
+
 function handleInfo(req, res) {
   return res.status(200).json({
     plans:       PLANS,
@@ -172,9 +219,11 @@ export default function handler(req, res) {
 
   const action = req.query?.action || (req.url || '').split('/').pop();
 
-  if (req.method === 'POST' && action === 'register') return handleRegister(req, res);
-  if (req.method === 'POST' && action === 'login')    return handleLogin(req, res);
-  if (req.method === 'GET'  && action === 'me')        return handleMe(req, res);
+  if (req.method === 'POST' && action === 'register')  return handleRegister(req, res);
+  if (req.method === 'POST' && action === 'login')     return handleLogin(req, res);
+  if (req.method === 'GET'  && action === 'me')         return handleMe(req, res);
   if (req.method === 'POST' && action === 'rotate')    return handleRotate(req, res);
+  if (req.method === 'POST' && action === 'subscribe') return handleSubscribe(req, res);
+  if (req.method === 'GET'  && action === 'subscribers') return handleSubscriberList(req, res);
   return handleInfo(req, res);
 }

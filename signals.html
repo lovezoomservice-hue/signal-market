@@ -795,8 +795,14 @@ function openDrawer(sig) {
       </div>
     </div>` : ''}
 
+    <div class="drawer-section" id="causal-drawer-section">
+      <div class="drawer-section-title">Why this signal is happening</div>
+      <div id="causal-drawer-content" style="padding:var(--space-3);background:rgba(45,125,210,0.04);border:1px solid rgba(45,125,210,0.12);border-radius:var(--radius-md)">
+        <div style="font-size:var(--text-xs);color:var(--text-tertiary);font-family:var(--font-mono)">Loading causal analysis…</div>
+      </div>
+    </div>
+
     <div class="drawer-section">
-      <div class="drawer-section-title">Deep Intelligence</div>
       <a href="/signal?id=${sig.signal_id}" style="display:flex;align-items:center;justify-content:space-between;padding:var(--space-3) var(--space-4);background:rgba(45,125,210,0.08);border:1px solid rgba(45,125,210,0.2);border-radius:var(--radius-md);text-decoration:none;margin-bottom:var(--space-2);">
         <span style="font-size:var(--text-sm);color:var(--text-primary);font-weight:500">Full signal analysis →</span>
         <span style="font-size:var(--text-xs);color:var(--brand);font-family:var(--font-mono)">evidence · causal · monitoring</span>
@@ -806,13 +812,35 @@ function openDrawer(sig) {
       <div class="drawer-section-title">API Access</div>
       <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-3);font-family:var(--font-mono);font-size:var(--text-xs);color:var(--text-secondary);line-height:1.8">
         GET /api/signals/${sig.signal_id}<br>
-        GET /api/events/${sig.signal_id}/probability<br>
+        GET /api/v2/causal/${sig.signal_id}<br>
         GET /api/v2/world-state/${sig.signal_id}
       </div>
     </div>
   `;
   document.getElementById('signal-drawer').classList.add('open');
   document.getElementById('drawer-overlay').classList.add('open');
+
+  // Async load causal data
+  fetch(`/api/v2/causal/${sig.signal_id}`)
+    .then(r => r.json())
+    .then(c => {
+      const el = document.getElementById('causal-drawer-content');
+      if (!el || !c.primary_cause) return;
+      const urgencyColor = c.why_now?.urgency === 'high' ? '#f59e0b' : c.why_now?.urgency === 'medium' ? '#60a5fa' : '#94a3b8';
+      el.innerHTML = `
+        <div style="font-size:var(--text-xs);color:var(--text-primary);line-height:1.65;margin-bottom:var(--space-3)">${c.primary_cause}</div>
+        ${c.why_now?.urgency ? `<div style="display:flex;gap:var(--space-3);margin-bottom:var(--space-3)">
+          <span style="font-family:var(--font-mono);font-size:9px;color:${urgencyColor};text-transform:uppercase;letter-spacing:0.08em">⬤ ${c.why_now.urgency} urgency</span>
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--text-tertiary)">window: ${c.why_now.window}</span>
+        </div>` : ''}
+        ${(c.accelerants || []).slice(0, 2).map(a => `<div style="font-size:10px;color:#22c55e;margin-bottom:2px">↑ ${a}</div>`).join('')}
+        ${(c.inhibitors || []).slice(0, 1).map(h => `<div style="font-size:10px;color:#f87171;margin-top:var(--space-1)">↓ Risk: ${h}</div>`).join('')}
+      `;
+    })
+    .catch(() => {
+      const el = document.getElementById('causal-drawer-content');
+      if (el) el.style.display = 'none';
+    });
 }
 
 function getTopicContext(sig) {
