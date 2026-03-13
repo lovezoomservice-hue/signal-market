@@ -54,6 +54,10 @@
       "use": "@vercel/static"
     },
     {
+      "src": "compare.html",
+      "use": "@vercel/static"
+    },
+    {
       "src": "watchlist.html",
       "use": "@vercel/static"
     },
@@ -258,6 +262,10 @@
     {
       "src": "/dashboard",
       "dest": "/dashboard.html"
+    },
+    {
+      "src": "/compare",
+      "dest": "/compare.html"
     },
     {
       "src": "/signin",

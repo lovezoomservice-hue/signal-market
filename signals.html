@@ -444,6 +444,27 @@
     }
     .sc-proof-link:hover { color: var(--text-primary); }
 
+    /* Compare button */
+    .compare-btn {
+      padding: 2px var(--space-2);
+      background: rgba(45,125,210,0.12);
+      border: 1px solid rgba(45,125,210,0.25);
+      border-radius: var(--radius-md);
+      color: var(--brand);
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+    .compare-btn:hover { background: rgba(45,125,210,0.2); border-color: var(--brand); color: var(--text-primary); }
+
     /* ── Empty / loading states ──────────────────────────────── */
     .skeleton-card {
       background: var(--surface-low);
@@ -911,6 +932,12 @@ function renderCard(sig, causalData = {}) {
         <a href="${sourceUrl}" target="_blank" class="sc-proof-link" onclick="event.stopPropagation()">
           ${proofId ? proofId.slice(0,24) + '…' : 'Source →'}
         </a>
+        <div style="margin-top:6px;display:flex;gap:6px;justify-content:flex-end;">
+          <a href="/compare?topics=${encodeURIComponent(sig.topic)}" class="compare-btn" onclick="event.stopPropagation()" title="Compare this signal">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M2 4a2 2 0 012-2h7a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V4zm2 0v7h7V4H4z"/><path d="M9 7a2 2 0 114 0 2 2 0 01-4 0z"/></svg>
+            Compare
+          </a>
+        </div>
         <div style="font-size:9px;color:var(--text-tertiary);margin-top:4px;font-family:var(--font-mono)">${lastUpdated}</div>
       </div>
     </div>

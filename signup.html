@@ -176,10 +176,52 @@ async function register() {
     document.getElementById('reg-form').style.display = 'none';
     document.getElementById('key-reveal').classList.add('show');
 
+    // Auto-subscribe to default watchlist topics
+    await subscribeToDefaults(email);
+
   } catch (e) {
     showMsg('Network error. Is the server running?', 'error');
     btn.disabled = false;
     btn.textContent = 'Create free account →';
+  }
+}
+
+async function subscribeToDefaults(email) {
+  const defaults = [
+    { topic: 'AI Agents', urgency_threshold: 'high' },
+    { topic: 'LLM Infrastructure', urgency_threshold: 'high' },
+    { topic: 'AI Investment & Capital', urgency_threshold: 'medium' },
+  ];
+
+  const subscribePromises = defaults.map(async ({ topic, urgency_threshold }) => {
+    try {
+      const res = await fetch('/api/v2/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, topic, urgency_threshold }),
+      });
+      return res.ok ? topic : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const results = await Promise.all(subscribePromises);
+  const subscribed = results.filter(Boolean);
+
+  if (subscribed.length > 0) {
+    // Show subscription message in key reveal
+    const subMsg = document.createElement('div');
+    subMsg.className = 'msg-box msg-success';
+    subMsg.style.display = 'block';
+    subMsg.style.marginTop = 'var(--space-4)';
+    subMsg.textContent = `✓ You are now watching: ${subscribed.join(', ')}`;
+    document.getElementById('key-reveal').insertBefore(subMsg, document.getElementById('key-reveal').firstChild);
+
+    // Redirect to signals after 2s
+    setTimeout(() => {
+      window.location.href = '/signals';
+    }, 2000);
   }
 }
 

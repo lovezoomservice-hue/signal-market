@@ -174,13 +174,23 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
 
     total_raw = len(all_new)
 
-    # ── Merge: group by topic, aggregate sources ──────────────────────────────
+    # Layer hierarchy for determining highest contributing layer
+    LAYER_ORDER = {"L5": 7, "L5b": 6, "L4": 5, "L3b": 4, "L3": 3, "L1": 2, "L0": 1}
+
+    def get_highest_layer(layer1: str, layer2: str) -> str:
+        """Return the higher of two layers."""
+        rank1 = LAYER_ORDER.get(layer1, 0)
+        rank2 = LAYER_ORDER.get(layer2, 0)
+        return layer1 if rank1 >= rank2 else layer2
+
+    # ── Merge: group by topic, aggregate sources, track highest layer ─────────
     merged: dict[str, dict] = {}
     for s in all_new:
         topic = s.get("topic", "Unknown")
         if topic not in merged:
             merged[topic] = s.copy()
             merged[topic]["_evidence_items"] = [s]
+            merged[topic]["_highest_layer"] = s.get("source_layer", "L0")
         else:
             existing = merged[topic]
             # Merge sources
@@ -197,16 +207,21 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
                 existing["source_url"] = s.get("source_url", existing.get("source_url"))
             # Accumulate evidence
             existing["evidence_count"] = existing.get("evidence_count", 0) + s.get("evidence_count", 0)
+            # Track highest layer from all contributors
+            new_layer = s.get("source_layer", "L0")
+            existing["_highest_layer"] = get_highest_layer(existing.get("_highest_layer", "L0"), new_layer)
             # Cross-validate if 2+ different layers
-            layers_seen = set(existing.get("source_layer","")) | {s.get("source_layer","")}
+            layers_seen = set(existing.get("source_layer","")) | {new_layer}
             existing["cross_validated"] = len(layers_seen) >= 2
             existing["_evidence_items"].append(s)
 
     merged_list = list(merged.values())
 
-    # Clean up internal fields
+    # Clean up internal fields and set final source_layer
     for s in merged_list:
         s.pop("_evidence_items", None)
+        # Set source_layer to the highest layer that contributed
+        s["source_layer"] = s.pop("_highest_layer", "L0")
         s["merged_at"] = now
         s["world_fetch_date"] = today
 

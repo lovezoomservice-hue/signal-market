@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compare Signals — Signal Market</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/design-system.css">
+  <style>
+    .page { max-width: 1200px; margin: 0 auto; padding: 0 var(--space-8) var(--space-16); }
+    .page-header { padding: var(--space-10) 0 var(--space-6); display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+    .page-title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.02em; }
+    .page-sub { font-size: var(--text-sm); color: var(--text-secondary); margin-top: var(--space-1); }
+    .page-sub strong { color: var(--text-primary); }
+
+    /* Consensus summary card */
+    .consensus-card {
+      background: linear-gradient(135deg, rgba(45,125,210,0.08) 0%, rgba(45,125,210,0.02) 100%);
+      border: 1px solid rgba(45,125,210,0.2);
+      border-radius: var(--radius-xl);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+    .consensus-head { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); margin-bottom: var(--space-3); }
+    .consensus-summary { font-size: var(--text-base); color: var(--text-primary); line-height: 1.6; margin-bottom: var(--space-4); }
+    .consensus-stats { display: flex; gap: var(--space-4); flex-wrap: wrap; }
+    .stat-pill { padding: var(--space-2) var(--space-3); background: rgba(255,255,255,0.04); border-radius: var(--radius-full); font-size: var(--text-xs); font-family: var(--font-mono); display: flex; align-items: center; gap: var(--space-2); }
+    .stat-pill.bullish { color: #22c55e; background: rgba(34,197,94,0.1); }
+    .stat-pill.divided { color: #f59e0b; background: rgba(245,158,11,0.1); }
+    .stat-pill.neutral { color: var(--text-tertiary); background: rgba(255,255,255,0.05); }
+
+    /* Comparison grid */
+    .compare-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+    @media (max-width: 768px) { .compare-grid { grid-template-columns: 1fr; } }
+
+    /* Signal card */
+    .signal-card {
+      background: var(--surface-low);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .signal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; }
+    .signal-topic { font-size: var(--text-lg); font-weight: 600; color: var(--text-primary); }
+    .badges { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .badge { padding: var(--space-1) var(--space-2); border-radius: var(--radius-md); font-size: 10px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+    .badge-stage { background: rgba(45,125,210,0.12); border: 1px solid rgba(45,125,210,0.25); color: var(--brand); }
+    .badge-urgency.high { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.25); color: #ef4444; }
+    .badge-urgency.medium { background: rgba(245,158,11,0.12); border: 1px solid rgba(245,158,11,0.25); color: #f59e0b; }
+    .badge-urgency.low { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25); color: #22c55e; }
+
+    .metrics-row { display: flex; gap: var(--space-6); padding: var(--space-3) 0; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
+    .metric { display: flex; flex-direction: column; gap: 2px; }
+    .metric-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); font-family: var(--font-mono); }
+    .metric-value { font-size: var(--text-xl); font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); }
+
+    .section { display: flex; flex-direction: column; gap: var(--space-2); }
+    .section-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary); font-family: var(--font-mono); }
+    .section-content { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; }
+    .section-content.highlight { background: rgba(34,197,94,0.08); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border-left: 2px solid #22c55e; }
+    .section-content.danger { background: rgba(239,68,68,0.08); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); border-left: 2px solid #ef4444; }
+
+    /* Consensus badge */
+    .consensus-badge { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-md); font-size: var(--text-xs); font-weight: 600; }
+    .consensus-badge.bullish { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.25); }
+    .consensus-badge.bearish { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+    .consensus-badge.divided { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+    .consensus-badge.neutral { background: rgba(255,255,255,0.06); color: var(--text-tertiary); border: 1px solid var(--border-subtle); }
+
+    .key-voices { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-top: var(--space-2); }
+    .voice-pill { padding: var(--space-1) var(--space-2); background: rgba(255,255,255,0.05); border-radius: var(--radius-full); font-size: 10px; color: var(--text-secondary); border: 1px solid var(--border-subtle); }
+
+    /* Verdict banner */
+    .verdict-banner {
+      background: var(--surface-mid);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      margin-bottom: var(--space-6);
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-4);
+    }
+    .verdict-icon { width: 40px; height: 40px; border-radius: var(--radius-lg); background: rgba(45,125,210,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .verdict-content { flex: 1; }
+    .verdict-title { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); margin-bottom: var(--space-1); }
+    .verdict-reason { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; }
+
+    /* Loading state */
+    .loading { text-align: center; padding: var(--space-16); color: var(--text-tertiary); }
+    .loading-spinner { width: 32px; height: 32px; border: 2px solid var(--border-subtle); border-top-color: var(--brand); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto var(--space-4); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error state */
+    .error { text-align: center; padding: var(--space-12); color: #ef4444; background: rgba(239,68,68,0.08); border-radius: var(--radius-xl); border: 1px solid rgba(239,68,68,0.2); }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div style="max-width:1200px;margin:0 auto;padding:0 var(--space-8);height:60px;display:flex;align-items:center;justify-content:space-between;gap:var(--space-6);">
+    <a href="/" style="display:flex;align-items:center;gap:var(--space-3);text-decoration:none;">
+      <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--brand),#1a5fa8);display:flex;align-items:center;justify-content:center;">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10L5 6L7.5 8.5L10.5 4L12 6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span style="font-weight:600;font-size:var(--text-sm);">Signal Market</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:var(--space-4);">
+      <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Signals</a>
+      <a href="/dashboard" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">Dashboard</a>
+      <a href="/api" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;">API Docs</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Signal Comparison</div>
+      <div class="page-sub">Side-by-side analysis of <strong id="topic-count">signals</strong></div>
+    </div>
+    <a href="/signals" style="font-size:var(--text-sm);color:var(--text-secondary);text-decoration:none;display:flex;align-items:center;gap:var(--space-2);">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8H13M13 8L8 3M13 8L8 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Back to Signals
+    </a>
+  </div>
+
+  <div id="compare-root">
+    <div class="loading">
+      <div class="loading-spinner"></div>
+      <div>Loading comparison...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_KEY = localStorage.getItem('sm_api_key');
+
+async function loadComparison() {
+  const params = new URLSearchParams(window.location.search);
+  const topics = params.get('topics');
+
+  if (!topics) {
+    document.getElementById('compare-root').innerHTML = `
+      <div class="error">
+        <div style="font-size:var(--text-lg);font-weight:600;margin-bottom:var(--space-2)">No topics specified</div>
+        <div style="color:var(--text-secondary);margin-bottom:var(--space-4)">Add topics via URL: <code>/compare?topics=AI+Agents,LLM+Infrastructure</code></div>
+        <a href="/signals" style="color:var(--brand);text-decoration:none">Browse signals →</a>
+      </div>
+    `;
+    return;
+  }
+
+  try {
+    const url = `/api/v2/compare?topics=${encodeURIComponent(topics)}`;
+    const headers = API_KEY ? { 'x-api-key': API_KEY } : {};
+    const res = await fetch(url, { headers });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderComparison(data);
+  } catch (err) {
+    document.getElementById('compare-root').innerHTML = `
+      <div class="error">
+        <div style="font-size:var(--text-lg);font-weight:600;margin-bottom:var(--space-2)">Failed to load comparison</div>
+        <div style="color:var(--text-secondary)">${err.message}</div>
+      </div>
+    `;
+  }
+}
+
+function renderComparison(data) {
+  const { comparison, verdict, consensus_comparison } = data;
+  document.getElementById('topic-count').textContent = `${comparison.length} topics`;
+
+  const consensusHtml = consensus_comparison ? `
+    <div class="consensus-card">
+      <div class="consensus-head">Consensus Comparison</div>
+      <div class="consensus-summary">${escapeHtml(consensus_comparison.summary)}</div>
+      <div class="consensus-stats">
+        <span class="stat-pill bullish">Bullish: ${consensus_comparison.bullish_count}</span>
+        <span class="stat-pill divided">Divided: ${consensus_comparison.divided_count}</span>
+        <span class="stat-pill neutral">Neutral: ${consensus_comparison.neutral_count}</span>
+      </div>
+    </div>
+  ` : '';
+
+  const verdictHtml = verdict ? `
+    <div class="verdict-banner">
+      <div class="verdict-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" fill="var(--brand)"/></svg>
+      </div>
+      <div class="verdict-content">
+        <div class="verdict-title">Recommended: ${escapeHtml(verdict.recommended_topic)}</div>
+        <div class="verdict-reason">${escapeHtml(verdict.reason)}</div>
+        <div class="verdict-reason" style="margin-top:var(--space-2);color:var(--text-tertiary)">${escapeHtml(verdict.relative_urgency)}</div>
+      </div>
+    </div>
+  ` : '';
+
+  const cardsHtml = comparison.map(signal => {
+    const judgment = signal.professional_judgment || {};
+    return `
+      <div class="signal-card">
+        <div class="signal-header">
+          <div class="signal-topic">${escapeHtml(signal.topic)}</div>
+          <div class="badges">
+            <span class="badge badge-stage">${escapeHtml(signal.stage)}</span>
+            <span class="badge badge-urgency ${signal.urgency}">${escapeHtml(signal.urgency)}</span>
+          </div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric">
+            <span class="metric-label">Confidence</span>
+            <span class="metric-value">${(signal.confidence * 100).toFixed(0)}%</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Impact</span>
+            <span class="metric-value">${(signal.impact_score * 100).toFixed(0)}</span>
+          </div>
+          <div class="metric">
+            <span class="metric-label">Evidence</span>
+            <span class="metric-value">${signal.evidence_count}</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Decision Question</div>
+          <div class="section-content">${escapeHtml(signal.decision_question)}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Next Best Action</div>
+          <div class="section-content">${escapeHtml(signal.next_best_action)}</div>
+        </div>
+
+        <div class="section">
+          <div class="section-label">Professional Judgment</div>
+          <div style="display:flex;align-items:center;gap:var(--space-2);flex-wrap:wrap;margin-top:var(--space-1)">
+            <span class="consensus-badge ${judgment.consensus || 'neutral'}">${(judgment.consensus || 'neutral').toUpperCase()}</span>
+          </div>
+          <div class="section-content" style="margin-top:var(--space-2)">${escapeHtml(judgment.summary || 'No professional judgment available.')}</div>
+          ${judgment.key_voices && judgment.key_voices.length > 0 ? `
+            <div class="key-voices">
+              ${judgment.key_voices.map(v => `<span class="voice-pill">${escapeHtml(v)}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="section">
+          <div class="section-label" style="color:#22c55e">Escalation Condition</div>
+          <div class="section-content highlight">When ${signal.topic.toLowerCase()} shows sustained multi-source validation over 2+ weeks</div>
+        </div>
+
+        <div class="section">
+          <div class="section-label" style="color:#ef4444">Reversal Condition</div>
+          <div class="section-content danger">When key evidence sources retract or contradict the signal thesis</div>
+        </div>
+
+        <div style="margin-top:var(--space-2);padding-top:var(--space-3);border-top:1px solid var(--border-subtle)">
+          <a href="/signal?topic=${encodeURIComponent(signal.topic)}" style="font-size:var(--text-xs);color:var(--brand);text-decoration:none">View full signal →</a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('compare-root').innerHTML = `
+    ${consensusHtml}
+    ${verdictHtml}
+    <div class="compare-grid">${cardsHtml}</div>
+  `;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+loadComparison();
+</script>
+</body>
+</html>

@@ -64,6 +64,15 @@ print(r)
 ")
   [[ "$COUNT" -ge 10 ]] && pass "JSONL signals count=$COUNT (≥10)" || fail "JSONL count=$COUNT < 10"
   [[ "$RESIDUALS" -eq 0 ]] && pass "JSONL no residual fields" || fail "JSONL residuals=$RESIDUALS"
+
+  # PHASE-5: Check source_layer is present and not "?"
+  SOURCE_LAYER_CHECK=$(python3 -c "
+import json
+signals = [json.loads(l) for l in open('$JSONL') if l.strip()]
+with_layer = sum(1 for s in signals if s.get('source_layer') and s.get('source_layer') != '?' and s.get('source_layer') != 'UNKNOWN')
+print(with_layer)
+" 2>/dev/null || echo "0")
+  [[ "$SOURCE_LAYER_CHECK" -ge 1 ]] && pass "JSONL has $SOURCE_LAYER_CHECK signals with source_layer" || fail "JSONL missing source_layer"
 else
   fail "JSONL file not found: $JSONL"
 fi
@@ -121,6 +130,46 @@ if [[ "$CODE" == "200" || "$CODE" == "400" || "$CODE" == "404" ]]; then
 else
   fail "GET /api/v2/subscribe (no params) → $CODE"
 fi
+
+# ── 2d. PHASE-5: Judgment + Compare + Registration ───────────────────────────
+section "[2d/5] PHASE-5 Endpoints"
+
+# GET /api/v2/judgment/AI%20Agents → expect 200 + consensus field present
+CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${API}/api/v2/judgment/AI%20Agents" 2>/dev/null || echo "000")
+if [[ "$CODE" == "200" ]]; then
+  pass "GET /api/v2/judgment/AI%20Agents → $CODE"
+  # Check for consensus field
+  CONSENSUS=$(curl -s --max-time 10 "${API}/api/v2/judgment/AI%20Agents" 2>/dev/null | python3 -c "import json,sys; d=json.load(sys.stdin); pj=d.get('professional_judgment',{}); print('OK' if pj.get('consensus') else 'MISSING')" 2>/dev/null || echo "ERR")
+  [[ "$CONSENSUS" == "OK" ]] && pass "judgment/AI Agents has consensus field" || fail "judgment/AI Agents missing consensus"
+else
+  fail "GET /api/v2/judgment/AI%20Agents → $CODE"
+fi
+
+# GET /compare → expect 200 (HTML page)
+CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://localhost:3001/compare" 2>/dev/null || echo "000")
+if [[ "$CODE" == "200" ]]; then
+  pass "GET /compare (HTML) → $CODE"
+else
+  fail "GET /compare (HTML) → $CODE"
+fi
+
+# POST /api/auth/register (test body) → expect 201 or 409 (not 500)
+CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 -X POST "${API}/api/auth/register" -H "Content-Type: application/json" -d '{"email":"validate_test@example.com","name":"Validate Test","plan":"free"}' 2>/dev/null || echo "000")
+if [[ "$CODE" == "201" || "$CODE" == "409" ]]; then
+  pass "POST /api/auth/register → $CODE"
+else
+  fail "POST /api/auth/register → $CODE (expected 201 or 409)"
+fi
+
+# Check /api/signals has at least 1 signal with source_layer != "?"
+SIGNALS_LAYER=$(curl -s --max-time 10 "${API}/api/signals" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+signals = d if isinstance(d, list) else d.get('signals', [])
+with_layer = sum(1 for s in signals if s.get('source_layer') and s.get('source_layer') not in ['?', 'UNKNOWN', None])
+print(with_layer)
+" 2>/dev/null || echo "0")
+[[ "$SIGNALS_LAYER" -ge 1 ]] && pass "/api/signals has $SIGNALS_LAYER signals with source_layer" || fail "/api/signals missing source_layer"
 
 # ── 3. Causal Coverage ────────────────────────────────────────────────────────
 section "[3/5] Brief Causal Coverage"
