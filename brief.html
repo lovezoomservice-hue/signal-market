@@ -13,7 +13,7 @@
 
     /* ── Action bar ─────────────────────────────────────────────── */
     .brief-actions {
-      display: flex; gap: var(--space-3); margin-bottom: var(--space-6); padding-top: var(--space-4);
+      display: flex; gap: var(--space-3); margin-bottom: var(--space-6); padding-top: var(--space-4); flex-wrap: wrap;
     }
     .action-btn {
       display: inline-flex; align-items: center; gap: var(--space-2);
@@ -25,6 +25,18 @@
     }
     .action-btn:hover { background: var(--surface-high); border-color: var(--brand); }
     .action-btn svg { width: 16px; height: 16px; }
+    .filter-toggle {
+      display: inline-flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: var(--surface-mid); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md); font-size: var(--text-sm);
+      color: var(--text-primary); cursor: pointer; transition: all 0.15s;
+      user-select: none;
+    }
+    .filter-toggle.active {
+      background: rgba(239, 68, 68, 0.15); border-color: #ef4444;
+    }
+    .filter-toggle input { display: none; }
 
     /* ── Header ─────────────────────────────────────────────── */
     .brief-header { padding: var(--space-8) 0 var(--space-6); border-bottom: 2px solid var(--border-subtle); }
@@ -79,6 +91,18 @@
       font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5;
       font-family: var(--font-mono); padding: var(--space-2) var(--space-3);
       background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md); margin-bottom: var(--space-2);
+    }
+    .se-escalation {
+      font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5;
+      padding: var(--space-2) var(--space-3);
+      background: rgba(245, 158, 11, 0.06); border-left: 3px solid #f59e0b;
+      border-radius: var(--radius-md); margin-bottom: var(--space-2);
+    }
+    .se-reversal {
+      font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5;
+      padding: var(--space-2) var(--space-3);
+      background: rgba(239, 68, 68, 0.06); border-left: 3px solid #ef4444;
       border-radius: var(--radius-md); margin-bottom: var(--space-2);
     }
     .se-meta {
@@ -165,6 +189,9 @@ const STAGE_COLORS = {
   peak: '#f97316', fading: '#6b7280', weak: '#4b5563',
 };
 
+let urgencyFilterEnabled = false;
+let cachedBriefData = null;
+
 function formatDate(iso) {
   const d = new Date(iso);
   return d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
@@ -192,6 +219,8 @@ function renderSignalEntry(s) {
     ${s.decision_question ? `<div class="se-decision"><strong>DECISION:</strong> ${s.decision_question}</div>` : ''}
     ${s.next_best_action ? `<div class="se-action"><strong>ACTION:</strong> ${s.next_best_action}</div>` : ''}
     ${s.agent_action ? `<div class="se-agent"><strong>AGENT ACTION:</strong> ${s.agent_action}</div>` : ''}
+    ${s.escalation_condition ? `<div class="se-escalation"><strong>ESCALATION:</strong> ${s.escalation_condition}</div>` : ''}
+    ${s.reversal_condition ? `<div class="se-reversal"><strong>REVERSAL:</strong> ${s.reversal_condition}</div>` : ''}
     <div class="se-meta">
       <span>WINDOW: ${s.window || '—'}</span>
       <span>CONFIDENCE: ${conf}%</span>
@@ -200,8 +229,9 @@ function renderSignalEntry(s) {
   </div>`;
 }
 
-function renderBrief(data) {
-  const signals = data.top_signals || [];
+function renderBrief(data, filterHighUrgency = false) {
+  const allSignals = data.top_signals || [];
+  const signals = filterHighUrgency ? allSignals.filter(s => s.urgency === 'high') : allSignals;
   const now = new Date().toISOString();
   const dateStr = formatDate(now);
 
@@ -230,12 +260,25 @@ function renderBrief(data) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
         Copy as Markdown
       </button>
+      <button class="action-btn" onclick="copyAsJson()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Copy as JSON
+      </button>
+      <button class="action-btn" onclick="shareUrl()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Share
+      </button>
+      <label class="filter-toggle" id="urgency-filter">
+        <input type="checkbox" onchange="toggleUrgencyFilter(this.checked)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><path d="M12 2v10l4.24 4.24"/></svg>
+        High Urgency Only
+      </label>
     </div>
 
     <div class="brief-header">
       <div class="brief-date"><span class="live-dot"></span> ${dateStr}</div>
       <h1 class="brief-title">Signal Market — Daily Intelligence Brief</h1>
-      <p class="brief-subtitle">Top ${signals.length} signals ranked by urgency and confidence</p>
+      <p class="brief-subtitle">Top ${signals.length} signals ranked by urgency and confidence${filterHighUrgency ? ' (high urgency only)' : ''}</p>
     </div>
 
     <div class="signal-list">
@@ -280,11 +323,40 @@ async function copyAsMarkdown() {
   }
 }
 
+async function copyAsJson() {
+  try {
+    const res = await fetch('/api/v2/agent-brief?limit=10');
+    const data = await res.json();
+    await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+    alert('✓ Brief copied as JSON to clipboard');
+  } catch (e) {
+    alert('Failed to copy JSON. Please try again.');
+  }
+}
+
+async function shareUrl() {
+  try {
+    const url = window.location.href;
+    await navigator.clipboard.writeText(url);
+    alert('✓ URL copied to clipboard');
+  } catch (e) {
+    alert('Failed to copy URL. Please try again.');
+  }
+}
+
+function toggleUrgencyFilter(enabled) {
+  urgencyFilterEnabled = enabled;
+  if (cachedBriefData) {
+    renderBrief(cachedBriefData, urgencyFilterEnabled);
+  }
+}
+
 async function loadBrief() {
   try {
     const res = await fetch('/api/v2/agent-brief?limit=10');
     const data = await res.json();
-    renderBrief(data);
+    cachedBriefData = data;
+    renderBrief(data, urgencyFilterEnabled);
   } catch (e) {
     document.getElementById('brief-root').innerHTML = `
       <div class="brief-header">
