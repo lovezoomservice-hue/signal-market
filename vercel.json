@@ -280,6 +280,10 @@
       "dest": "/api/v2/rank.js"
     },
     {
+      "src": "/api/v2/judgment/(.+)",
+      "dest": "/api/v2/judgment.js?topic=$1"
+    },
+    {
       "src": "/api/v2/compare",
       "dest": "/api/v2/compare.js"
     },

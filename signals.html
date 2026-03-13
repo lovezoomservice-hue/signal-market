@@ -249,6 +249,41 @@
     .urgency-medium { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
     .urgency-low    { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
 
+    /* Stage badge */
+    .stage-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+    .stage-accelerating { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .stage-forming      { background: rgba(96, 165, 250, 0.15); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.3); }
+    .stage-emerging     { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.3); }
+    .stage-peak         { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .stage-fading       { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .stage-weak         { background: rgba(100, 116, 139, 0.15); color: #64748b; border: 1px solid rgba(100, 116, 139, 0.3); }
+
+    /* Source layer badge */
+    .source-layer-badge {
+      font-size: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+    .sl-l5  { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .sl-l3  { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .sl-l3b { background: rgba(20, 184, 166, 0.15); color: #14b8a6; border: 1px solid rgba(20, 184, 166, 0.3); }
+    .sl-l4  { background: rgba(249, 115, 22, 0.15); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .sl-l1  { background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .sl-l0  { background: rgba(236, 72, 153, 0.15); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.3); }
+
     /* Action teaser */
     .action-teaser {
       font-size: var(--text-xs);
@@ -735,6 +770,59 @@ function impactSegments(score) {
   ).join('');
 }
 
+// Determine source layer from sources array and source_tag
+function determineSourceLayer(sources, sourceTag) {
+  // Direct source_layer takes precedence
+  if (sourceTag) {
+    const l5Tags = ['vc_blog', 'analyst', 'judgment', 'greylock', 'tc_venture', 'tc_ai', 'yc_blog', 'mit_tr', 'stratechery', 'semianalysis', 'benedict_evans', 'not_boring', 'dwarkesh', 'professional_judgment'];
+    const l3bTags = ['macro'];
+    const l4Tags = ['political'];
+    const l3Tags = ['polymarket', 'kalshi', 'prediction'];
+
+    if (l5Tags.includes(sourceTag)) return 'L5';
+    if (l3bTags.includes(sourceTag)) return 'L3b';
+    if (l4Tags.includes(sourceTag)) return 'L4';
+    if (l3Tags.includes(sourceTag)) return 'L3';
+  }
+
+  // Infer from sources
+  if (!sources || sources.length === 0) return null;
+
+  const sourcesStr = sources.join(' ').toLowerCase();
+
+  // L5: Professional judgment sources
+  if (sourcesStr.match(/greylock|tc_venture|yc_blog|mit_tr|stratechery|semianalysis|benedict|not_boring|dwarkesh|professional/)) {
+    return 'L5';
+  }
+
+  // L3b: Macro sources
+  if (sourcesStr.match(/macro|yahoo|marketwatch|cnbc/)) {
+    return 'L3b';
+  }
+
+  // L4: Political sources
+  if (sourcesStr.match(/political|whitehouse|congress|reuters_politics/)) {
+    return 'L4';
+  }
+
+  // L3: Prediction markets
+  if (sourcesStr.match(/polymarket|kalshi/)) {
+    return 'L3';
+  }
+
+  // L1: Traditional news
+  if (sourcesStr.match(/reuters|bloomberg|wsj/)) {
+    return 'L1';
+  }
+
+  // L0: Social/community
+  if (sourcesStr.match(/hackernews|reddit|twitter/)) {
+    return 'L0';
+  }
+
+  return null;
+}
+
 function renderCard(sig, causalData = {}) {
   const conf = sig.confidence || 0;
   const confPct = Math.round(conf * 100);
@@ -764,6 +852,11 @@ function renderCard(sig, causalData = {}) {
   // Topic with flame emoji for accelerating
   const topicDisplay = stage === 'accelerating' ? `🔥 ${sig.topic}` : sig.topic;
 
+  // Source layer badge - determine highest layer from signal
+  const sourceLayer = sig.source_layer || determineSourceLayer(sources, sig.source_tag);
+  const layerClass = sourceLayer ? `sl-${sourceLayer.toLowerCase().replace('+', '')}` : '';
+  const layerLabel = sourceLayer ? sourceLayer.replace('L', 'L') : '';
+
   const sourcePills = sources.map(s => {
     const cls = SOURCE_CLASS[s] || '';
     const lbl = SOURCE_LABELS[s] || s;
@@ -777,6 +870,7 @@ function renderCard(sig, causalData = {}) {
       <div class="sc-badges" style="flex-direction: column; align-items: flex-end; gap: 4px;">
         <span class="stage-badge stage-${stage}">${STAGE_LABELS[stage] || stage}</span>
         <span class="urgency-badge ${urgencyClass}">${urgencyLabel}</span>
+        ${layerClass ? `<span class="source-layer-badge ${layerClass}">${layerLabel}</span>` : ''}
       </div>
     </div>
 

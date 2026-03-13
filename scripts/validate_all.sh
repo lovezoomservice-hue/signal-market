@@ -101,6 +101,8 @@ ENDPOINTS_V2=(
   "/api/v2/agent-brief"
   "/api/v2/agent-brief?format=minimal"
   "/api/v2/causal/evt_001"
+  "/api/v2/judgment/AI%20Agents"
+  "/api/v2/judgment/LLM%20Infrastructure"
 )
 for ep in "${ENDPOINTS_V2[@]}"; do
   CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "${API}${ep}" 2>/dev/null || echo "000")

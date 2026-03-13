@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 """
 World Signals Master Fetcher — Signal Market Multi-Layer Source Aggregator
-Combines L0 (HN), L1 (Reuters), L2 (Reddit), L3 (Polymarket), L4 (Political), L5 (Professional) into merged signals.
+Combines L0 (HN), L1 (Reuters), L2 (Reddit), L3 (Polymarket), L3b (Macro), L4 (Political), L5 (Professional) into merged signals.
 
 Usage:
   python3 scripts/fetch_world_signals.py
   python3 scripts/fetch_world_signals.py --dry-run
-  python3 scripts/fetch_world_signals.py --layers l0,l1,l2,l3,l4,l5
+  python3 scripts/fetch_world_signals.py --layers l0,l1,l2,l3,l3b,l4,l5,l5b
 
 Layers:
   L0 = Hacker News (dev community)
   L1 = Reuters (news/media)
   L2 = Reddit (social/sentiment)
   L3 = Polymarket/Kalshi (prediction market)
+  L3b = Macro/Market Signals (Yahoo Finance, MarketWatch, CNBC)
   L4 = Political narratives (White House, Congress, Reuters Politics)
   L5 = Professional Judgment (VC / analyst / consulting)
   L5b = Earnings transcripts (AI keyword tracking)
@@ -27,7 +28,7 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
     today = datetime.date.today().isoformat()
     now   = datetime.datetime.utcnow().isoformat() + "Z"
     if layers is None:
-        layers = ["l0", "l1", "l2", "l3", "l4", "l5", "l5b"]
+        layers = ["l0", "l1", "l2", "l3", "l3b", "l4", "l5", "l5b"]
 
     all_new: list[dict] = []
     stats: dict[str, int] = {}
@@ -107,6 +108,22 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
         except Exception as e:
             print(f"  L3 Kalshi ERROR: {e}", file=sys.stderr)
             stats["l3_kalshi"] = 0
+
+    # ── L3b: Macro/Market Signals (Yahoo Finance, MarketWatch, CNBC) ─────────
+    if "l3b" in layers:
+        try:
+            from scripts.fetch_macro_signals import fetch_macro_signals
+        except ImportError:
+            sys.path.insert(0, str(ROOT))
+            from scripts.fetch_macro_signals import fetch_macro_signals
+        try:
+            sigs = fetch_macro_signals()
+            all_new.extend(sigs)
+            stats["l3b_macro"] = len(sigs)
+            print(f"  L3b Macro:    {len(sigs)} signals")
+        except Exception as e:
+            print(f"  L3b Macro ERROR: {e}", file=sys.stderr)
+            stats["l3b_macro"] = 0
 
     # ── L4: Political Narratives (White House, Congress, Reuters Politics) ───
     if "l4" in layers:
@@ -230,7 +247,7 @@ def run_world_signals_fetch(layers: list[str] | None = None, dry_run: bool = Fal
 def main():
     parser = argparse.ArgumentParser(description="World Signals Master Fetcher")
     parser.add_argument("--dry-run", action="store_true", help="Fetch but don't write files")
-    parser.add_argument("--layers", default="l0,l1,l2,l3,l4,l5,l5b", help="Comma-separated layers: l0,l1,l2,l3,l4,l5,l5b")
+    parser.add_argument("--layers", default="l0,l1,l2,l3,l3b,l4,l5,l5b", help="Comma-separated layers: l0,l1,l2,l3,l3b,l4,l5,l5b")
     args = parser.parse_args()
 
     layers = [l.strip().lower() for l in args.layers.split(",")]
