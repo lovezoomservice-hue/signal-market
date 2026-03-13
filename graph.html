@@ -85,6 +85,33 @@
     }
     .insight-strip strong { color: var(--text-primary); font-size: var(--text-sm); display: block; margin-bottom: 4px; }
 
+    /* stage filters */
+    .stage-filters {
+      display: flex;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+      flex-wrap: wrap;
+    }
+    .stage-filter-btn {
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      border: 1px solid var(--border-subtle);
+      background: transparent;
+      color: var(--text-tertiary);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .stage-filter-btn:hover { background: var(--surface-low); color: var(--text-secondary); }
+    .stage-filter-btn.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+    }
+
     /* stats */
     .sidebar-stats {
       display: grid;
@@ -362,6 +389,13 @@
         <strong>Loading topology…</strong>
         Analyzing connections between signals.
       </div>
+
+      <div class="stage-filters" id="stage-filters">
+        <button class="stage-filter-btn active" data-stage="all">All</button>
+        <button class="stage-filter-btn" data-stage="accelerating">Accelerating</button>
+        <button class="stage-filter-btn" data-stage="forming">Forming</button>
+        <button class="stage-filter-btn" data-stage="emerging">Emerging</button>
+      </div>
     </div>
 
     <div class="sidebar-stats">
@@ -419,20 +453,18 @@
 
 <script>
 const STAGE_COLORS = {
-  accelerating: '#22c55e',
+  accelerating: '#ef4444',
   forming:      '#f59e0b',
-  emerging:     '#60a5fa',
-  peak:         '#f97316',
+  emerging:     '#3b82f6',
   fading:       '#6b7280',
-  dead:         '#374151',
-  weak:         '#4b5563',
 };
-const STAGE_LABELS = { accelerating:'Accelerating', forming:'Forming', emerging:'Emerging', peak:'Peak', fading:'Fading', dead:'Dead', weak:'Weak' };
+const STAGE_LABELS = { accelerating:'Accelerating', forming:'Forming', emerging:'Emerging', fading:'Fading' };
 
 let graphData = null;
 let selectedNode = null;
 let simulation = null;
 let zoomBehavior = null;
+let currentStageFilter = 'all';
 
 async function loadGraph() {
   try {
@@ -445,8 +477,17 @@ async function loadGraph() {
 }
 
 function renderAll() {
-  const nodes = graphData.nodes || [];
-  const edges = graphData.edges || [];
+  const allNodes = graphData.nodes || [];
+  const allEdges = graphData.edges || [];
+
+  // Filter nodes by stage
+  const nodes = currentStageFilter === 'all'
+    ? allNodes
+    : allNodes.filter(n => n.stage === currentStageFilter);
+
+  // Filter edges to only include those between visible nodes
+  const nodeIds = new Set(nodes.map(n => n.id));
+  const edges = allEdges.filter(e => nodeIds.has(e.source) && nodeIds.has(e.target));
 
   // Stats
   document.getElementById('stat-nodes').textContent = nodes.length;
@@ -486,25 +527,24 @@ function renderAll() {
 }
 
 function renderNodeList(nodes, edges) {
-  const sorted = [...nodes].sort((a,b) => (b.confidence||0) - (a.confidence||0));
-  const html = sorted.map(n => {
+  const top5 = [...nodes].sort((a,b) => (b.centrality||0) - (a.centrality||0)).slice(0, 5);
+  const html = top5.map(n => {
     const degree = edges.filter(e => e.source === n.id || e.target === n.id).length;
     return `
     <div class="node-item" data-id="${n.id}">
       <div class="ni-dot" style="background:${STAGE_COLORS[n.stage]||'#666'}"></div>
       <div class="ni-body">
         <div class="ni-label">${n.label}</div>
-        <div class="ni-meta">${degree} connection${degree !== 1 ? 's' : ''} · ${STAGE_LABELS[n.stage]||n.stage}</div>
+        <div class="ni-meta">${degree} connection${degree !== 1 ? 's' : ''} · Centrality: ${n.centrality.toFixed(2)}</div>
       </div>
       <span class="ni-conf">${Math.round((n.confidence||0)*100)}%</span>
     </div>`;
   }).join('');
-  document.getElementById('panel-nodes').innerHTML = html;
+  document.getElementById('panel-nodes').innerHTML = '<div style="font-size:10px;color:var(--text-tertiary);margin-bottom:var(--space-2);text-transform:uppercase;letter-spacing:0.08em">Top 5 by centrality</div>' + html;
   document.querySelectorAll('.node-item').forEach(el => {
     el.addEventListener('click', () => {
       const id = el.dataset.id;
-      const node = nodes.find(n => n.id === id);
-      if (node) selectNode(node, nodes, edges);
+      window.location.href = `/signal?id=${id}`;
     });
   });
 }
@@ -681,8 +721,8 @@ function renderD3(nodes, edges) {
 
   // Simulation
   simulation = d3.forceSimulation(nodes)
-    .force('link', d3.forceLink(edgeData).id(d => d.id).distance(d => 110 - (d.weight||0) * 60).strength(d => (d.weight||0.3) * 0.7))
-    .force('charge', d3.forceManyBody().strength(-280))
+    .force('link', d3.forceLink(edgeData).id(d => d.id).distance(d => 110 - (d.weight||0) * 60).strength(0.5))
+    .force('charge', d3.forceManyBody().strength(-200))
     .force('center', d3.forceCenter(w / 2, h / 2))
     .force('collision', d3.forceCollide().radius(d => nodeRadius(d) + 20));
 
@@ -698,8 +738,13 @@ function renderD3(nodes, edges) {
     .selectAll('line')
     .data(edgeData)
     .join('line')
-    .attr('stroke', 'rgba(255,255,255,0.07)')
-    .attr('stroke-width', d => Math.max(0.5, (d.weight||0.3) * 2.5))
+    .attr('stroke', d => {
+      if (d.relationships && d.relationships.includes('co_stage')) return '#a855f7';
+      if (d.relationships && d.relationships.includes('shared_source')) return '#14b8a6';
+      return '#6b7280';
+    })
+    .attr('stroke-opacity', d => 0.2 + (d.weight||0) * 0.15)
+    .attr('stroke-width', d => Math.max(0.5, (d.weight||0) * 2.5))
     .attr('stroke-linecap', 'round')
     .style('cursor', 'pointer')
     .on('mouseover', (event, d) => {
@@ -747,33 +792,16 @@ function renderD3(nodes, edges) {
     .attr('stroke-opacity', 0.5)
     .attr('class', 'node-circle');
 
-  // Inner pulse for accelerating
-  node.filter(d => d.stage === 'accelerating')
-    .append('circle')
-    .attr('r', d => nodeRadius(d) * 0.45)
-    .attr('fill', '#fff')
-    .attr('opacity', 0.25);
-
-  // Label
+  // Label below node
   node.append('text')
     .text(d => d.label)
     .attr('text-anchor', 'middle')
     .attr('dy', d => nodeRadius(d) + 14)
-    .attr('fill', 'rgba(255,255,255,0.7)')
+    .attr('fill', 'rgba(255,255,255,0.8)')
     .attr('font-size', '11px')
     .attr('font-family', 'Inter, sans-serif')
-    .attr('font-weight', '500');
-
-  // Confidence label inside node
-  node.append('text')
-    .text(d => Math.round((d.confidence||0)*100) + '%')
-    .attr('text-anchor', 'middle')
-    .attr('dy', '4px')
-    .attr('fill', '#fff')
-    .attr('font-size', '10px')
-    .attr('font-family', 'JetBrains Mono, monospace')
-    .attr('font-weight', '600')
-    .attr('opacity', 0.8);
+    .attr('font-weight', '500')
+    .attr('pointer-events', 'none');
 
   // Node interactions
   node
@@ -782,10 +810,10 @@ function renderD3(nodes, edges) {
       const connCount = edges.filter(e => e.source === d.id || e.target === d.id).length;
       tt.innerHTML = `
         <div class="gt-topic">${d.label}</div>
+        <div class="gt-row"><span class="k">Topic</span><span class="v">${d.label}</span></div>
         <div class="gt-row"><span class="k">Stage</span><span class="v" style="color:${STAGE_COLORS[d.stage]}">${STAGE_LABELS[d.stage]||d.stage}</span></div>
         <div class="gt-row"><span class="k">Confidence</span><span class="v">${Math.round((d.confidence||0)*100)}%</span></div>
-        <div class="gt-row"><span class="k">Connections</span><span class="v">${connCount}</span></div>
-        <div class="gt-row"><span class="k">Impact</span><span class="v">${((d.impact_score||0)*100).toFixed(0)}/100</span></div>
+        <div class="gt-row"><span class="k">Degree</span><span class="v">${connCount}</span></div>
       `;
       tt.classList.add('visible');
       positionTooltip(event, tt);
@@ -799,7 +827,7 @@ function renderD3(nodes, edges) {
     })
     .on('click', (event, d) => {
       event.stopPropagation();
-      selectNode(d, nodes, edges);
+      window.location.href = `/signal?id=${d.id}`;
     });
 
   svg.on('click', () => {
@@ -819,8 +847,8 @@ function renderD3(nodes, edges) {
 }
 
 function nodeRadius(d) {
-  const base = 16;
-  const confBonus = (d.confidence || 0) * 12;
+  const base = 12;
+  const confBonus = (d.confidence || 0) * 20;
   return base + confBonus;
 }
 
@@ -879,6 +907,16 @@ document.querySelectorAll('.sidebar-tab').forEach(tab => {
     document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+  });
+});
+
+// Stage filters
+document.querySelectorAll('.stage-filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.stage-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentStageFilter = btn.dataset.stage;
+    renderAll();
   });
 });
 

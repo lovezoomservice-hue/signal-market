@@ -116,6 +116,35 @@
       .about-hero h1 { font-size: var(--text-4xl); }
       .not-grid { grid-template-columns: 1fr; }
     }
+  
+    .about-main { padding: 40px 0; }
+    .about-hero { background: var(--bg-secondary, #0f172a); padding: 60px 0; margin-bottom: 40px; }
+    .about-hero h1 { font-size: 2.5rem; margin-bottom: 16px; }
+    .about-hero .lead { font-size: 1.1rem; color: var(--text-secondary, #94a3b8); max-width: 700px; line-height: 1.7; }
+    .about-sources, .about-who, .about-how, .about-api { padding: 40px 0; border-top: 1px solid var(--border, #1e293b); }
+    .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+    .source-table { margin-top: 24px; display: flex; flex-direction: column; gap: 8px; }
+    .source-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--bg-secondary, #0f172a); border-radius: 8px; }
+    .layer-badge { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; min-width: 36px; text-align: center; }
+    .layer-badge.l0 { background: #374151; color: #d1d5db; }
+    .layer-badge.l1 { background: #1d4ed8; color: #bfdbfe; }
+    .layer-badge.l3 { background: #0369a1; color: #bae6fd; }
+    .layer-badge.l3b { background: #0f766e; color: #99f6e4; }
+    .layer-badge.l4 { background: #b45309; color: #fde68a; }
+    .layer-badge.l5 { background: #6d28d9; color: #ddd6fe; }
+    .layer-badge.l5b { background: #7c3aed; color: #ede9fe; }
+    .source-name { flex: 1; font-size: 0.9rem; }
+    .source-count { font-size: 0.8rem; color: var(--text-secondary, #94a3b8); white-space: nowrap; }
+    .who-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
+    .who-card { padding: 20px; background: var(--bg-secondary, #0f172a); border-radius: 8px; }
+    .who-card p { color: var(--text-secondary, #94a3b8); margin-top: 8px; font-size: 0.9rem; }
+    .how-steps { display: flex; flex-direction: column; gap: 16px; margin-top: 24px; }
+    .step { display: flex; gap: 16px; align-items: flex-start; padding: 20px; background: var(--bg-secondary, #0f172a); border-radius: 8px; }
+    .step-num { font-size: 1.5rem; font-weight: 700; color: var(--accent, #3b82f6); min-width: 32px; }
+    .step p { color: var(--text-secondary, #94a3b8); margin-top: 4px; font-size: 0.9rem; }
+    .about-api { text-align: center; }
+    .btn-primary { display: inline-block; background: var(--accent, #3b82f6); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; }
+
   </style>
 </head>
 <body>
@@ -142,9 +171,185 @@
 <div class="about-page">
 
   <div class="about-hero">
-    <div class="eyebrow">Signal Market · Intelligence Infrastructure</div>
-    <h1>We don't curate news.<br>We compute <em>signals</em>.</h1>
-    <p class="about-lead">Every day, 800+ AI research papers publish, thousands of GitHub repos update, and hundreds of model releases appear. No human can track this. Signal Market turns the flood into a structured, confidence-scored intelligence layer — for founders, researchers, investors, and AI agents.</p>
+    <div class="eyebrow">Signal Market — Decision Intelligence</div>
+    <h1>What is Signal Market?</h1>
+    <p class="about-lead">Signal Market is a decision intelligence platform. We aggregate, analyze, and surface the highest-quality technology trend signals from 8+ sources so humans and AI agents can act on what is actually happening, not what sounds plausible.</p>
+  </div>
+
+  <!-- Who it is for -->
+  <div class="how-section">
+    <div class="section-label">Who it is for</div>
+    <div class="not-grid">
+      <div class="not-card good">
+        <h4>Individual Investors</h4>
+        <div class="not-item">Track AI ecosystem shifts before they hit mainstream</div>
+        <div class="not-item">Confidence-scored signals, not hype</div>
+        <div class="not-item">Daily brief at 09:00 GMT+8</div>
+      </div>
+      <div class="not-card good">
+        <h4>AI Teams &amp; Researchers</h4>
+        <div class="not-item">Monitor code, models, papers across 8+ sources</div>
+        <div class="not-item">Cross-validation reveals genuine momentum</div>
+        <div class="not-item">API v2 for agent integration</div>
+      </div>
+      <div class="not-card good">
+        <h4>AI Agents (MCP-compatible)</h4>
+        <div class="not-item">Structured WorldState v2 schema</div>
+        <div class="not-item">Typed fields, explicit nulls, confidence intervals</div>
+        <div class="not-item">Machine-native intelligence layer</div>
+      </div>
+      <div class="not-card good">
+        <h4>Analysts &amp; Strategy</h4>
+        <div class="not-item">Policy layer (L4) for regulatory intelligence</div>
+        <div class="not-item">Professional judgment layer (L5) from top analysts</div>
+        <div class="not-item">Earnings intelligence (L5b) for market signals</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="how-section">
+    <div class="section-label">How it works</div>
+    <div class="pipeline-steps">
+      <div class="pipeline-step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>Pipeline aggregates 230+ signals daily</h4>
+          <p>Continuous ingestion from 8+ layers: HackerNews, Reuters, Polymarket, macro finance, policy sources, professional analysts, and earnings calls.</p>
+          <div class="step-sources">
+            <span class="source-pill">~75 from L0 HackerNews</span>
+            <span class="source-pill">~4 from L1 Reuters/TechCrunch</span>
+            <span class="source-pill">~15 from L3 Polymarket</span>
+            <span class="source-pill">~8 from L3b Macro</span>
+            <span class="source-pill">~43 from L4 Policy</span>
+            <span class="source-pill">~75 from L5 Professional</span>
+            <span class="source-pill">~12 from L5b Earnings</span>
+          </div>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>Engine merges, scores, and ranks by urgency + confidence + stage</h4>
+          <p>Signals are deduplicated by topic, cross-validated across layers, and assigned confidence scores (0-1) and lifecycle stages (emerging → forming → accelerating → fading).</p>
+        </div>
+      </div>
+      <div class="pipeline-step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>Action layer generates decision questions and next best actions</h4>
+          <p>Each signal includes: primary cause, urgency level, decision window, accelerants, inhibitors, and causal chain — transforming intelligence into executable decisions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Source Universe -->
+  <div class="sources-section">
+    <div class="section-label">Source Universe</div>
+    <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:var(--space-6);line-height:1.6">Total: ~230 raw signals per run, merged into 17 topic clusters</p>
+
+    <div class="source-tier">
+      <div class="tier-header">
+        <span class="tier-badge tier-0">L0</span>
+        <span class="tier-name">HackerNews — Developer Community</span>
+        <span class="tier-status">~75 signals/run</span>
+      </div>
+      <div class="source-list">
+        <div class="source-item"><span class="source-dot dot-live"></span>HackerNews Show HN</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>HackerNews Ask HN</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>HackerNews Front Page</div>
+      </div>
+    </div>
+
+    <div class="source-tier">
+      <div class="tier-header">
+        <span class="tier-badge tier-1">L1</span>
+        <span class="tier-name">Reuters / TechCrunch / BBC — News Media</span>
+        <span class="tier-status">~4 signals/run</span>
+      </div>
+      <div class="source-list">
+        <div class="source-item"><span class="source-dot dot-live"></span>Reuters Technology</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>TechCrunch AI</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>BBC Technology</div>
+      </div>
+    </div>
+
+    <div class="source-tier">
+      <div class="tier-header">
+        <span class="tier-badge tier-1">L3</span>
+        <span class="tier-name">Polymarket — Prediction Markets</span>
+        <span class="tier-status">~15 signals/run</span>
+      </div>
+      <div class="source-list">
+        <div class="source-item"><span class="source-dot dot-live"></span>Polymarket AI/tech markets</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Polymarket tech adoption</div>
+      </div>
+    </div>
+
+    <div class="source-tier">
+      <div class="tier-header">
+        <span class="tier-badge tier-1">L3b</span>
+        <span class="tier-name">Yahoo Finance / CNBC / MarketWatch — Macro</span>
+        <span class="tier-status">~8 signals/run</span>
+      </div>
+      <div class="source-list">
+        <div class="source-item"><span class="source-dot dot-live"></span>Yahoo Finance AI</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>CNBC Technology</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>MarketWatch Tech</div>
+      </div>
+    </div>
+
+    <div class="source-tier">
+      <div class="tier-header">
+        <span class="tier-badge tier-1">L4</span>
+        <span class="tier-name">The Hill / CNBC / Axios — Policy Layer</span>
+        <span class="tier-status">~43 signals/run</span>
+      </div>
+      <div class="source-list">
+        <div class="source-item"><span class="source-dot dot-live"></span>The Hill Tech Policy</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>CNBC Policy</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Axios Tech Policy</div>
+      </div>
+    </div>
+
+    <div class="source-tier">
+      <div class="tier-header">
+        <span class="tier-badge tier-2">L5</span>
+        <span class="tier-name">SemiAnalysis / Stratechery / MIT TR / Greylock / YC / TechCrunch Venture</span>
+        <span class="tier-status">~75 signals/run</span>
+      </div>
+      <div class="source-list">
+        <div class="source-item"><span class="source-dot dot-live"></span>SemiAnalysis</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Stratechery</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>MIT Technology Review</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Greylock Ventures</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>YC Blog</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>TechCrunch Venture</div>
+      </div>
+    </div>
+
+    <div class="source-tier">
+      <div class="tier-header">
+        <span class="tier-badge tier-2">L5b</span>
+        <span class="tier-name">Yahoo Finance — Earnings Intelligence</span>
+        <span class="tier-status">~12 signals/run</span>
+      </div>
+      <div class="source-list">
+        <div class="source-item"><span class="source-dot dot-live"></span>Microsoft (MSFT)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>NVIDIA (NVDA)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Alphabet (GOOG)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Meta (META)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Amazon (AMZN)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Apple (AAPL)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Tesla (TSLA)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>TSMC (TSM)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>AMD</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Intel (INTC)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Qualcomm (QCOM)</div>
+        <div class="source-item"><span class="source-dot dot-live"></span>Salesforce (CRM)</div>
+      </div>
+    </div>
   </div>
 
   <!-- Manifesto -->
@@ -380,8 +585,8 @@
     <p>Start with the free tier. Upgrade when Signal Market becomes load-bearing.</p>
     <div class="cta-row">
       <a href="/signals" class="btn-primary">Explore signals</a>
-      <a href="/api" class="btn-secondary">Read the API docs</a>
-      <a href="/pricing" style="font-size:var(--text-sm);color:var(--text-tertiary);text-decoration:none;padding:var(--space-3);">View pricing →</a>
+      <a href="/graph" class="btn-secondary">View signal graph</a>
+      <a href="/api-docs" style="font-size:var(--text-sm);color:var(--brand);text-decoration:none;padding:var(--space-3);">API Documentation →</a>
     </div>
   </div>
 

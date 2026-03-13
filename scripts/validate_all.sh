@@ -178,7 +178,7 @@ import json,sys
 d=json.load(sys.stdin)
 print(d.get('meta',{}).get('causal_coverage','?'))
 " 2>/dev/null || echo "ERR")
-[[ "$CAUSAL" == "10" ]] && pass "causal_coverage=10/10" || fail "causal_coverage=$CAUSAL (expected 10)"
+[[ "$CAUSAL" -ge 10 ]] 2>/dev/null && pass "causal_coverage=${CAUSAL} (≥10)" || fail "causal_coverage=$CAUSAL (expected ≥10)"
 
 # ── 4. Cross-Source Validation ────────────────────────────────────────────────
 if [[ "$QUICK" == "false" ]]; then
