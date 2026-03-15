@@ -31,7 +31,8 @@ export default async function handler(req, res) {
   const subpath = url.replace(/\?.*$/,'').split('/').slice(3).join('/');
 
   // GET /api/billing  → plans
-  if (req.method === 'GET' && !subpath) {
+  // GET /api/billing/plans → plans (alternate route)
+  if (req.method === 'GET' && (!subpath || subpath === 'plans')) {
     return res.status(200).json({
       plans: Object.entries(PLANS).map(([id,p]) => ({ id, ...p })),
       currency: 'usd',
