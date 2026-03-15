@@ -204,6 +204,10 @@
       "dest": "/api/auth/index.js"
     },
     {
+      "src": "/api/billing/plans",
+      "dest": "/api/billing.js"
+    },
+    {
       "src": "/api/billing/(usage|checkout|webhook)",
       "dest": "/api/billing.js"
     },
